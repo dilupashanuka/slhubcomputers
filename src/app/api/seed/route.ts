@@ -30,7 +30,7 @@ export async function POST() {
       { name: "CCTV & Security", slug: "cctv-security", description: "Tiandy, Hikvision, and Dahua CCTV systems and accessories", icon: "Camera", order: 11 },
     ];
 
-    const categories = [];
+    const categories: any[] = [];
     for (const cat of categoriesData) {
       const category = await db.category.upsert({
         where: { slug: cat.slug },
@@ -69,7 +69,7 @@ export async function POST() {
       { name: "Tiandy", slug: "tiandy", country: "China", order: 23 },
     ];
 
-    const brands = [];
+    const brands: any[] = [];
     for (const brand of brandsData) {
       const b = await db.brand.upsert({
         where: { slug: brand.slug },
@@ -495,7 +495,7 @@ export async function POST() {
     ];
 
     // Create all products
-    const createdProducts = [];
+    const createdProducts: any[] = [];
     for (const product of productsData) {
       const p = await db.product.create({ data: product });
       createdProducts.push(p);

@@ -14,6 +14,7 @@ interface SingleImageUploaderProps {
   value: string;
   onChange: (url: string, publicId?: string) => void;
   folder?: string;
+  label?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -23,6 +24,7 @@ export function SingleImageUploader({
   value,
   onChange,
   folder = "slhub",
+  label,
 }: SingleImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);

@@ -68,7 +68,8 @@ export async function uploadImage(
 
   // Prepare form data
   const formData = new FormData();
-  formData.append("file", file instanceof Buffer ? new Blob([file]) : file);
+  const fileToUpload = file instanceof Buffer ? new Blob([file as any]) : file;
+  formData.append("file", fileToUpload as any);
   formData.append("api_key", API_KEY);
   formData.append("timestamp", timestamp.toString());
   formData.append("folder", folder);

@@ -78,6 +78,7 @@ import Link from "next/link";
 // Type Definitions
 // ---------------------------------------------------------------------------
 interface AnalyticsData {
+  [key: string]: any;
   pageViewsToday: number;
   uniqueVisitorsToday: number;
   totalPageViews: number;
@@ -104,6 +105,7 @@ interface AnalyticsData {
 }
 
 interface StatsData {
+  [key: string]: any;
   products: number;
   categories: number;
   brands: number;
@@ -441,9 +443,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCardConfig.map((card) => {
           const Icon = card.icon;
-          const rawValue = stats
-            ? (stats as Record<string, unknown>)[card.key] ?? 0
-            : 0;
+          const rawValue = stats ? stats[card.key] ?? 0 : 0;
           const value = stats
             ? card.isCurrency
               ? formatCompactLKR(rawValue as number)
@@ -451,7 +451,7 @@ export default function AdminDashboard() {
             : "...";
 
           const changeValue = card.changeKey && stats
-            ? (stats as Record<string, unknown>)[card.changeKey] as number
+            ? stats[card.changeKey] as number
             : null;
 
           return (
