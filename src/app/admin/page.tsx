@@ -209,7 +209,12 @@ export default function AdminDashboard() {
         const productsRes = await fetch("/api/products?limit=5&sortBy=stock&sortOrder=asc");
         const productsData = await productsRes.json();
         if (productsData.success) {
-          const lowStock = (productsData.data || []).filter((p: any) => p.stock <= 5);
+          const rawProducts = Array.isArray(productsData.data) ? productsData.data : [];
+          const processedProducts = rawProducts.map((p: any) => ({
+            ...p,
+            images: typeof p.images === "string" ? JSON.parse(p.images || "[]") : (p.images || [])
+          }));
+          const lowStock = processedProducts.filter((p: any) => p.stock <= 5);
           setStockAlerts(lowStock.slice(0, 5));
         }
       } catch {}
@@ -221,7 +226,7 @@ export default function AdminDashboard() {
       } catch {}
 
       try {
-        const ordersRes = await fetch("/api/orders?limit=5");
+        const ordersRes = await fetch("/api/admin/orders?limit=5");
         const ordersData = await ordersRes.json();
         if (ordersData.success) setRecentOrders(ordersData.data || []);
       } catch {}
@@ -278,7 +283,7 @@ export default function AdminDashboard() {
   };
 
   // Prepare pie chart data
-  const pieData = stats?.orderStatusDistribution.map((item) => {
+  const pieData = (stats?.orderStatusDistribution || []).map((item) => {
     const total = stats.orderStatusDistribution.reduce((s, i) => s + i.count, 0);
     return { ...item, percentage: total > 0 ? Math.round((item.count / total) * 100) : 0 };
   }) || [];

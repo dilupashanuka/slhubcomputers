@@ -113,7 +113,7 @@ export function FlashDeals() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {products.map((product) => {
-              const images: string[] = JSON.parse(product.images || "[]");
+              const images: string[] = typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || []);
               const discount = getDiscount(product.price, product.originalPrice);
 
               return (

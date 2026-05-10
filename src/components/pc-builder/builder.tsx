@@ -974,7 +974,7 @@ export function Builder() {
 
   // ---- Handle selecting a product ----
   const handleSelectComponent = (key: string, product: ProductType) => {
-    const images: string[] = JSON.parse(product.images || "[]");
+    const images: string[] = typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || []);
     const component: PCBuilderComponent = {
       category: key,
       categoryId: findCategoryId(key) || "",

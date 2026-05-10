@@ -60,7 +60,7 @@ export function ProductSection({ title, subtitle, endpoint, icon }: ProductSecti
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {products.map((product) => {
-            const images: string[] = JSON.parse(product.images || "[]");
+            const images: string[] = typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || []);
             const discount =
               product.originalPrice && product.originalPrice > product.price
                 ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)

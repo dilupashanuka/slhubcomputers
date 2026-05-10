@@ -22,7 +22,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart, addToWishlist, addToCompare, navigateToProduct, isInWishlist, isInCompare } = useStore();
-  const images: string[] = JSON.parse(product.images || "[]");
+  const images: string[] = typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || []);
   const discount =
     product.originalPrice && product.originalPrice > product.price
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)

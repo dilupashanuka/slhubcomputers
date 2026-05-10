@@ -348,7 +348,9 @@ export function ProductDetail({ productId }: ProductDetailProps) {
           setProduct(prod);
 
           // Add to recently viewed
-          const images: string[] = JSON.parse(prod.images || "[]");
+          const images: string[] = typeof prod.images === "string" 
+    ? JSON.parse(prod.images || "[]")
+    : (prod.images || []);
           addRecentlyViewed({
             productId: prod.id,
             name: prod.name,
@@ -451,10 +453,10 @@ export function ProductDetail({ productId }: ProductDetailProps) {
 
   // ---- Derived Values ----
   const images: string[] = product
-    ? JSON.parse(product.images || "[]")
+    ? typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || [])
     : [];
   const specs: Record<string, string> = product
-    ? JSON.parse(product.specs || "{}")
+    ? typeof product.specs === "string" ? JSON.parse(product.specs || "{}") : (product.specs || {})
     : {};
   const videos: VideoInfo[] = product
     ? parseVideoUrls(product.tags)
