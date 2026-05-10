@@ -405,5 +405,6 @@ export function GiftCardPage() {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
