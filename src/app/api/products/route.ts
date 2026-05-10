@@ -155,7 +155,8 @@ export async function GET(request: NextRequest) {
       { 
         success: false, 
         error: "Failed to fetch products",
-        message: process.env.NODE_ENV === "development" ? error.message : undefined 
+        message: error.message || "Unknown error",
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined
       },
       { status: 500 }
     );
