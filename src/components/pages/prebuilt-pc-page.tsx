@@ -298,6 +298,8 @@ function PCCard({ pc }: { pc: PrebuiltPCType }) {
   );
 }
 
+import { PageHero } from "@/components/layout/page-hero";
+
 // ---------------------------------------------------------------------------
 // Pre-Built PCs Page Main Component
 // ---------------------------------------------------------------------------
@@ -336,37 +338,27 @@ export function PrebuiltPCPage() {
 
   return (
     <div className="min-h-screen">
-      {/* ---- Hero Banner ---- */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 text-white py-16 md:py-20">
-        <div className="container mx-auto px-4 text-center">
-          <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Cpu className="w-12 h-12" />
-          </div>
-          <h1 className="text-3xl md:text-5xl font-bold mb-4">
-            Pre-Built PCs
-          </h1>
-          <p className="text-xl md:text-2xl text-blue-100 mb-2">
-            Ready to Use, Ready to Play
-          </p>
-          <p className="text-blue-200 max-w-2xl mx-auto mb-8">
-            Choose from our carefully assembled PC packages — tested, optimized,
-            and ready to go. No hassle, just plug in and start!
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Badge className="bg-green-500 text-sm px-3 py-1">
-              ✓ Tested & Verified
-            </Badge>
-            <Badge className="bg-yellow-500 text-black text-sm px-3 py-1">
-              ⚡ Optimized Performance
-            </Badge>
-            <Badge className="bg-white/20 text-sm px-3 py-1">
-              🛡️ Warranty Included
-            </Badge>
-          </div>
-        </div>
-      </section>
+      <PageHero 
+        title="Pre-Built PCs"
+        subtitle="Ready to Use, Ready to Play"
+        description="Choose from our carefully assembled PC packages — tested, optimized, and ready to go. No hassle, just plug in and start!"
+        gradient="from-blue-600 via-blue-700 to-blue-900"
+        icon={<Cpu className="w-12 h-12" />}
+      />
 
       <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+          <Badge className="bg-green-500 text-sm px-3 py-1">
+            ✓ Tested & Verified
+          </Badge>
+          <Badge className="bg-yellow-500 text-black text-sm px-3 py-1">
+            ⚡ Optimized Performance
+          </Badge>
+          <Badge className="bg-white/20 text-muted-foreground text-sm px-3 py-1">
+            🛡️ Warranty Included
+          </Badge>
+        </div>
+
         {/* ---- Category Filter Tabs ---- */}
         <div className="flex flex-wrap items-center gap-2 mb-8">
           {CATEGORY_TABS.map((tab) => (

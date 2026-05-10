@@ -38,6 +38,11 @@ import {
   Smartphone,
   ChevronDown,
   Building2,
+  CreditCard,
+  User,
+  LogOut,
+  Package,
+  Settings,
 } from "lucide-react";
 import type { ViewType } from "@/types";
 
@@ -46,8 +51,10 @@ const navLinks: { label: string; view: ViewType; icon?: React.ReactNode }[] = [
   { label: "Home", view: "home" },
   { label: "Pre-Built PCs", view: "prebuilt", icon: <Building2 className="w-4 h-4" /> },
   { label: "PC Builder", view: "pc-builder", icon: <Wrench className="w-4 h-4" /> },
+  { label: "Gift Cards", view: "gift-card", icon: <CreditCard className="w-4 h-4" /> },
   { label: "About", view: "about" },
   { label: "Contact", view: "contact" },
+  { label: "Track Order", view: "order-tracking", icon: <MapPin className="w-4 h-4" /> },
 ];
 
 export function Header() {
@@ -60,11 +67,55 @@ export function Header() {
     isMobileMenuOpen,
     setIsMobileMenuOpen,
     navigateToSearch,
+    customer,
+    isLoggedIn,
+    logoutCustomer,
   } = useStore();
   const { theme, setTheme } = useTheme();
   const [searchInput, setSearchInput] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Check auth state on mount
+  useEffect(() => {
+    if (mounted && !isLoggedIn) {
+      const checkAuth = async () => {
+        try {
+          const res = await fetch("/api/auth/me");
+          const data = await res.json();
+          if (data.success && data.data) {
+            useStore.getState().setCustomer(data.data);
+          }
+        } catch {
+          // Not logged in
+        }
+      };
+      checkAuth();
+    }
+  }, [mounted]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Continue anyway
+    }
+    logoutCustomer();
+    setAccountDropdownOpen(false);
+  };
 
   useEffect(() => setMounted(true), []);
 
@@ -127,11 +178,13 @@ export function Header() {
             onClick={() => setCurrentView("home")}
             className="flex items-center gap-2 shrink-0"
           >
-            <img 
-              src="/logo.png" 
-              alt="SL HUB COMPUTER" 
-              className="h-10 w-auto object-contain"
-            />
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Cpu className="w-6 h-6 text-white" />
+            </div>
+            <div className="hidden sm:block">
+              <h1 className="text-lg font-bold text-blue-600 leading-tight">SL HUB</h1>
+              <p className="text-[10px] text-muted-foreground leading-tight">COMPUTER</p>
+            </div>
           </button>
 
           {/* Search Bar */}
@@ -204,6 +257,68 @@ export function Header() {
               )}
             </Button>
 
+            {/* Account */}
+            <div className="relative" ref={accountRef}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={() => {
+                  if (isLoggedIn) {
+                    setAccountDropdownOpen(!accountDropdownOpen);
+                  } else {
+                    setCurrentView("customer-login");
+                  }
+                }}
+              >
+                <User className="w-5 h-5" />
+                {isLoggedIn && (
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900" />
+                )}
+              </Button>
+              {/* Account Dropdown */}
+              {accountDropdownOpen && isLoggedIn && customer && (
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white dark:bg-gray-800 border rounded-xl shadow-xl z-50 overflow-hidden">
+                  <div className="p-3 border-b bg-gray-50 dark:bg-gray-900/50">
+                    <p className="font-medium text-sm truncate">{customer.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{customer.email}</p>
+                  </div>
+                  <div className="p-1.5">
+                    <button
+                      onClick={() => { setCurrentView("customer-account"); setAccountDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <User className="w-4 h-4 text-emerald-600" />
+                      My Account
+                    </button>
+                    <button
+                      onClick={() => { setCurrentView("customer-account"); setAccountDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <Package className="w-4 h-4 text-blue-600" />
+                      My Orders
+                    </button>
+                    <button
+                      onClick={() => { setCurrentView("wishlist"); setAccountDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <Heart className="w-4 h-4 text-rose-600" />
+                      Wishlist
+                    </button>
+                  </div>
+                  <div className="border-t p-1.5">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Cart */}
             <Button
               variant="ghost"
@@ -242,6 +357,20 @@ export function Header() {
                     </button>
                   ))}
                   <div className="border-t my-2" />
+                  <button
+                    onClick={() => { setCurrentView(isLoggedIn ? "customer-account" : "customer-login"); setIsMobileMenuOpen(false); }}
+                    className="flex items-center gap-2 px-4 py-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 text-left transition-colors"
+                  >
+                    <User className="w-4 h-4 text-emerald-600" />
+                    <span>{isLoggedIn ? "My Account" : "Sign In"}</span>
+                  </button>
+                  <button
+                    onClick={() => setCurrentView("order-tracking")}
+                    className="flex items-center gap-2 px-4 py-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 text-left transition-colors"
+                  >
+                    <MapPin className="w-4 h-4 text-blue-600" />
+                    <span>Track Order</span>
+                  </button>
                   <button
                     onClick={() => setCurrentView("faq")}
                     className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground text-left"

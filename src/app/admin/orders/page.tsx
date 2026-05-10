@@ -21,6 +21,7 @@ import {
   Pencil,
   Trash2,
   Filter,
+  Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -330,6 +331,14 @@ export default function OrdersPage() {
                           <Button variant="ghost" size="icon-sm" onClick={() => handleUpdateStatus(order)}>
                             <Pencil className="size-3" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            title="Print Invoice"
+                            onClick={() => window.open(`/api/admin/orders/${order.id}/invoice`, "_blank")}
+                          >
+                            <Printer className="size-3 text-blue-600" />
+                          </Button>
                           <Button variant="ghost" size="icon-sm" onClick={() => setDeleteId(order.id)}>
                             <Trash2 className="size-3 text-destructive" />
                           </Button>
@@ -348,8 +357,19 @@ export default function OrdersPage() {
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              Order: {selectedOrder?.orderNumber}
+            <DialogTitle className="flex items-center justify-between">
+              <span>Order: {selectedOrder?.orderNumber}</span>
+              {selectedOrder && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-2"
+                  onClick={() => window.open(`/api/admin/orders/${selectedOrder.id}/invoice`, "_blank")}
+                >
+                  <Printer className="w-4 h-4 mr-1" />
+                  Print Invoice
+                </Button>
+              )}
             </DialogTitle>
           </DialogHeader>
 

@@ -97,20 +97,23 @@ const notEligibleItems = [
 // ---------------------------------------------------------------------------
 // Returns Page Component
 // ---------------------------------------------------------------------------
+import { PageHero } from "@/components/layout/page-hero";
+
+// ---------------------------------------------------------------------------
+// Returns Page Component
+// ---------------------------------------------------------------------------
 export function ReturnsPage() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-          <RotateCcw className="w-8 h-8 text-blue-600" />
-        </div>
-        <h1 className="text-3xl font-bold mb-3">Returns & Refunds</h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          We want you to be completely satisfied with your purchase. If
-          something&apos;s not right, we&apos;re here to help.
-        </p>
-      </div>
+    <div className="min-h-screen">
+      <PageHero 
+        title="Returns & Refunds"
+        subtitle="Your satisfaction is our priority"
+        description="We want you to be completely satisfied with your purchase. If something's not right, we're here to help you with our 7-day return policy."
+        gradient="from-slate-600 to-slate-800"
+        icon={<RotateCcw className="w-12 h-12" />}
+      />
+
+      <div className="container mx-auto px-4 pb-16">
 
       {/* ---- 7-Day Return Policy Highlight ---- */}
       <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 mb-10">
@@ -319,6 +322,7 @@ export function ReturnsPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

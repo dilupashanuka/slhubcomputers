@@ -200,6 +200,8 @@ const categoryConfig: Record<string, { icon: React.ReactNode; color: string; tit
   "CCTV & Security": { icon: <Camera className="w-5 h-5" />, color: "text-red-600", title: "CCTV & Security" },
 };
 
+import { PageHero } from "@/components/layout/page-hero";
+
 // ---------------------------------------------------------------------------
 // FAQ Page Component
 // ---------------------------------------------------------------------------
@@ -258,24 +260,17 @@ export function FaqPage() {
     .filter((section) => section.items.length > 0);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-          <HelpCircle className="w-8 h-8 text-blue-600" />
-        </div>
-        <h1 className="text-3xl font-bold mb-3">
-          Frequently Asked Questions
-        </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Find answers to common questions about our products, services,
-          ordering, and more. Can&apos;t find what you&apos;re looking for?
-          Contact us directly!
-        </p>
-      </div>
+    <div className="min-h-screen">
+      <PageHero 
+        title="Frequently Asked Questions"
+        subtitle="How can we help you?"
+        description="Find answers to common questions about our products, services, shipping, and warranty policies."
+        gradient="from-indigo-600 to-purple-800"
+        icon={<HelpCircle className="w-12 h-12" />}
+      />
 
-      {/* Search Bar */}
-      <div className="relative mb-8 max-w-xl mx-auto">
+      <div className="container mx-auto px-4 pb-16">
+        <div className="max-w-4xl mx-auto">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <Input
           value={searchQuery}
@@ -368,6 +363,7 @@ export function FaqPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

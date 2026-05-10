@@ -93,31 +93,19 @@ self.addEventListener("fetch", (event) => {
 
 // Cache-first strategy: check cache first, fall back to network
 async function cacheFirst(request) {
-  try {
-    const cached = await caches.match(request);
-    if (cached) {
-      return cached;
-    }
+  const cached = await caches.match(request);
+  if (cached) {
+    return cached;
+  }
 
+  try {
     const response = await fetch(request);
-    
-    // Only cache successful GET responses
-    if (response && response.ok && response.status === 200 && request.method === "GET") {
-      // Don't cache opaque responses or those with Vary: *
-      const vary = response.headers.get("Vary");
-      if (vary !== "*") {
-        try {
-          const cache = await caches.open(STATIC_CACHE);
-          // Use a try-catch for put as it can fail due to network changes or aborted requests
-          await cache.put(request, response.clone());
-        } catch (cacheError) {
-          console.warn("[SW] Failed to cache static asset:", request.url, cacheError);
-        }
-      }
+    if (response.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, response.clone());
     }
     return response;
   } catch (error) {
-    console.error("[SW] Cache-first fetch failed:", error);
     // If offline and not in cache, return offline fallback for images
     if (request.destination === "image") {
       return new Response(
@@ -133,17 +121,9 @@ async function cacheFirst(request) {
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
-    
-    if (response && response.ok && response.status === 200 && request.method === "GET") {
-      const vary = response.headers.get("Vary");
-      if (vary !== "*") {
-        try {
-          const cache = await caches.open(DYNAMIC_CACHE);
-          await cache.put(request, response.clone());
-        } catch (cacheError) {
-          console.warn("[SW] Failed to cache dynamic asset:", request.url, cacheError);
-        }
-      }
+    if (response.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, response.clone());
     }
     return response;
   } catch (error) {

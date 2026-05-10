@@ -16,7 +16,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, RefreshCw } from "lucide-react";
+import { Save, RefreshCw, Smartphone, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,6 +54,16 @@ interface Settings {
   accentColor: string;
   enableCCTV: boolean;
   enablePCBuilder: boolean;
+  // SMS Configuration
+  smsProvider: string;
+  smsApiKey: string;
+  smsApiSecret: string;
+  smsFromNumber: string;
+  smsEnabled: boolean;
+  smsOrderConfirmation: boolean;
+  smsStatusUpdates: boolean;
+  smsBackInStock: boolean;
+  smsDeliveryUpdates: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -86,6 +96,16 @@ const defaultSettings: Settings = {
   accentColor: "",
   enableCCTV: true,
   enablePCBuilder: true,
+  // SMS Configuration
+  smsProvider: "none",
+  smsApiKey: "",
+  smsApiSecret: "",
+  smsFromNumber: "",
+  smsEnabled: false,
+  smsOrderConfirmation: true,
+  smsStatusUpdates: true,
+  smsBackInStock: true,
+  smsDeliveryUpdates: true,
 };
 
 // ---------------------------------------------------------------------------
@@ -148,6 +168,16 @@ export default function SettingsPage() {
           accentColor: data.data.accentColor || "",
           enableCCTV: data.data.enableCCTV ?? defaultSettings.enableCCTV,
           enablePCBuilder: data.data.enablePCBuilder ?? defaultSettings.enablePCBuilder,
+          // SMS Configuration
+          smsProvider: data.data.smsProvider || defaultSettings.smsProvider,
+          smsApiKey: data.data.smsApiKey || "",
+          smsApiSecret: data.data.smsApiSecret || "",
+          smsFromNumber: data.data.smsFromNumber || "",
+          smsEnabled: data.data.smsEnabled ?? defaultSettings.smsEnabled,
+          smsOrderConfirmation: data.data.smsOrderConfirmation ?? defaultSettings.smsOrderConfirmation,
+          smsStatusUpdates: data.data.smsStatusUpdates ?? defaultSettings.smsStatusUpdates,
+          smsBackInStock: data.data.smsBackInStock ?? defaultSettings.smsBackInStock,
+          smsDeliveryUpdates: data.data.smsDeliveryUpdates ?? defaultSettings.smsDeliveryUpdates,
         });
       }
     } catch (error) {
@@ -188,6 +218,37 @@ export default function SettingsPage() {
   // Helper to update form fields
   const updateField = (field: keyof Settings, value: string | number | boolean) => {
     setForm({ ...form, [field]: value });
+  };
+
+  // SMS test state
+  const [smsTestPhone, setSmsTestPhone] = useState("");
+  const [smsTesting, setSmsTesting] = useState(false);
+
+  // Handle SMS test
+  const handleSmsTest = async () => {
+    if (!smsTestPhone) {
+      alert("Please enter a phone number for testing");
+      return;
+    }
+    setSmsTesting(true);
+    try {
+      const res = await fetch("/api/admin/sms-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: smsTestPhone }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Test SMS sent successfully! Check the phone.");
+      } else {
+        alert(data.error || data.detail || "Failed to send test SMS");
+      }
+    } catch (error) {
+      console.error("SMS test error:", error);
+      alert("Failed to send test SMS");
+    } finally {
+      setSmsTesting(false);
+    }
   };
 
   return (
@@ -491,6 +552,136 @@ export default function SettingsPage() {
               <Label>Enable PC Builder</Label>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ----------------------------------------------------------------- */}
+      {/* SMS Configuration Section                                          */}
+      {/* ----------------------------------------------------------------- */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Smartphone className="size-4" />
+            SMS Notifications
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Enable SMS */}
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={form.smsEnabled}
+              onCheckedChange={(val) => updateField("smsEnabled", val)}
+            />
+            <Label>Enable SMS Notifications</Label>
+          </div>
+
+          {/* Provider Selection */}
+          <FormField label="SMS Provider">
+            <select
+              value={form.smsProvider}
+              onChange={(e) => updateField("smsProvider", e.target.value)}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="none">None (Disabled)</option>
+              <option value="twilio">Twilio</option>
+              <option value="dialog">Dialog SMS API</option>
+              <option value="hutch">Hutch Business SMS</option>
+            </select>
+          </FormField>
+
+          {form.smsProvider !== "none" && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="API Key / Account SID">
+                  <Input
+                    type="password"
+                    value={form.smsApiKey}
+                    onChange={(e) => updateField("smsApiKey", e.target.value)}
+                    placeholder="Enter API key"
+                  />
+                </FormField>
+                <FormField label="API Secret / Auth Token">
+                  <Input
+                    type="password"
+                    value={form.smsApiSecret}
+                    onChange={(e) => updateField("smsApiSecret", e.target.value)}
+                    placeholder="Enter API secret"
+                  />
+                </FormField>
+              </div>
+              <FormField label="From Number / Sender ID">
+                <Input
+                  value={form.smsFromNumber}
+                  onChange={(e) => updateField("smsFromNumber", e.target.value)}
+                  placeholder="e.g., +94XXXXXXXXX or SLHUB"
+                />
+              </FormField>
+            </>
+          )}
+
+          {/* SMS Notification Types */}
+          {form.smsEnabled && (
+            <div className="space-y-3 pt-2 border-t">
+              <p className="text-sm font-medium">SMS Notification Types</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={form.smsOrderConfirmation}
+                    onCheckedChange={(val) => updateField("smsOrderConfirmation", val)}
+                  />
+                  <Label className="text-sm">Order Confirmations</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={form.smsStatusUpdates}
+                    onCheckedChange={(val) => updateField("smsStatusUpdates", val)}
+                  />
+                  <Label className="text-sm">Status Updates</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={form.smsBackInStock}
+                    onCheckedChange={(val) => updateField("smsBackInStock", val)}
+                  />
+                  <Label className="text-sm">Back in Stock</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={form.smsDeliveryUpdates}
+                    onCheckedChange={(val) => updateField("smsDeliveryUpdates", val)}
+                  />
+                  <Label className="text-sm">Delivery Updates</Label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Test SMS */}
+          {form.smsEnabled && form.smsProvider !== "none" && (
+            <div className="space-y-3 pt-2 border-t">
+              <p className="text-sm font-medium">Test SMS</p>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={smsTestPhone}
+                  onChange={(e) => setSmsTestPhone(e.target.value)}
+                  placeholder="Enter phone number (e.g., 0712345678)"
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSmsTest}
+                  disabled={smsTesting}
+                >
+                  <Send className="size-3.5 mr-1" />
+                  {smsTesting ? "Sending..." : "Send Test"}
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Test SMS will be sent using the configured provider. If SMS is not configured, it will be logged to the console.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

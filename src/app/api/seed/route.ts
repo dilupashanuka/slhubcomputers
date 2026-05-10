@@ -30,7 +30,7 @@ export async function POST() {
       { name: "CCTV & Security", slug: "cctv-security", description: "Tiandy, Hikvision, and Dahua CCTV systems and accessories", icon: "Camera", order: 11 },
     ];
 
-    const categories: { id: string; slug: string; [key: string]: unknown }[] = [];
+    const categories: any[] = [];
     for (const cat of categoriesData) {
       const category = await db.category.upsert({
         where: { slug: cat.slug },
@@ -69,7 +69,7 @@ export async function POST() {
       { name: "Tiandy", slug: "tiandy", country: "China", order: 23 },
     ];
 
-    const brands: { id: string; slug: string; [key: string]: unknown }[] = [];
+    const brands: any[] = [];
     for (const brand of brandsData) {
       const b = await db.brand.upsert({
         where: { slug: brand.slug },
@@ -101,7 +101,7 @@ export async function POST() {
         price: 62000, originalPrice: 68000, stock: 15, sku: "INT-14400F",
         categoryId: findCat("processors"), brandId: findBrand("intel"),
         specs: JSON.stringify({ Cores: "10 (6P + 4E)", Threads: "16", "Base Clock": "2.5 GHz", "Boost Clock": "4.7 GHz", "L3 Cache": "20 MB", TDP: "65W", Socket: "LGA 1700" }),
-        images: JSON.stringify(["/images/products/cpu-intel-14400f.jpg"]), isFeatured: true, isNew: true, isOnSale: true, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/cpu-intel-14400f.jpg"]), isFeatured: true, isNew: true, isOnSale: true, isBestSeller: true, isDeal: false, warranty: "3 Years"
       },
       {
         name: "Intel Core i7-14700K", slug: "intel-core-i7-14700k",
@@ -110,7 +110,7 @@ export async function POST() {
         price: 125000, originalPrice: null, stock: 8, sku: "INT-14700K",
         categoryId: findCat("processors"), brandId: findBrand("intel"),
         specs: JSON.stringify({ Cores: "20 (8P + 12E)", Threads: "28", "Base Clock": "3.4 GHz", "Boost Clock": "5.6 GHz", "L3 Cache": "33 MB", TDP: "125W", Socket: "LGA 1700" }),
-        images: JSON.stringify(["/images/products/cpu-intel-14700k.jpg"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/cpu-intel-14700k.jpg"]), isFeatured: true, isNew: false, isOnSale: false, isBestSeller: true, isDeal: false, warranty: "3 Years"
       },
       {
         name: "Intel Core i9-14900K", slug: "intel-core-i9-14900k",
@@ -148,7 +148,7 @@ export async function POST() {
         price: 115000, originalPrice: 125000, stock: 10, sku: "NVI-4060-8G",
         categoryId: findCat("graphics-cards"), brandId: findBrand("nvidia"),
         specs: JSON.stringify({ "VRAM": "8 GB GDDR6", "Memory Bus": "128-bit", "Boost Clock": "2460 MHz", "CUDA Cores": "3072", TDP: "115W", "Outputs": "3x DP 1.4a, 1x HDMI 2.1" }),
-        images: JSON.stringify(["/images/products/gpu-rtx4060.jpg"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/gpu-rtx4060.jpg"]), isFeatured: true, isNew: false, isOnSale: true, isBestSeller: true, isDeal: true, dealEndDate: new Date(Date.now() + 86400000 * 3), warranty: "3 Years"
       },
       {
         name: "NVIDIA GeForce RTX 4070 Super 12GB", slug: "nvidia-rtx-4070-super-12gb",
@@ -494,12 +494,14 @@ export async function POST() {
       },
     ];
 
-    // Create all products
-    const createdProducts: { id: string; [key: string]: unknown }[] = [];
-    for (const product of productsData) {
-      const p = await db.product.create({ data: product });
-      createdProducts.push(p);
-    }
+    // Create all products using createMany for performance
+    await db.product.createMany({
+      data: productsData,
+      skipDuplicates: true,
+    });
+    
+    // For the response count
+    const createdProducts = productsData;
 
     // ========================================================================
     // 4. SEED BANNERS - 3 homepage promotional banners
@@ -542,9 +544,10 @@ export async function POST() {
       },
     ];
 
-    for (const banner of bannersData) {
-      await db.banner.create({ data: banner });
-    }
+    await db.banner.createMany({
+      data: bannersData,
+      skipDuplicates: true,
+    });
 
     // ========================================================================
     // 5. SEED SERVICES - 6 SL HUB COMPUTER services
@@ -614,9 +617,10 @@ export async function POST() {
       },
     ];
 
-    for (const service of servicesData) {
-      await db.service.create({ data: service });
-    }
+    await db.service.createMany({
+      data: servicesData,
+      skipDuplicates: true,
+    });
 
     // ========================================================================
     // 6. SEED SITE SETTINGS - SL HUB COMPUTER defaults
@@ -839,9 +843,10 @@ export async function POST() {
       },
     ];
 
-    for (const pc of prebuiltPCsData) {
-      await db.prebuiltPC.create({ data: pc });
-    }
+    await db.prebuiltPC.createMany({
+      data: prebuiltPCsData,
+      skipDuplicates: true,
+    });
 
     // ========================================================================
     // Return success response with summary

@@ -127,9 +127,11 @@ export function Footer() {
               <li><button onClick={() => nav("home")} className="hover:text-blue-400 transition-colors">Home</button></li>
               <li><button onClick={() => nav("prebuilt")} className="hover:text-blue-400 transition-colors">Pre-Built PCs</button></li>
               <li><button onClick={() => nav("pc-builder")} className="hover:text-blue-400 transition-colors">PC Builder</button></li>
+              <li><button onClick={() => nav("gift-card")} className="hover:text-blue-400 transition-colors">Gift Cards</button></li>
               <li><button onClick={() => nav("about")} className="hover:text-blue-400 transition-colors">About Us</button></li>
               <li><button onClick={() => nav("contact")} className="hover:text-blue-400 transition-colors">Contact Us</button></li>
               <li><button onClick={() => nav("faq")} className="hover:text-blue-400 transition-colors">FAQ</button></li>
+              <li><button onClick={() => nav("affiliate")} className="hover:text-blue-400 transition-colors">Affiliate Program</button></li>
             </ul>
           </div>
 
