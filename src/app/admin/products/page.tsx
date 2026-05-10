@@ -511,7 +511,7 @@ export default function ProductsPage() {
     });
     // Parse existing images from JSON string
     try {
-      const parsed = JSON.parse(product.images);
+      const parsed = typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || []);
       setFormImages(Array.isArray(parsed) ? parsed : []);
     } catch {
       setFormImages([]);
@@ -637,7 +637,7 @@ export default function ProductsPage() {
                     // Parse first image for thumbnail
                     let firstImage = "";
                     try {
-                      const imgs = JSON.parse(product.images);
+                      const imgs = typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || []);
                       if (Array.isArray(imgs) && imgs.length > 0) {
                         firstImage = imgs[0];
                       }

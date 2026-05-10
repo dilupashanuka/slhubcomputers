@@ -27,7 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
     product.originalPrice && product.originalPrice > product.price
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
       : 0;
-  const specs: Record<string, string> = JSON.parse(product.specs || "{}");
+  const specs: Record<string, string> = typeof product.specs === "string" ? JSON.parse(product.specs || "{}") : (product.specs || {});
 
   return (
     <Card className="group hover:shadow-lg transition-all overflow-hidden">

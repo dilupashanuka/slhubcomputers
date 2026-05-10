@@ -621,7 +621,7 @@ function productMatchesSpecFilter(
   );
   if (activeGroups.length === 0) return true;
 
-  const specs: Record<string, string> = JSON.parse(product.specs || "{}");
+  const specs: Record<string, string> = typeof product.specs === "string" ? JSON.parse(product.specs || "{}") : (product.specs || {});
   const productName = product.name.toLowerCase();
   const allSpecValues = Object.values(specs).join(" ").toLowerCase();
 
@@ -916,7 +916,7 @@ export function Builder() {
     // Warranty filter
     if (warrantyOnly) {
       products = products.filter((p) => {
-        const specs: Record<string, string> = JSON.parse(p.specs || "{}");
+        const specs: Record<string, string> = typeof p.specs === "string" ? JSON.parse(p.specs || "{}") : (p.specs || {});
         const hasWarranty = Object.keys(specs).some(
           (k) => k.toLowerCase().includes("warranty") || k.toLowerCase().includes("guarantee")
         );
@@ -1877,9 +1877,7 @@ export function Builder() {
                       /* ---- Grid View - TechZone product card style ---- */
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {filteredProducts.map((product) => {
-                          const images: string[] = JSON.parse(
-                            product.images || "[]"
-                          );
+                          const images: string[] = typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || []);
                           const isSelected =
                             getSelected(activeCategory)?.productId ===
                             product.id;
@@ -1892,9 +1890,7 @@ export function Builder() {
                                     100
                                 )
                               : 0;
-                          const specs: Record<string, string> = JSON.parse(
-                            product.specs || "{}"
-                          );
+                          const specs: Record<string, string> = typeof product.specs === "string" ? JSON.parse(product.specs || "{}") : (product.specs || {});
 
                           return (
                             <button
@@ -2002,9 +1998,7 @@ export function Builder() {
                       /* ---- List View - TechZone product list style ---- */
                       <div className="space-y-2">
                         {filteredProducts.map((product) => {
-                          const images: string[] = JSON.parse(
-                            product.images || "[]"
-                          );
+                          const images: string[] = typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || []);
                           const isSelected =
                             getSelected(activeCategory)?.productId ===
                             product.id;
@@ -2017,9 +2011,7 @@ export function Builder() {
                                     100
                                 )
                               : 0;
-                          const specs: Record<string, string> = JSON.parse(
-                            product.specs || "{}"
-                          );
+                          const specs: Record<string, string> = typeof product.specs === "string" ? JSON.parse(product.specs || "{}") : (product.specs || {});
 
                           return (
                             <button

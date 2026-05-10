@@ -153,11 +153,12 @@ export async function getAnalyticsData() {
           where: { id: p.productId! },
           select: { name: true, price: true, images: true },
         });
+        const parsed = typeof product?.images === "string" ? JSON.parse(product.images || "[]") : (product?.images || []);
         return {
           productId: p.productId!,
           name: product?.name || "Unknown Product",
           price: product?.price || 0,
-          image: product ? JSON.parse(product.images)[0] : null,
+          image: product ? parsed[0] : null,
           views: p._count.productId,
         };
       })
