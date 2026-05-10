@@ -182,6 +182,8 @@ model SiteSettings {
   heroSubtitle    String   @default("Premium components at unbeatable prices")
   heroImageUrl    String?
   announcementBar String?
+  logoUrl         String?
+  googleMapsUrl   String?
   primaryColor    String   @default("#2563eb")
   accentColor     String?
   enableCCTV      Boolean  @default(true)

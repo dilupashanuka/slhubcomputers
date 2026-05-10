@@ -16,13 +16,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, RefreshCw } from "lucide-react";
+import { Save, RefreshCw, MapPin, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SingleImageUploader } from "@/components/admin/image-upload";
 
 // ---------------------------------------------------------------------------
 // Type Definitions - Matches SiteSettingsType with ALL fields
@@ -50,6 +51,8 @@ interface Settings {
   heroSubtitle: string;
   heroImageUrl: string;
   announcementBar: string;
+  logoUrl: string;
+  googleMapsUrl: string;
   primaryColor: string;
   accentColor: string;
   enableCCTV: boolean;
@@ -82,6 +85,8 @@ const defaultSettings: Settings = {
   heroSubtitle: "Premium components at unbeatable prices",
   heroImageUrl: "",
   announcementBar: "",
+  logoUrl: "",
+  googleMapsUrl: "",
   primaryColor: "#2563eb",
   accentColor: "",
   enableCCTV: true,
@@ -144,6 +149,8 @@ export default function SettingsPage() {
           heroSubtitle: data.data.heroSubtitle || defaultSettings.heroSubtitle,
           heroImageUrl: data.data.heroImageUrl || "",
           announcementBar: data.data.announcementBar || "",
+          logoUrl: data.data.logoUrl || "",
+          googleMapsUrl: data.data.googleMapsUrl || "",
           primaryColor: data.data.primaryColor || defaultSettings.primaryColor,
           accentColor: data.data.accentColor || "",
           enableCCTV: data.data.enableCCTV ?? defaultSettings.enableCCTV,
@@ -220,19 +227,32 @@ export default function SettingsPage() {
           <CardTitle className="text-base">General</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Site Name">
-              <Input
-                value={form.siteName}
-                onChange={(e) => updateField("siteName", e.target.value)}
-              />
-            </FormField>
-            <FormField label="Tagline">
-              <Input
-                value={form.tagline}
-                onChange={(e) => updateField("tagline", e.target.value)}
-              />
-            </FormField>
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="w-full md:w-1/3">
+              <FormField label="Site Logo">
+                <SingleImageUploader 
+                  value={form.logoUrl} 
+                  onChange={(url) => updateField("logoUrl", url)}
+                  folder="settings"
+                />
+              </FormField>
+            </div>
+            <div className="flex-1 space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <FormField label="Site Name">
+                  <Input
+                    value={form.siteName}
+                    onChange={(e) => updateField("siteName", e.target.value)}
+                  />
+                </FormField>
+                <FormField label="Tagline">
+                  <Input
+                    value={form.tagline}
+                    onChange={(e) => updateField("tagline", e.target.value)}
+                  />
+                </FormField>
+              </div>
+            </div>
           </div>
           <FormField label="Description">
             <Textarea
@@ -286,6 +306,21 @@ export default function SettingsPage() {
               onChange={(e) => updateField("whatsapp", e.target.value)}
               placeholder="94710678944"
             />
+          </FormField>
+          <FormField label="Google Maps Embed URL">
+            <div className="flex gap-2">
+              <div className="bg-muted flex items-center justify-center p-2 rounded-md border">
+                <MapPin className="size-4 text-muted-foreground" />
+              </div>
+              <Input
+                value={form.googleMapsUrl}
+                onChange={(e) => updateField("googleMapsUrl", e.target.value)}
+                placeholder="https://www.google.com/maps/embed?..."
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Go to Google Maps → Share → Embed a map → Copy the 'src' URL from the iframe tag.
+            </p>
           </FormField>
         </CardContent>
       </Card>
