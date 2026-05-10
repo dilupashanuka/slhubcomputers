@@ -13,6 +13,7 @@
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
+import { updateSession } from "@/utils/supabase/middleware";
 import { checkRateLimit, getRouteType } from "@/lib/rate-limit";
 import {
   shouldSkipCsrf,
@@ -29,6 +30,9 @@ const AUTH_API_PREFIX = "/api/admin/auth";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Refresh Supabase session
+  const supabaseResponse = await updateSession(request);
 
   // -----------------------------------------------------------------------
   // Allow auth API routes (login, logout, verify) without authentication
@@ -40,22 +44,25 @@ export async function middleware(request: NextRequest) {
     const rateLimitResult = checkRateLimit(ip, routeType);
 
     if (!rateLimitResult.allowed) {
-      const response = NextResponse.json(
+      const errorResponse = NextResponse.json(
         { success: false, error: "Too many requests. Please try again later." },
         { status: 429 }
       );
-      response.headers.set("X-RateLimit-Limit", String(rateLimitResult.limit));
-      response.headers.set("X-RateLimit-Remaining", String(rateLimitResult.remaining));
-      response.headers.set("X-RateLimit-Reset", String(Math.ceil(rateLimitResult.resetTime / 1000)));
-      response.headers.set("Retry-After", String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)));
-      return response;
+      errorResponse.headers.set("X-RateLimit-Limit", String(rateLimitResult.limit));
+      errorResponse.headers.set("X-RateLimit-Remaining", String(rateLimitResult.remaining));
+      errorResponse.headers.set("X-RateLimit-Reset", String(Math.ceil(rateLimitResult.resetTime / 1000)));
+      errorResponse.headers.set("Retry-After", String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)));
+      // Copy cookies from supabaseResponse
+      supabaseResponse.cookies.getAll().forEach(cookie => {
+        errorResponse.cookies.set(cookie.name, cookie.value);
+      });
+      return errorResponse;
     }
 
-    const response = NextResponse.next();
-    response.headers.set("X-RateLimit-Limit", String(rateLimitResult.limit));
-    response.headers.set("X-RateLimit-Remaining", String(rateLimitResult.remaining));
-    response.headers.set("X-RateLimit-Reset", String(Math.ceil(rateLimitResult.resetTime / 1000)));
-    return response;
+    supabaseResponse.headers.set("X-RateLimit-Limit", String(rateLimitResult.limit));
+    supabaseResponse.headers.set("X-RateLimit-Remaining", String(rateLimitResult.remaining));
+    supabaseResponse.headers.set("X-RateLimit-Reset", String(Math.ceil(rateLimitResult.resetTime / 1000)));
+    return supabaseResponse;
   }
 
   // -----------------------------------------------------------------------
@@ -67,15 +74,19 @@ export async function middleware(request: NextRequest) {
     const rateLimitResult = checkRateLimit(ip, routeType);
 
     if (!rateLimitResult.allowed) {
-      const response = NextResponse.json(
+      const errorResponse = NextResponse.json(
         { success: false, error: "Too many requests. Please try again later." },
         { status: 429 }
       );
-      response.headers.set("X-RateLimit-Limit", String(rateLimitResult.limit));
-      response.headers.set("X-RateLimit-Remaining", String(rateLimitResult.remaining));
-      response.headers.set("X-RateLimit-Reset", String(Math.ceil(rateLimitResult.resetTime / 1000)));
-      response.headers.set("Retry-After", String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)));
-      return response;
+      errorResponse.headers.set("X-RateLimit-Limit", String(rateLimitResult.limit));
+      errorResponse.headers.set("X-RateLimit-Remaining", String(rateLimitResult.remaining));
+      errorResponse.headers.set("X-RateLimit-Reset", String(Math.ceil(rateLimitResult.resetTime / 1000)));
+      errorResponse.headers.set("Retry-After", String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)));
+      // Copy cookies from supabaseResponse
+      supabaseResponse.cookies.getAll().forEach(cookie => {
+        errorResponse.cookies.set(cookie.name, cookie.value);
+      });
+      return errorResponse;
     }
 
     // -------------------------------------------------------------------
@@ -87,25 +98,32 @@ export async function middleware(request: NextRequest) {
       const csrfHeader = request.headers.get(getCsrfHeaderName());
 
       if (!csrfCookie || !csrfHeader) {
-        return NextResponse.json(
+        const errorResponse = NextResponse.json(
           { success: false, error: "CSRF token missing" },
           { status: 403 }
         );
+        supabaseResponse.cookies.getAll().forEach(cookie => {
+          errorResponse.cookies.set(cookie.name, cookie.value);
+        });
+        return errorResponse;
       }
 
       if (!validateCsrfToken(csrfCookie, csrfHeader)) {
-        return NextResponse.json(
+        const errorResponse = NextResponse.json(
           { success: false, error: "CSRF token validation failed" },
           { status: 403 }
         );
+        supabaseResponse.cookies.getAll().forEach(cookie => {
+          errorResponse.cookies.set(cookie.name, cookie.value);
+        });
+        return errorResponse;
       }
     }
 
-    const response = NextResponse.next();
-    response.headers.set("X-RateLimit-Limit", String(rateLimitResult.limit));
-    response.headers.set("X-RateLimit-Remaining", String(rateLimitResult.remaining));
-    response.headers.set("X-RateLimit-Reset", String(Math.ceil(rateLimitResult.resetTime / 1000)));
-    return response;
+    supabaseResponse.headers.set("X-RateLimit-Limit", String(rateLimitResult.limit));
+    supabaseResponse.headers.set("X-RateLimit-Remaining", String(rateLimitResult.remaining));
+    supabaseResponse.headers.set("X-RateLimit-Reset", String(Math.ceil(rateLimitResult.resetTime / 1000)));
+    return supabaseResponse;
   }
 
   // -----------------------------------------------------------------------
@@ -117,9 +135,13 @@ export async function middleware(request: NextRequest) {
     if (token && token.value) {
       const url = request.nextUrl.clone();
       url.pathname = ADMIN_PREFIX;
-      return NextResponse.redirect(url);
+      const redirectResponse = NextResponse.redirect(url);
+      supabaseResponse.cookies.getAll().forEach(cookie => {
+        redirectResponse.cookies.set(cookie.name, cookie.value);
+      });
+      return redirectResponse;
     }
-    return NextResponse.next();
+    return supabaseResponse;
   }
 
   // -----------------------------------------------------------------------
@@ -133,16 +155,20 @@ export async function middleware(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = LOGIN_PATH;
       url.searchParams.set("from", pathname);
-      return NextResponse.redirect(url);
+      const redirectResponse = NextResponse.redirect(url);
+      supabaseResponse.cookies.getAll().forEach(cookie => {
+        redirectResponse.cookies.set(cookie.name, cookie.value);
+      });
+      return redirectResponse;
     }
 
-    return NextResponse.next();
+    return supabaseResponse;
   }
 
   // -----------------------------------------------------------------------
   // All other routes pass through
   // -----------------------------------------------------------------------
-  return NextResponse.next();
+  return supabaseResponse;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { createClient } from "../../utils/supabase/client";
+import { createClient } from "../utils/supabase/client";
 
 const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "slhub-image";
 
