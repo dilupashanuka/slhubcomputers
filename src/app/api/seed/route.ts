@@ -818,7 +818,7 @@ export async function POST() {
         category: "workstation",
         price: 380000,
         originalPrice: 410000,
-        image: "/images/prebuilt/workstation-pro.jpg",
+        image: "/images/products/nzxt-h7flow.webp",
         specs: JSON.stringify({
           cpu: "AMD Ryzen 9 7900X",
           gpu: "NVIDIA RTX 4070 Super 12GB",
