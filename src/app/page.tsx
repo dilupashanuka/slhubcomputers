@@ -47,29 +47,31 @@ function HomePage() {
   return (
     <div className="space-y-8">
       <HeroBanner />
-      <CategoryGrid />
-      <FlashDeals />
-      <ProductSection
-        title="Featured Products"
-        subtitle="Hand-picked by our experts"
-        endpoint="/api/products?isFeatured=true&limit=10"
-        icon={<Star className="h-5 w-5 text-blue-600" />}
-      />
-      <ProductSection
-        title="Best Sellers"
-        subtitle="Most popular items this month"
-        endpoint="/api/products?isBestSeller=true&limit=10"
-        icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
-      />
-      <ProductSection
-        title="New Arrivals"
-        subtitle="The latest and greatest"
-        endpoint="/api/products?isNew=true&limit=10"
-        icon={<Sparkles className="h-5 w-5 text-blue-600" />}
-      />
-      <BrandCarousel />
-      <NewsletterSection />
-      <RecentlyViewed />
+      <div className="container mx-auto px-4 space-y-12">
+        <CategoryGrid />
+        <FlashDeals />
+        <ProductSection
+          title="Featured Products"
+          subtitle="Hand-picked by our experts"
+          endpoint="/api/products?isFeatured=true&limit=10"
+          icon={<Star className="h-5 w-5 text-blue-600" />}
+        />
+        <ProductSection
+          title="Best Sellers"
+          subtitle="Most popular items this month"
+          endpoint="/api/products?isBestSeller=true&limit=10"
+          icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
+        />
+        <ProductSection
+          title="New Arrivals"
+          subtitle="The latest and greatest"
+          endpoint="/api/products?isNew=true&limit=10"
+          icon={<Sparkles className="h-5 w-5 text-blue-600" />}
+        />
+        <BrandCarousel />
+        <NewsletterSection />
+        <RecentlyViewed />
+      </div>
     </div>
   );
 }
@@ -158,7 +160,7 @@ export default function HomePageRouter() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-6">
+      <main className="flex-1">
         {renderView()}
       </main>
       <Footer />
