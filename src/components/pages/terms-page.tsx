@@ -239,6 +239,7 @@ export function TermsPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

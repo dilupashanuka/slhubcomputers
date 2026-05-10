@@ -342,6 +342,7 @@ export function ShippingPage() {
           </Card>
         </div>
       </section>
+      </div>
     </div>
   );
 }

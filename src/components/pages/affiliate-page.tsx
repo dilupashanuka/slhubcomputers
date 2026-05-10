@@ -390,10 +390,11 @@ export function AffiliatePage() {
           </Card>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  // Dashboard View
+// Dashboard View
   if (mode === "dashboard" && dashboardData) {
     const { affiliate, stats, referrals, payments } = dashboardData;
     const referralLink = `${typeof window !== "undefined" ? window.location.origin : ""}?ref=${affiliate.code}`;

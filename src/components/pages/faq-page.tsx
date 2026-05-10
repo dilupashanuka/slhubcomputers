@@ -363,6 +363,7 @@ export function FaqPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

@@ -322,6 +322,7 @@ export function ReturnsPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
