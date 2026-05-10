@@ -135,40 +135,9 @@ export async function GET(request: NextRequest) {
           }),
         ]);
 
-        const productsWithParsedData = products.map((product: any) => {
-          let parsedImages = [];
-          let parsedSpecs = {};
-          let parsedTags = [];
-
-          try {
-            parsedImages = typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || []);
-          } catch (e) {
-            console.error(`Error parsing images for product ${product.id}:`, e);
-          }
-
-          try {
-            parsedSpecs = typeof product.specs === "string" ? JSON.parse(product.specs || "{}") : (product.specs || {});
-          } catch (e) {
-            console.error(`Error parsing specs for product ${product.id}:`, e);
-          }
-
-          try {
-            parsedTags = typeof product.tags === "string" ? JSON.parse(product.tags || "[]") : (product.tags || []);
-          } catch (e) {
-            console.error(`Error parsing tags for product ${product.id}:`, e);
-          }
-
-          return {
-            ...product,
-            images: parsedImages,
-            specs: parsedSpecs,
-            tags: parsedTags,
-          };
-        });
-
         return {
           success: true,
-          data: productsWithParsedData,
+          data: products,
           total,
           page,
           limit,
