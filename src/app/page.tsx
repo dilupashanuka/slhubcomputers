@@ -35,8 +35,12 @@ import { ShippingPage } from "@/components/pages/shipping-page";
 import { ReturnsPage } from "@/components/pages/returns-page";
 import { TermsPage } from "@/components/pages/terms-page";
 import { PrebuiltPCPage } from "@/components/pages/prebuilt-pc-page";
+import { OrderTrackingPage } from "@/components/pages/order-tracking-page";
+import { CustomerLoginPage } from "@/components/pages/customer-login-page";
+import { CustomerAccountPage } from "@/components/pages/customer-account-page";
 import { WhatsAppFloat } from "@/components/layout/whatsapp-float";
 import { BackToTop } from "@/components/layout/back-to-top";
+import ChatWidget from "@/components/chat/chat-widget";
 import { Sparkles, TrendingUp, Star, Zap } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -81,6 +85,33 @@ export default function HomePageRouter() {
   const { currentView, selectedCategoryId, selectedProductId } = useStore();
   const [seeded, setSeeded] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Track page views for analytics
+  useEffect(() => {
+    const trackPageView = async () => {
+      try {
+        const sessionId = localStorage.getItem("slhub_session_id") || (() => {
+          const id = "sess_" + Math.random().toString(36).substring(2, 10);
+          localStorage.setItem("slhub_session_id", id);
+          return id;
+        })();
+
+        fetch("/api/analytics/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: currentView === "product" ? "product_view" : "page_view",
+            page: currentView,
+            productId: currentView === "product" ? selectedProductId : undefined,
+            sessionId,
+          }),
+        }).catch(() => {}); // Silent fail for analytics
+      } catch {
+        // Analytics tracking should never break the app
+      }
+    };
+    if (!loading) trackPageView();
+  }, [currentView, selectedProductId, loading]);
 
   // Auto-seed database on first load
   useEffect(() => {
@@ -137,6 +168,12 @@ export default function HomePageRouter() {
         return <TermsPage />;
       case "prebuilt":
         return <PrebuiltPCPage />;
+      case "order-tracking":
+        return <OrderTrackingPage />;
+      case "customer-login":
+        return <CustomerLoginPage />;
+      case "customer-account":
+        return <CustomerAccountPage />;
       default:
         return <HomePage />;
     }
@@ -164,6 +201,7 @@ export default function HomePageRouter() {
       <Footer />
       <WhatsAppFloat />
       <BackToTop />
+      <ChatWidget />
     </div>
   );
 }

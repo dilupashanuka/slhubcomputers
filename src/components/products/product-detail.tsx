@@ -1,24 +1,40 @@
 // =============================================================================
 // SL HUB COMPUTER - Product Detail Component
 // =============================================================================
-// Purpose: Full product detail view with image gallery, specs table, reviews,
-//          add to cart, wishlist toggle, and related products
-// Features: Image carousel, quantity selector, specs table, star ratings,
-//           review list, WhatsApp order, related products grid
+// Purpose: Full product detail view with image gallery (zoom/lightbox), video
+//          embeds, reviews (submit/display/sort), and related products
+// Features: Image carousel with zoom & lightbox, YouTube/TikTok/Facebook video
+//           embeds, star rating selector, review form, review sort, related
+//           products with horizontal scroll
 // Uses: useStore for navigation, cart, and wishlist actions
-// API: Fetches product data from /api/products/{id}
+// API: Fetches product data from /api/products/{id}, reviews from /api/reviews
 // =============================================================================
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useStore } from "@/store/use-store";
 import { ProductCard } from "./product-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ShoppingCart,
   Heart,
@@ -35,7 +51,13 @@ import {
   Plus,
   Check,
   ArrowLeft,
+  X,
+  ZoomIn,
+  Play,
+  Loader2,
+  ThumbsUp,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import type {
   ProductType,
@@ -50,6 +72,17 @@ import type {
 // ---------------------------------------------------------------------------
 interface ProductDetailProps {
   productId?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Video URL Interface
+// ---------------------------------------------------------------------------
+interface VideoInfo {
+  type: "youtube" | "tiktok" | "facebook";
+  url: string;
+  embedUrl: string;
+  thumbnailUrl: string;
+  id: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -71,6 +104,151 @@ function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
       ))}
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Interactive Star Rating Selector
+// ---------------------------------------------------------------------------
+function StarRatingSelector({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (rating: number) => void;
+}) {
+  const [hovered, setHovered] = useState(0);
+
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          className="transition-transform hover:scale-110"
+          onMouseEnter={() => setHovered(star)}
+          onMouseLeave={() => setHovered(0)}
+          onClick={() => onChange(star)}
+        >
+          <Star
+            size={28}
+            className={`transition-colors ${
+              star <= (hovered || value)
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-300 dark:text-gray-600"
+            }`}
+          />
+        </button>
+      ))}
+      {value > 0 && (
+        <span className="ml-2 text-sm text-muted-foreground">
+          {value} star{value !== 1 ? "s" : ""}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Video Embed Helper - Parse video URLs from tags
+// ---------------------------------------------------------------------------
+function parseVideoUrls(tagsJson: string | null): VideoInfo[] {
+  if (!tagsJson) return [];
+  let tags: string[];
+  try {
+    tags = JSON.parse(tagsJson);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(tags)) return [];
+
+  const videos: VideoInfo[] = [];
+
+  for (const tag of tags) {
+    if (typeof tag !== "string") continue;
+
+    // YouTube: various URL formats
+    const ytMatch = tag.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    );
+    if (ytMatch) {
+      videos.push({
+        type: "youtube",
+        url: tag,
+        embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}`,
+        thumbnailUrl: `https://img.youtube.com/vi/${ytMatch[1]}/mqdefault.jpg`,
+        id: ytMatch[1],
+      });
+      continue;
+    }
+
+    // TikTok: various URL formats
+    const tiktokMatch = tag.match(
+      /tiktok\.com\/(?:@[^/]+\/video\/|embed\/v2\/)(\d+)/
+    );
+    if (tiktokMatch) {
+      videos.push({
+        type: "tiktok",
+        url: tag,
+        embedUrl: `https://www.tiktok.com/embed/v2/${tiktokMatch[1]}`,
+        thumbnailUrl: "",
+        id: tiktokMatch[1],
+      });
+      continue;
+    }
+
+    // Facebook: video URLs
+    const fbMatch = tag.match(
+      /facebook\.com\/.*(?:\/videos\/|watch\/?\?v=)(\d+)/
+    );
+    if (fbMatch) {
+      videos.push({
+        type: "facebook",
+        url: tag,
+        embedUrl: `https://www.facebook.com/video/embed?video_id=${fbMatch[1]}`,
+        thumbnailUrl: "",
+        id: fbMatch[1],
+      });
+      continue;
+    }
+
+    // Also check if it's just a URL starting with youtube/tiktok/facebook
+    if (tag.startsWith("https://www.youtube.com/") || tag.startsWith("https://youtube.com/")) {
+      const vid = tag.match(/v=([a-zA-Z0-9_-]{11})/);
+      if (vid) {
+        videos.push({
+          type: "youtube",
+          url: tag,
+          embedUrl: `https://www.youtube.com/embed/${vid[1]}`,
+          thumbnailUrl: `https://img.youtube.com/vi/${vid[1]}/mqdefault.jpg`,
+          id: vid[1],
+        });
+      }
+    } else if (tag.startsWith("https://www.tiktok.com/") || tag.startsWith("https://tiktok.com/")) {
+      const tid = tag.match(/video\/(\d+)/);
+      if (tid) {
+        videos.push({
+          type: "tiktok",
+          url: tag,
+          embedUrl: `https://www.tiktok.com/embed/v2/${tid[1]}`,
+          thumbnailUrl: "",
+          id: tid[1],
+        });
+      }
+    } else if (tag.startsWith("https://www.facebook.com/") || tag.startsWith("https://facebook.com/")) {
+      const fid = tag.match(/videos\/(\d+)/);
+      if (fid) {
+        videos.push({
+          type: "facebook",
+          url: tag,
+          embedUrl: `https://www.facebook.com/video/embed?video_id=${fid[1]}`,
+          thumbnailUrl: "",
+          id: fid[1],
+        });
+      }
+    }
+  }
+
+  return videos;
 }
 
 // ---------------------------------------------------------------------------
@@ -100,6 +278,32 @@ export function ProductDetail({ productId }: ProductDetailProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
+  // ---- Lightbox State ----
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+
+  // ---- Video State ----
+  const [activeVideoIndex, setActiveVideoIndex] = useState<number | null>(null);
+
+  // ---- Review State ----
+  const [reviews, setReviews] = useState<ReviewType[]>([]);
+  const [reviewSort, setReviewSort] = useState("newest");
+  const [reviewStats, setReviewStats] = useState({
+    averageRating: 0,
+    totalReviews: 0,
+    distribution: [] as { star: number; count: number; percentage: number }[],
+  });
+  const [reviewForm, setReviewForm] = useState({
+    name: "",
+    email: "",
+    rating: 0,
+    title: "",
+    comment: "",
+  });
+  const [submittingReview, setSubmittingReview] = useState(false);
+
   // ---- Fetch product data ----
   useEffect(() => {
     if (!activeProductId) return;
@@ -128,17 +332,40 @@ export function ProductDetail({ productId }: ProductDetailProps) {
           // Fetch related products from same category
           if (prod.categoryId) {
             fetch(
-              `/api/products?categoryId=${prod.categoryId}&limit=4`
+              `/api/products?categoryId=${prod.categoryId}&limit=8`
             )
               .then((r) => r.json())
               .then((relData) => {
                 if (relData.success) {
-                  // Filter out current product
-                  setRelatedProducts(
-                    relData.data.filter(
-                      (p: ProductType) => p.id !== prod.id
-                    )
+                  const sameCategory = relData.data.filter(
+                    (p: ProductType) => p.id !== prod.id
                   );
+                  if (sameCategory.length >= 4) {
+                    setRelatedProducts(sameCategory.slice(0, 8));
+                  } else if (prod.brandId) {
+                    // Fill with same brand products
+                    fetch(
+                      `/api/products?brandId=${prod.brandId}&limit=8`
+                    )
+                      .then((r) => r.json())
+                      .then((brandData) => {
+                        if (brandData.success) {
+                          const sameBrand = brandData.data.filter(
+                            (p: ProductType) =>
+                              p.id !== prod.id &&
+                              !sameCategory.some((c: ProductType) => c.id === p.id)
+                          );
+                          const combined = [
+                            ...sameCategory,
+                            ...sameBrand,
+                          ].slice(0, 8);
+                          setRelatedProducts(combined);
+                        }
+                      })
+                      .catch(() => {});
+                  } else {
+                    setRelatedProducts(sameCategory);
+                  }
                 }
               })
               .catch(() => {});
@@ -151,6 +378,28 @@ export function ProductDetail({ productId }: ProductDetailProps) {
       .finally(() => setLoading(false));
   }, [activeProductId, addRecentlyViewed]);
 
+  // ---- Fetch reviews separately for sorting ----
+  const fetchReviews = useCallback(() => {
+    if (!activeProductId) return;
+    fetch(
+      `/api/reviews?productId=${activeProductId}&sort=${reviewSort}`
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setReviews(data.data);
+          if (data.stats) {
+            setReviewStats(data.stats);
+          }
+        }
+      })
+      .catch(() => {});
+  }, [activeProductId, reviewSort]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
+
   // ---- Derived Values ----
   const images: string[] = product
     ? JSON.parse(product.images || "[]")
@@ -158,6 +407,9 @@ export function ProductDetail({ productId }: ProductDetailProps) {
   const specs: Record<string, string> = product
     ? JSON.parse(product.specs || "{}")
     : {};
+  const videos: VideoInfo[] = product
+    ? parseVideoUrls(product.tags)
+    : [];
   const discount =
     product?.originalPrice && product.originalPrice > product.price
       ? Math.round(
@@ -165,11 +417,8 @@ export function ProductDetail({ productId }: ProductDetailProps) {
             100
         )
       : 0;
-  const reviews: ReviewType[] = product?.reviews || [];
-  const averageRating =
-    reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-      : 0;
+  const averageRating = reviewStats.averageRating || 0;
+  const totalReviews = reviewStats.totalReviews || 0;
   const wishlisted = product ? isInWishlist(product.id) : false;
 
   // ---- Handlers ----
@@ -248,6 +497,62 @@ export function ProductDetail({ productId }: ProductDetailProps) {
     }
   };
 
+  // ---- Image Zoom Handlers ----
+  const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isZoomed) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({ x, y });
+  };
+
+  const handleOpenLightbox = (idx: number) => {
+    setLightboxIndex(idx);
+    setLightboxOpen(true);
+  };
+
+  // ---- Review Submit Handler ----
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product) return;
+
+    if (reviewForm.rating === 0) {
+      toast.error("Please select a rating");
+      return;
+    }
+    if (!reviewForm.name.trim()) {
+      toast.error("Please enter your name");
+      return;
+    }
+    if (!reviewForm.comment.trim()) {
+      toast.error("Please write a comment");
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...reviewForm,
+          productId: product.id,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message || "Review submitted successfully!");
+        setReviewForm({ name: "", email: "", rating: 0, title: "", comment: "" });
+      } else {
+        toast.error(data.error || "Failed to submit review");
+      }
+    } catch {
+      toast.error("Failed to submit review");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   // ---- Loading State ----
   if (loading) {
     return (
@@ -319,21 +624,51 @@ export function ProductDetail({ productId }: ProductDetailProps) {
 
       {/* Product Main Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        {/* ---- Image Gallery ---- */}
+        {/* ---- Image Gallery with Zoom ---- */}
         <div className="space-y-3">
-          {/* Main Image */}
-          <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
-            {images[selectedImage] ? (
-              <img
-                src={images[selectedImage]}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <ShoppingCart className="w-20 h-20 text-gray-300" />
-              </div>
-            )}
+          {/* Main Image with Zoom */}
+          <div
+            className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden cursor-zoom-in group"
+            onMouseEnter={() => setIsZoomed(true)}
+            onMouseLeave={() => setIsZoomed(false)}
+            onMouseMove={handleImageMouseMove}
+            onClick={() => handleOpenLightbox(selectedImage)}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedImage}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="w-full h-full"
+              >
+                {images[selectedImage] ? (
+                  <img
+                    src={images[selectedImage]}
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-300"
+                    style={
+                      isZoomed
+                        ? {
+                            transform: "scale(2)",
+                            transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                          }
+                        : {}
+                    }
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <ShoppingCart className="w-20 h-20 text-gray-300" />
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Zoom indicator */}
+            <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-md flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ZoomIn className="w-3 h-3" /> Click to enlarge
+            </div>
 
             {/* Image Navigation Arrows */}
             {images.length > 1 && (
@@ -342,13 +677,14 @@ export function ProductDetail({ productId }: ProductDetailProps) {
                   variant="ghost"
                   size="icon"
                   className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 rounded-full"
-                  onClick={() =>
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedImage(
                       selectedImage > 0
                         ? selectedImage - 1
                         : images.length - 1
-                    )
-                  }
+                    );
+                  }}
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
@@ -356,13 +692,14 @@ export function ProductDetail({ productId }: ProductDetailProps) {
                   variant="ghost"
                   size="icon"
                   className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 rounded-full"
-                  onClick={() =>
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedImage(
                       selectedImage < images.length - 1
                         ? selectedImage + 1
                         : 0
-                    )
-                  }
+                    );
+                  }}
                 >
                   <ChevronRight className="w-5 h-5" />
                 </Button>
@@ -381,27 +718,36 @@ export function ProductDetail({ productId }: ProductDetailProps) {
                 <Badge className="bg-orange-500">Sale</Badge>
               )}
             </div>
+
+            {/* Image counter */}
+            {images.length > 1 && (
+              <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded-md">
+                {selectedImage + 1} / {images.length}
+              </div>
+            )}
           </div>
 
           {/* Thumbnail Strip */}
           {images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
               {images.map((img, idx) => (
-                <button
+                <motion.button
                   key={idx}
                   onClick={() => setSelectedImage(idx)}
-                  className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                  className={`shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-colors ${
                     selectedImage === idx
-                      ? "border-blue-600"
+                      ? "border-blue-600 ring-1 ring-blue-600"
                       : "border-transparent hover:border-blue-300"
                   }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <img
                     src={img}
                     alt={`${product.name} ${idx + 1}`}
                     className="w-full h-full object-cover"
                   />
-                </button>
+                </motion.button>
               ))}
             </div>
           )}
@@ -429,8 +775,8 @@ export function ProductDetail({ productId }: ProductDetailProps) {
           <div className="flex items-center gap-3">
             <StarRating rating={averageRating} />
             <span className="text-sm text-muted-foreground">
-              {averageRating.toFixed(1)} ({reviews.length} review
-              {reviews.length !== 1 ? "s" : ""})
+              {averageRating.toFixed(1)} ({totalReviews} review
+              {totalReviews !== 1 ? "s" : ""})
             </span>
           </div>
 
@@ -611,13 +957,112 @@ export function ProductDetail({ productId }: ProductDetailProps) {
         </div>
       </div>
 
+      {/* ---- Image Lightbox ---- */}
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent
+          className="max-w-4xl w-full p-0 bg-black border-gray-800 overflow-hidden"
+          showCloseButton={false}
+        >
+          <DialogTitle className="sr-only">
+            {product.name} - Image {lightboxIndex + 1}
+          </DialogTitle>
+          <div className="relative aspect-video bg-black flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={lightboxIndex}
+                src={images[lightboxIndex]}
+                alt={`${product.name} ${lightboxIndex + 1}`}
+                className="max-w-full max-h-[70vh] object-contain"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+              />
+            </AnimatePresence>
+
+            {/* Close button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-3 right-3 text-white hover:bg-white/20 rounded-full"
+              onClick={() => setLightboxOpen(false)}
+            >
+              <X className="w-6 h-6" />
+            </Button>
+
+            {/* Navigation Arrows */}
+            {images.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 rounded-full h-12 w-12"
+                  onClick={() =>
+                    setLightboxIndex(
+                      lightboxIndex > 0 ? lightboxIndex - 1 : images.length - 1
+                    )
+                  }
+                >
+                  <ChevronLeft className="w-8 h-8" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 rounded-full h-12 w-12"
+                  onClick={() =>
+                    setLightboxIndex(
+                      lightboxIndex < images.length - 1 ? lightboxIndex + 1 : 0
+                    )
+                  }
+                >
+                  <ChevronRight className="w-8 h-8" />
+                </Button>
+              </>
+            )}
+
+            {/* Image counter */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-black/60 px-3 py-1 rounded-full text-sm">
+              {lightboxIndex + 1} / {images.length}
+            </div>
+          </div>
+
+          {/* Thumbnail strip in lightbox */}
+          {images.length > 1 && (
+            <div className="bg-gray-900 p-3 flex gap-2 overflow-x-auto justify-center">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setLightboxIndex(idx)}
+                  className={`shrink-0 w-14 h-14 rounded-md overflow-hidden border-2 transition-colors ${
+                    lightboxIndex === idx
+                      ? "border-blue-500"
+                      : "border-transparent hover:border-gray-500"
+                  }`}
+                >
+                  <img
+                    src={img}
+                    alt={`${product.name} ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* ---- Product Details Tabs ---- */}
       <Tabs defaultValue="description" className="mb-12">
-        <TabsList className="w-full justify-start">
+        <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="description">Description</TabsTrigger>
           <TabsTrigger value="specs">Specifications</TabsTrigger>
+          {videos.length > 0 && (
+            <TabsTrigger value="videos" className="gap-1">
+              🎬 Videos
+            </TabsTrigger>
+          )}
           <TabsTrigger value="reviews">
-            Reviews ({reviews.length})
+            Reviews ({totalReviews})
           </TabsTrigger>
         </TabsList>
 
@@ -660,68 +1105,282 @@ export function ProductDetail({ productId }: ProductDetailProps) {
           )}
         </TabsContent>
 
-        {/* Reviews Tab */}
-        <TabsContent value="reviews" className="mt-4">
-          {reviews.length === 0 ? (
-            <div className="text-center py-8">
-              <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-lg font-medium">No reviews yet</p>
-              <p className="text-muted-foreground">
-                Be the first to review this product!
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Rating Summary */}
-              <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-blue-600">
-                    {averageRating.toFixed(1)}
-                  </div>
-                  <StarRating rating={averageRating} size={14} />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {reviews.length} review
-                    {reviews.length !== 1 ? "s" : ""}
-                  </p>
-                </div>
-              </div>
-
-              {/* Individual Reviews */}
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {reviews.map((review) => (
-                  <div
-                    key={review.id}
-                    className="border rounded-lg p-4"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
-                          {review.name.charAt(0).toUpperCase()}
+        {/* Videos Tab */}
+        {videos.length > 0 && (
+          <TabsContent value="videos" className="mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {videos.map((video, idx) => (
+                <motion.div
+                  key={video.id}
+                  className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden group cursor-pointer"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  onClick={() => setActiveVideoIndex(idx)}
+                >
+                  {/* Video Thumbnail / Preview */}
+                  {activeVideoIndex === idx ? (
+                    <iframe
+                      src={video.embedUrl}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={`${video.type} video`}
+                    />
+                  ) : (
+                    <>
+                      {video.thumbnailUrl ? (
+                        <img
+                          src={video.thumbnailUrl}
+                          alt={`${video.type} video thumbnail`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                          <Play className="w-16 h-16 text-gray-500" />
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {review.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </p>
+                      )}
+                      {/* Play overlay */}
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/40 transition-colors">
+                        <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Play className="w-8 h-8 text-white ml-1" />
                         </div>
                       </div>
-                      <StarRating rating={review.rating} size={12} />
+                      {/* Video type badge */}
+                      <Badge className="absolute top-3 left-3 capitalize">
+                        {video.type}
+                      </Badge>
+                    </>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </TabsContent>
+        )}
+
+        {/* Reviews Tab */}
+        <TabsContent value="reviews" className="mt-4">
+          <div className="space-y-6">
+            {/* Rating Summary */}
+            <div className="flex flex-col md:flex-row gap-6 p-6 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              {/* Left - Big rating */}
+              <div className="text-center md:text-left shrink-0">
+                <div className="text-5xl font-bold text-blue-600">
+                  {averageRating.toFixed(1)}
+                </div>
+                <StarRating rating={averageRating} size={18} />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Based on {totalReviews} review
+                  {totalReviews !== 1 ? "s" : ""}
+                </p>
+              </div>
+
+              {/* Right - Rating distribution bars */}
+              <div className="flex-1 space-y-2">
+                {[5, 4, 3, 2, 1].map((star) => {
+                  const dist = reviewStats.distribution?.find(
+                    (d) => d.star === star
+                  );
+                  const count = dist?.count || 0;
+                  const pct = dist?.percentage || 0;
+                  return (
+                    <div key={star} className="flex items-center gap-2 text-sm">
+                      <span className="w-8 text-right">{star}★</span>
+                      <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-yellow-400 rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 0.5, delay: (5 - star) * 0.1 }}
+                        />
+                      </div>
+                      <span className="w-8 text-muted-foreground">{count}</span>
                     </div>
-                    {review.title && (
-                      <p className="font-medium text-sm mb-1">
-                        {review.title}
-                      </p>
-                    )}
-                    <p className="text-sm text-muted-foreground">
-                      {review.comment}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
-          )}
+
+            {/* Sort & Review List */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Customer Reviews</h3>
+                <Select
+                  value={reviewSort}
+                  onValueChange={setReviewSort}
+                >
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="highest">Highest Rated</SelectItem>
+                    <SelectItem value="lowest">Lowest Rated</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {reviews.length === 0 ? (
+                <div className="text-center py-8">
+                  <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-lg font-medium">No reviews yet</p>
+                  <p className="text-muted-foreground">
+                    Be the first to review this product!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+                  {reviews.map((review, idx) => (
+                    <motion.div
+                      key={review.id}
+                      className="border rounded-lg p-4 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
+                            {review.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">
+                              {review.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(review.createdAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <StarRating rating={review.rating} size={12} />
+                      </div>
+                      {review.title && (
+                        <p className="font-medium text-sm mb-1">
+                          {review.title}
+                        </p>
+                      )}
+                      <p className="text-sm text-muted-foreground">
+                        {review.comment}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* ---- Review Form ---- */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Write a Review</h3>
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                {/* Star Rating */}
+                <div className="space-y-2">
+                  <Label>Your Rating *</Label>
+                  <StarRatingSelector
+                    value={reviewForm.rating}
+                    onChange={(rating) =>
+                      setReviewForm((prev) => ({ ...prev, rating }))
+                    }
+                  />
+                </div>
+
+                {/* Name & Email Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="review-name">Name *</Label>
+                    <Input
+                      id="review-name"
+                      placeholder="Your name"
+                      value={reviewForm.name}
+                      onChange={(e) =>
+                        setReviewForm((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="review-email">Email</Label>
+                    <Input
+                      id="review-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={reviewForm.email}
+                      onChange={(e) =>
+                        setReviewForm((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div className="space-y-2">
+                  <Label htmlFor="review-title">Review Title</Label>
+                  <Input
+                    id="review-title"
+                    placeholder="Summarize your experience"
+                    value={reviewForm.title}
+                    onChange={(e) =>
+                      setReviewForm((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                {/* Comment */}
+                <div className="space-y-2">
+                  <Label htmlFor="review-comment">Your Review *</Label>
+                  <Textarea
+                    id="review-comment"
+                    placeholder="Share your experience with this product..."
+                    rows={4}
+                    value={reviewForm.comment}
+                    onChange={(e) =>
+                      setReviewForm((prev) => ({
+                        ...prev,
+                        comment: e.target.value,
+                      }))
+                    }
+                    required
+                  />
+                </div>
+
+                {/* Submit */}
+                <Button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={submittingReview}
+                >
+                  {submittingReview ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <ThumbsUp className="w-4 h-4 mr-2" />
+                      Submit Review
+                    </>
+                  )}
+                </Button>
+              </form>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -729,7 +1388,7 @@ export function ProductDetail({ productId }: ProductDetailProps) {
       {relatedProducts.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">Related Products</h2>
+            <h2 className="text-xl font-bold">You May Also Like</h2>
             <Button
               variant="ghost"
               onClick={() =>
@@ -746,9 +1405,14 @@ export function ProductDetail({ productId }: ProductDetailProps) {
               View All →
             </Button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin snap-x snap-mandatory">
             {relatedProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <div
+                key={p.id}
+                className="shrink-0 w-[200px] sm:w-[220px] md:w-[240px] snap-start"
+              >
+                <ProductCard product={p} />
+              </div>
             ))}
           </div>
         </section>

@@ -3,12 +3,14 @@
 // =============================================================================
 // Purpose: Public endpoint for creating orders from the checkout page
 // Features: Creates order with items in a transaction, generates order number,
-//           validates required fields, returns created order with order number
+//           validates required fields, returns created order with order number,
+//           sends email confirmation, creates admin notification
 // API: POST /api/orders - Create a new order
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sendOrderConfirmation } from "@/lib/email";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -70,6 +72,49 @@ export async function POST(request: NextRequest) {
       },
       include: { items: true },
     });
+
+    // ---------------------------------------------------------------
+    // Create admin notification for new order
+    // ---------------------------------------------------------------
+    try {
+      await db.notification.create({
+        data: {
+          type: "order",
+          title: `New Order ${order.orderNumber}`,
+          message: `${order.name} - Rs. ${order.total.toLocaleString("en-LK")}`,
+          link: "/admin/orders",
+        },
+      });
+    } catch (notifError) {
+      console.error("Failed to create order notification:", notifError);
+      // Non-blocking - don't fail the order
+    }
+
+    // ---------------------------------------------------------------
+    // Send order confirmation email (non-blocking)
+    // ---------------------------------------------------------------
+    if (order.email) {
+      sendOrderConfirmation({
+        orderNumber: order.orderNumber,
+        name: order.name,
+        email: order.email,
+        phone: order.phone,
+        address: order.address,
+        city: order.city,
+        subtotal: order.subtotal,
+        shipping: order.shipping,
+        total: order.total,
+        paymentMethod: order.paymentMethod,
+        items: order.items.map((item) => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+      }).catch((emailError) => {
+        console.error("Order confirmation email error:", emailError);
+        // Non-blocking
+      });
+    }
 
     return NextResponse.json(
       { success: true, data: order, message: "Order created successfully" },

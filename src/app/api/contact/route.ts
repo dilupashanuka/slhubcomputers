@@ -3,12 +3,14 @@
 // =============================================================================
 // Purpose: POST endpoint for submitting contact form messages
 // Features: Validates required fields, stores message in database,
+//           creates admin notification, sends email to admin,
 //           returns success/error response
 // Fields: name, email, phone (optional), subject, message
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sendContactFormNotification } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +34,36 @@ export async function POST(request: NextRequest) {
         subject,
         message,
       },
+    });
+
+    // ---------------------------------------------------------------
+    // Create admin notification for new message
+    // ---------------------------------------------------------------
+    try {
+      await db.notification.create({
+        data: {
+          type: "message",
+          title: `Message from ${name}`,
+          message: subject || "No subject",
+          link: "/admin/messages",
+        },
+      });
+    } catch (notifError) {
+      console.error("Failed to create contact notification:", notifError);
+      // Non-blocking
+    }
+
+    // ---------------------------------------------------------------
+    // Send contact form notification email to admin (non-blocking)
+    // ---------------------------------------------------------------
+    sendContactFormNotification({
+      name,
+      email,
+      phone: phone || null,
+      subject,
+      message,
+    }).catch((emailError) => {
+      console.error("Contact form email error:", emailError);
     });
 
     return NextResponse.json({

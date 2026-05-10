@@ -26,7 +26,10 @@ export type ViewType =
   | "shipping"
   | "returns"
   | "terms"
-  | "prebuilt";
+  | "prebuilt"
+  | "order-tracking"
+  | "customer-login"
+  | "customer-account";
 
 // ---------------------------------------------------------------------------
 // Category Types
@@ -405,6 +408,71 @@ export interface PageContentType {
   isActive: boolean;
   updatedAt: string;
   createdAt: string;
+}
+
+// ---------------------------------------------------------------------------
+// Customer Types
+// ---------------------------------------------------------------------------
+export interface CustomerType {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  avatar: string | null;
+  addresses: string | null; // JSON array
+  loyaltyPoints: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  orders?: Order2Type[];
+  reviews?: CustomerReviewType[];
+}
+
+export interface Order2Type {
+  id: string;
+  orderNumber: string;
+  customerId: string;
+  name: string;
+  email: string | null;
+  phone: string;
+  address: string | null;
+  city: string | null;
+  notes: string | null;
+  subtotal: number;
+  shipping: number;
+  total: number;
+  discount: number;
+  couponCode: string | null;
+  status: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  statusHistory: string | null;
+  items: OrderItem2Type[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderItem2Type {
+  id: string;
+  orderId: string;
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+export interface CustomerReviewType {
+  id: string;
+  productId: string;
+  customerId: string | null;
+  name: string;
+  email: string | null;
+  rating: number;
+  title: string | null;
+  comment: string;
+  isApproved: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ---------------------------------------------------------------------------

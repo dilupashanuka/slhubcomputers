@@ -13,8 +13,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------------------------------------------------------------------------
@@ -318,4 +319,168 @@ model PageContent {
   createdAt       DateTime @default(now())
 
   @@index([slug])
+}
+
+// ---------------------------------------------------------------------------
+// Coupon Model - Discount codes and promotional offers
+// ---------------------------------------------------------------------------
+model Coupon {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  type        String   @default("percentage") // percentage, fixed, free_shipping
+  value       Float    // Discount value (percentage or fixed amount in LKR)
+  minOrder    Float?   // Minimum order amount to apply coupon
+  maxDiscount Float?   // Maximum discount amount (for percentage coupons)
+  usageLimit  Int?     // Total usage limit (null = unlimited)
+  usedCount   Int      @default(0)
+  perUserLimit Int?    // Per-user usage limit
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+}
+
+// ---------------------------------------------------------------------------
+// Customer Model - Registered customer accounts
+// ---------------------------------------------------------------------------
+model Customer {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  phone         String?
+  password      String    // Hashed password
+  avatar        String?
+  addresses     String?   // JSON array of saved addresses
+  orders        Order2[]
+  reviews       CustomerReview[]
+  loyaltyPoints Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+}
+
+// ---------------------------------------------------------------------------
+// Order2 Model - Customer account orders (separate from guest orders)
+// ---------------------------------------------------------------------------
+model Order2 {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  name          String
+  email         String?
+  phone         String
+  address       String?
+  city          String?
+  notes         String?
+  subtotal      Float
+  shipping      Float       @default(0)
+  total         Float
+  discount      Float       @default(0)
+  couponCode    String?
+  status        String      @default("pending")
+  paymentMethod String      @default("cod")
+  paymentStatus String      @default("unpaid")
+  statusHistory String?     // JSON array: [{status, date, note}]
+  items         OrderItem2[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([customerId])
+  @@index([orderNumber])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// OrderItem2 Model - Items within customer account orders
+// ---------------------------------------------------------------------------
+model OrderItem2 {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order2  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  name      String
+  price     Float
+  quantity  Int
+
+  @@index([orderId])
+}
+
+// ---------------------------------------------------------------------------
+// CustomerReview Model - Product reviews from registered customers
+// ---------------------------------------------------------------------------
+model CustomerReview {
+  id        String   @id @default(cuid())
+  productId String
+  customerId String?
+  customer  Customer? @relation(fields: [customerId], references: [id])
+  name      String
+  email     String?
+  rating    Int      // 1-5
+  title     String?
+  comment   String
+  isApproved Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([isApproved])
+}
+
+// ---------------------------------------------------------------------------
+// ChatMessage Model - Live chat support messages
+// ---------------------------------------------------------------------------
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String   // Unique session ID for each chat conversation
+  name      String?
+  email     String?
+  message   String
+  sender    String   @default("customer") // customer, admin
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([isRead])
+}
+
+// ---------------------------------------------------------------------------
+// Notification Model - Admin push notifications
+// ---------------------------------------------------------------------------
+model Notification {
+  id         String   @id @default(cuid())
+  type       String   // order, message, review, stock, coupon, system
+  title      String
+  message    String
+  link       String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([isRead])
+  @@index([type])
+}
+
+// ---------------------------------------------------------------------------
+// AnalyticsEvent Model - Track page views and user events
+// ---------------------------------------------------------------------------
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  type      String   // page_view, add_to_cart, checkout, order_placed, product_view
+  page      String?  // Page identifier (e.g., "home", "product:abc123")
+  productId String?  // Related product if applicable
+  meta      String?  // JSON metadata (e.g., source, referrer)
+  sessionId String?  // Browser session identifier
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+  @@index([sessionId])
 }

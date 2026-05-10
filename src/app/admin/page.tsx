@@ -48,6 +48,11 @@ import {
   LayoutDashboard,
   Image,
   Settings,
+  Globe,
+  MousePointerClick,
+  Target,
+  Funnel,
+  Crown,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +77,32 @@ import Link from "next/link";
 // ---------------------------------------------------------------------------
 // Type Definitions
 // ---------------------------------------------------------------------------
+interface AnalyticsData {
+  pageViewsToday: number;
+  uniqueVisitorsToday: number;
+  totalPageViews: number;
+  dailyPageViews: { date: string; views: number }[];
+  topViewedProducts: {
+    productId: string;
+    name: string;
+    price: number;
+    image: string | null;
+    views: number;
+  }[];
+  conversionFunnel: {
+    views: number;
+    addToCart: number;
+    checkout: number;
+    orders: number;
+  };
+  conversionRate: number;
+  totalCustomers: number;
+  activeCustomers: number;
+  customersWithOrders: number;
+  returningCustomerRate: number;
+  eventsToday: { type: string; count: number }[];
+}
+
 interface StatsData {
   products: number;
   categories: number;
@@ -328,26 +359,38 @@ function StatusTooltip({ active, payload }: any) {
 // ---------------------------------------------------------------------------
 export default function AdminDashboard() {
   const [stats, setStats] = useState<StatsData | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // Fetch all dashboard data
-  const fetchDashboardData = async () => {
-    setLoading(true);
+  const fetchDashboardData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    setIsRefreshing(true);
     try {
-      const res = await fetch("/api/admin/stats");
-      const data = await res.json();
-      if (data.success) setStats(data.data);
+      const [statsRes, analyticsRes] = await Promise.all([
+        fetch("/api/admin/stats"),
+        fetch("/api/admin/analytics"),
+      ]);
+      const statsData = await statsRes.json();
+      const analyticsData = await analyticsRes.json();
+      if (statsData.success) setStats(statsData.data);
+      if (analyticsData.success) setAnalytics(analyticsData.data);
+      setLastRefreshed(new Date());
     } catch (error) {
       console.error("Dashboard fetch error:", error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
     fetchDashboardData();
-    // Auto-refresh every 60 seconds
-    const interval = setInterval(fetchDashboardData, 60000);
+    // Auto-refresh every 15 seconds
+    const interval = setInterval(() => fetchDashboardData(false), 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -377,10 +420,18 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={fetchDashboardData}>
-            <RefreshCw className={`size-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+          <Button variant="outline" size="sm" onClick={() => fetchDashboardData()}>
+            <RefreshCw className={`size-3.5 mr-1.5 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
+          {lastRefreshed && !isRefreshing && (
+            <span className="text-[10px] text-muted-foreground">
+              Updated {timeAgo(lastRefreshed.toISOString())}
+            </span>
+          )}
+          {isRefreshing && (
+            <span className="text-[10px] text-primary animate-pulse">Updating...</span>
+          )}
         </div>
       </div>
 
@@ -758,6 +809,311 @@ export default function AdminDashboard() {
               <p className="text-xs text-muted-foreground">Reviews</p>
               <p className="text-xl font-bold">{stats?.reviews ?? 0}</p>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ================================================================= */}
+      {/* Quick Stats: Real-Time Analytics                                   */}
+      {/* ================================================================= */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Globe className="size-5 text-emerald-600" />
+          Real-Time Analytics
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {/* Page Views Today */}
+          <Card className="border-emerald-200 dark:border-emerald-800/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                  <MousePointerClick className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Page Views Today</p>
+                  <p className="text-xl font-bold">{analytics?.pageViewsToday ?? 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Unique Visitors */}
+          <Card className="border-blue-200 dark:border-blue-800/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Visitors Today</p>
+                  <p className="text-xl font-bold">{analytics?.uniqueVisitorsToday ?? 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Conversion Rate */}
+          <Card className="border-amber-200 dark:border-amber-800/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Conversion Rate</p>
+                  <p className="text-xl font-bold">{analytics?.conversionRate ?? 0}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Total Page Views */}
+          <Card className="border-violet-200 dark:border-violet-800/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Page Views</p>
+                  <p className="text-xl font-bold">{analytics?.totalPageViews ?? 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* ================================================================= */}
+      {/* Analytics Details: Conversion Funnel + Top Viewed Products         */}
+      {/* ================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Conversion Funnel */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Funnel className="size-4 text-amber-600" />
+              Conversion Funnel
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Last 30 days: Views → Cart → Checkout → Order
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="h-48 bg-muted/20 rounded-lg animate-pulse" />
+            ) : (
+              <div className="space-y-3">
+                {(() => {
+                  const funnel = analytics?.conversionFunnel;
+                  const steps = [
+                    { label: "Product Views", value: funnel?.views ?? 0, color: "bg-blue-500", bgColor: "bg-blue-100 dark:bg-blue-900/30" },
+                    { label: "Added to Cart", value: funnel?.addToCart ?? 0, color: "bg-emerald-500", bgColor: "bg-emerald-100 dark:bg-emerald-900/30" },
+                    { label: "Checkout", value: funnel?.checkout ?? 0, color: "bg-amber-500", bgColor: "bg-amber-100 dark:bg-amber-900/30" },
+                    { label: "Order Placed", value: funnel?.orders ?? 0, color: "bg-green-500", bgColor: "bg-green-100 dark:bg-green-900/30" },
+                  ];
+                  const maxVal = Math.max(...steps.map((s) => s.value), 1);
+                  return steps.map((step, idx) => {
+                    const widthPct = maxVal > 0 ? Math.max((step.value / maxVal) * 100, 5) : 5;
+                    const dropoff = idx > 0 && steps[idx - 1].value > 0
+                      ? Math.round(((steps[idx - 1].value - step.value) / steps[idx - 1].value) * 100)
+                      : null;
+                    return (
+                      <div key={step.label}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium">{step.label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold">{step.value.toLocaleString()}</span>
+                            {dropoff !== null && (
+                              <span className="text-[10px] text-red-500">
+                                -{dropoff}%
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="h-6 bg-muted/30 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full ${step.color} rounded-full transition-all duration-500`}
+                            style={{ width: `${widthPct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Top Viewed Products */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Crown className="size-4 text-amber-600" />
+              Most Viewed Products
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Top products by page views (last 30 days)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-10 bg-muted/20 rounded animate-pulse" />
+                ))}
+              </div>
+            ) : !analytics?.topViewedProducts.length ? (
+              <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+                <Eye className="w-10 h-10 mb-2 opacity-30" />
+                <p className="text-sm">No view data yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {analytics.topViewedProducts.map((product, idx) => (
+                  <div
+                    key={product.productId}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                      idx === 0
+                        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                        : idx === 1
+                        ? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                        : idx === 2
+                        ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                        : "bg-muted text-muted-foreground"
+                    }`}>
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{product.name}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {product.views} views • {formatCompactLKR(product.price)}
+                      </p>
+                    </div>
+                    <div className="w-16 h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 rounded-full"
+                        style={{
+                          width: `${Math.max(
+                            (product.views / (analytics.topViewedProducts[0]?.views || 1)) * 100,
+                            5
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ================================================================= */}
+      {/* Page Views Trend (7 days) + Customer Demographics                 */}
+      {/* ================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Daily Page Views Chart */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <BarChart3 className="size-4 text-blue-600" />
+              Page Views (7 Days)
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Daily page view trend
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="h-48 bg-muted/20 rounded-lg animate-pulse" />
+            ) : (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={analytics?.dailyPageViews || []}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 10 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 10 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "8px",
+                      border: "1px solid var(--border)",
+                      fontSize: "12px",
+                    }}
+                    formatter={(value: number) => [`${value} views`, "Views"]}
+                  />
+                  <Bar
+                    dataKey="views"
+                    fill="#059669"
+                    radius={[4, 4, 0, 0]}
+                    barSize={24}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Customer Demographics */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Users className="size-4 text-violet-600" />
+              Customer Insights
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Registered customer statistics
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="h-48 bg-muted/20 rounded-lg animate-pulse" />
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50">
+                    <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">Total Registered</p>
+                    <p className="text-2xl font-bold">{analytics?.totalCustomers ?? 0}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50">
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Active</p>
+                    <p className="text-2xl font-bold">{analytics?.activeCustomers ?? 0}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50">
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">With Orders</p>
+                    <p className="text-2xl font-bold">{analytics?.customersWithOrders ?? 0}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800/50">
+                    <p className="text-[10px] text-violet-600 dark:text-violet-400 font-medium">Return Rate</p>
+                    <p className="text-2xl font-bold">{analytics?.returningCustomerRate ?? 0}%</p>
+                  </div>
+                </div>
+                {/* Events today breakdown */}
+                {analytics?.eventsToday && analytics.eventsToday.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium mb-2">Events Today</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {analytics.eventsToday.map((ev) => (
+                        <Badge key={ev.type} variant="outline" className="text-[10px]">
+                          {ev.type.replace(/_/g, " ")}: {ev.count}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

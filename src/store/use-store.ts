@@ -16,6 +16,7 @@ import type {
   WishlistItemType,
   CompareItemType,
   PCBuilderComponent,
+  CustomerType,
 } from "@/types";
 
 // ---------------------------------------------------------------------------
@@ -34,6 +35,15 @@ interface SLHubStore {
   navigateToCategory: (categoryId: string, categoryName: string) => void;
   navigateToProduct: (productId: string) => void;
   navigateToSearch: (query: string) => void;
+
+  // ---- Customer Auth State ----
+  customer: CustomerType | null;
+  isLoggedIn: boolean;
+
+  // ---- Customer Auth Actions ----
+  setCustomer: (customer: CustomerType | null) => void;
+  loginCustomer: (customer: CustomerType) => void;
+  logoutCustomer: () => void;
 
   // ---- Cart State ----
   cart: CartItemType[];
@@ -262,6 +272,28 @@ export const useStore = create<SLHubStore>()(
       },
 
       // =====================================================================
+      // Customer Auth State & Actions
+      // =====================================================================
+      customer: null,
+      isLoggedIn: false,
+
+      setCustomer: (customer) => set({ customer, isLoggedIn: !!customer }),
+
+      loginCustomer: (customer) =>
+        set({
+          customer,
+          isLoggedIn: true,
+          currentView: "customer-account",
+        }),
+
+      logoutCustomer: () =>
+        set({
+          customer: null,
+          isLoggedIn: false,
+          currentView: "home",
+        }),
+
+      // =====================================================================
       // UI State
       // =====================================================================
       isMobileMenuOpen: false,
@@ -281,6 +313,8 @@ export const useStore = create<SLHubStore>()(
         compareList: state.compareList,
         recentlyViewed: state.recentlyViewed,
         pcBuilderComponents: state.pcBuilderComponents,
+        customer: state.customer,
+        isLoggedIn: state.isLoggedIn,
       }),
     }
   )

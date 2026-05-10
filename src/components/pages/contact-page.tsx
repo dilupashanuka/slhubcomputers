@@ -1,10 +1,10 @@
 // =============================================================================
 // SL HUB COMPUTER - Contact Page Component
 // =============================================================================
-// Purpose: Contact page with form and business information
+// Purpose: Contact page with form, business information, and Google Maps embed
 // Features: Contact form (name, email, phone, subject, message) POSTs to
-//           /api/contact, contact info sidebar, business hours, map placeholder,
-//           WhatsApp/Call action buttons
+//           /api/contact, contact info sidebar, business hours, Google Maps
+//           embed with store details, WhatsApp/Call action buttons
 // =============================================================================
 
 "use client";
@@ -26,6 +26,8 @@ import {
   Send,
   Loader2,
   CheckCircle2,
+  Navigation,
+  Store,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -126,12 +128,12 @@ export function ContactPage() {
   // ---- Contact Info Items ----
   const contactInfo = [
     {
-      icon: <MapPin className="w-5 h-5 text-blue-600" />,
+      icon: <MapPin className="w-5 h-5 text-emerald-500" />,
       label: "Address",
       value: "Hakmana Road, Deiyandara, Sri Lanka",
     },
     {
-      icon: <Phone className="w-5 h-5 text-blue-600" />,
+      icon: <Phone className="w-5 h-5 text-emerald-500" />,
       label: "Hotline",
       value: "071 067 8944",
       href: "tel:0710678944",
@@ -143,13 +145,13 @@ export function ContactPage() {
       href: "https://wa.me/94710678944",
     },
     {
-      icon: <Mail className="w-5 h-5 text-blue-600" />,
+      icon: <Mail className="w-5 h-5 text-emerald-500" />,
       label: "Email",
       value: "slhubcomputer@gmail.com",
       href: "mailto:slhubcomputer@gmail.com",
     },
     {
-      icon: <Globe className="w-5 h-5 text-blue-600" />,
+      icon: <Globe className="w-5 h-5 text-emerald-500" />,
       label: "Facebook",
       value: "SL HUB COMPUTER",
       href: "https://www.facebook.com/profile.php?id=100063543731370",
@@ -186,7 +188,7 @@ export function ContactPage() {
                   </p>
                   <Button
                     onClick={() => setSubmitted(false)}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-emerald-600 hover:bg-emerald-700"
                   >
                     Send Another Message
                   </Button>
@@ -276,7 +278,7 @@ export function ContactPage() {
                   {/* Submit Button */}
                   <Button
                     type="submit"
-                    className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700"
                     disabled={submitting}
                   >
                     {submitting ? (
@@ -321,7 +323,7 @@ export function ContactPage() {
                             ? "noopener noreferrer"
                             : undefined
                         }
-                        className="text-sm font-medium hover:text-blue-600 transition-colors"
+                        className="text-sm font-medium hover:text-emerald-500 transition-colors"
                       >
                         {info.value}
                       </a>
@@ -338,7 +340,7 @@ export function ContactPage() {
           <Card>
             <CardContent className="p-6">
               <h3 className="font-bold text-lg flex items-center gap-2 mb-4">
-                <Clock className="w-5 h-5 text-blue-600" /> Business Hours
+                <Clock className="w-5 h-5 text-emerald-500" /> Business Hours
               </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -382,27 +384,150 @@ export function ContactPage() {
               </a>
             </CardContent>
           </Card>
+        </div>
+      </div>
 
-          {/* Map Placeholder */}
-          <Card>
-            <CardContent className="p-0">
-              <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-t-lg flex flex-col items-center justify-center text-muted-foreground">
-                <MapPin className="w-10 h-10 mb-2 text-blue-400" />
-                <p className="text-sm font-medium">SL HUB COMPUTER</p>
-                <p className="text-xs">Hakmana Road, Deiyandara</p>
+      {/* ---- Store Location Map Section ---- */}
+      <div className="max-w-6xl mx-auto mt-10">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
+            <MapPin className="w-6 h-6 text-emerald-500" />
+            Our Store Location
+          </h2>
+          <p className="text-muted-foreground">
+            Visit us at our store in Deiyandara, Sri Lanka
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Google Maps Embed */}
+          <div className="lg:col-span-2">
+            <Card className="overflow-hidden">
+              <div className="relative w-full" style={{ minHeight: "400px" }}>
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3967.2!2d80.5984!3d6.1439!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sDeiyandara%2C%20Sri%20Lanka!5e0!3m2!1sen!2slk!4v1700000000000!5m2!1sen!2slk"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0, position: "absolute", inset: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="SL HUB COMPUTER Store Location - Deiyandara, Sri Lanka"
+                  className="rounded-t-lg"
+                />
               </div>
-              <div className="p-3 text-center">
+            </Card>
+          </div>
+
+          {/* Store Details Card */}
+          <div className="lg:col-span-1">
+            <Card className="h-full bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
+              <CardContent className="p-6 flex flex-col h-full">
+                {/* Store Logo & Name */}
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-12 h-12 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0">
+                    <Store className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg text-white">
+                      SL HUB COMPUTER
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Your Trusted Tech Partner
+                    </p>
+                  </div>
+                </div>
+
+                <Separator className="bg-slate-700 mb-5" />
+
+                {/* Store Details */}
+                <div className="space-y-4 flex-1">
+                  {/* Address */}
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-slate-400">Address</p>
+                      <p className="text-sm font-medium text-slate-200">
+                        Hakmana Road, Deiyandara, Sri Lanka
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Phone */}
+                  <div className="flex items-start gap-3">
+                    <Phone className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-slate-400">Phone</p>
+                      <a
+                        href="tel:0710678944"
+                        className="text-sm font-medium text-slate-200 hover:text-emerald-400 transition-colors"
+                      >
+                        071 067 8944
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Hours */}
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-slate-400">Business Hours</p>
+                      <div className="text-sm text-slate-200 space-y-0.5">
+                        <p>
+                          <span className="font-medium">Mon - Sat:</span> 9:00
+                          AM - 7:00 PM
+                        </p>
+                        <p>
+                          <span className="font-medium">Sun:</span> 10:00 AM -
+                          5:00 PM
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* WhatsApp */}
+                  <div className="flex items-start gap-3">
+                    <MessageCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-slate-400">WhatsApp</p>
+                      <a
+                        href="https://wa.me/94710678944"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-slate-200 hover:text-emerald-400 transition-colors"
+                      >
+                        071 067 8944
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="bg-slate-700 my-5" />
+
+                {/* Get Directions Button */}
                 <a
-                  href="https://maps.google.com/?q=Deiyandara+Sri+Lanka"
+                  href="https://www.google.com/maps/dir/?api=1&destination=6.1439,80.5984"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline"
+                  className="block"
                 >
-                  Open in Google Maps →
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white">
+                    <Navigation className="w-4 h-4 mr-2" /> Get Directions
+                  </Button>
                 </a>
-              </div>
-            </CardContent>
-          </Card>
+
+                {/* Call Button */}
+                <a href="tel:0710678944" className="block mt-3">
+                  <Button
+                    variant="outline"
+                    className="w-full border-slate-600 text-slate-200 hover:bg-slate-700 hover:text-white"
+                  >
+                    <Phone className="w-4 h-4 mr-2" /> Call Store
+                  </Button>
+                </a>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

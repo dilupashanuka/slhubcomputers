@@ -208,6 +208,26 @@ export function CheckoutPage() {
     );
   };
 
+  // ---- WhatsApp Order Confirmation ----
+  const handleWhatsAppConfirmation = async () => {
+    if (!orderNumber) return;
+    try {
+      const res = await fetch("/api/orders/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderNumber }),
+      });
+      const data = await res.json();
+      if (data.success && data.data?.whatsappUrl) {
+        window.open(data.data.whatsappUrl, "_blank");
+      } else {
+        toast.error(data.error || "Failed to generate WhatsApp message");
+      }
+    } catch {
+      toast.error("Failed to connect to WhatsApp");
+    }
+  };
+
   // ---- Order Success State ----
   if (orderSuccess) {
     return (
@@ -234,13 +254,37 @@ export function CheckoutPage() {
             </a>{" "}
             to check your order status.
           </p>
-          <Button
-            onClick={() => setCurrentView("home")}
-            className="bg-blue-600 hover:bg-blue-700"
-            size="lg"
-          >
-            Continue Shopping
-          </Button>
+
+          {/* Action Buttons */}
+          <div className="space-y-3 mb-4">
+            <Button
+              onClick={() => setCurrentView("order-tracking")}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              size="lg"
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              Track Your Order
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+              size="lg"
+              onClick={handleWhatsAppConfirmation}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Send to WhatsApp
+            </Button>
+
+            <Button
+              onClick={() => setCurrentView("home")}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              Continue Shopping
+            </Button>
+          </div>
         </div>
       </div>
     );
