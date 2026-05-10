@@ -42,6 +42,8 @@ interface ContactFormData {
   message: string;
 }
 
+import { PageHero } from "@/components/layout/page-hero";
+
 // ---------------------------------------------------------------------------
 // Contact Page Component
 // ---------------------------------------------------------------------------
@@ -157,20 +159,18 @@ export function ContactPage() {
       href: "https://www.facebook.com/profile.php?id=100063543731370",
     },
   ];
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold mb-3">Contact Us</h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Have a question, need help with a product, or want to place an order?
-          We&apos;d love to hear from you. Reach out through any of the channels
-          below.
-        </p>
-      </div>
+    <div className="min-h-screen">
+      <PageHero 
+        title="Contact Us"
+        subtitle="We're here to help"
+        description="Have a question, need help with a product, or want to place an order? Reach out through any of the channels below."
+        gradient="from-emerald-600 to-teal-800"
+        icon={<Phone className="w-12 h-12" />}
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="container mx-auto px-4 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {/* ---- Left: Contact Form ---- */}
         <div className="lg:col-span-2">
           <Card>

@@ -93,6 +93,8 @@ function formatDate(dateStr: string): string {
   });
 }
 
+import { PageHero } from "@/components/layout/page-hero";
+
 // ---------------------------------------------------------------------------
 // Main Component
 // ---------------------------------------------------------------------------
@@ -184,21 +186,22 @@ export function AffiliatePage() {
   // Landing Page View
   if (mode === "landing") {
     return (
-      <div className="max-w-4xl mx-auto">
-        {/* Hero */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-4">
-            <Award className="size-4" />
-            Earn While You Refer
+      <div className="min-h-screen">
+        <PageHero 
+          title="Affiliate Program"
+          subtitle="Earn while you refer"
+          description="Join our referral program and earn commissions on every sale you bring in. Share your unique link with friends, family, and followers."
+          gradient="from-emerald-600 via-teal-700 to-emerald-900"
+          icon={<Award className="w-12 h-12" />}
+        />
+
+        <div className="container mx-auto px-4 pb-16">
+          <div className="text-center mb-8 -mt-6">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm shadow-sm border border-primary/20">
+              <TrendingUp className="size-4" />
+              High Commissions • Real-time Tracking • Easy Payouts
+            </div>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            Become an SL HUB Affiliate
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Join our referral program and earn commissions on every sale you bring in.
-            Share your unique link with friends, family, and followers.
-          </p>
-        </div>
 
         {/* Benefits */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">

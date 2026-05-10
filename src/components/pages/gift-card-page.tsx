@@ -55,6 +55,8 @@ const OCCASIONS = [
   { value: "general", label: "General", icon: Sparkles, color: "from-amber-500 to-orange-500", emoji: "✨" },
 ];
 
+import { PageHero } from "@/components/layout/page-hero";
+
 // ---------------------------------------------------------------------------
 // Main Component
 // ---------------------------------------------------------------------------
@@ -178,22 +180,21 @@ export function GiftCardPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <Button variant="ghost" size="icon" onClick={() => setCurrentView("home")}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Gift className="w-6 h-6 text-primary" />
-            Gift Cards
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Give the perfect gift — let them choose what they love
-          </p>
+    <div className="min-h-screen">
+      <PageHero 
+        title="Gift Cards"
+        subtitle="The perfect gift for any tech lover"
+        description="Give the gift of choice. Our digital gift cards can be used for any product in our store — from high-end components to premium pre-built PCs."
+        gradient="from-indigo-600 via-purple-700 to-indigo-900"
+        icon={<Gift className="w-12 h-12" />}
+      />
+
+      <div className="container mx-auto px-4 pb-16">
+        <div className="mb-6 -mt-4">
+          <Button variant="ghost" size="sm" onClick={() => setCurrentView("home")} className="backdrop-blur-sm bg-white/10 hover:bg-white/20">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Home
+          </Button>
         </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Left: Form */}

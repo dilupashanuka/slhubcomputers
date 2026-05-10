@@ -16,6 +16,16 @@ import { db } from "@/lib/db";
 // GET /api/admin/theme - Fetch current theme configuration
 // ---------------------------------------------------------------------------
 export async function GET() {
+  const DEFAULT_THEME = {
+    primaryColor: "#059669",
+    accentColor: "#f59e0b",
+    headerBgColor: "#0f172a",
+    buttonRadius: 8,
+    buttonStyle: "rounded",
+    fontFamily: "Inter",
+    cardStyle: "shadowed",
+  };
+
   try {
     const settings = await db.siteSettings.findUnique({
       where: { id: "site-settings" },
@@ -32,22 +42,16 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: settings || {
-        primaryColor: "#059669",
-        accentColor: "#f59e0b",
-        headerBgColor: "#0f172a",
-        buttonRadius: 8,
-        buttonStyle: "rounded",
-        fontFamily: "Inter",
-        cardStyle: "shadowed",
-      },
+      data: settings || DEFAULT_THEME,
     });
   } catch (error) {
     console.error("Theme fetch error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch theme configuration" },
-      { status: 500 }
-    );
+    // Return default theme instead of 500 error to keep site functional
+    return NextResponse.json({
+      success: true,
+      data: DEFAULT_THEME,
+      warning: "Database connection failed, using default theme",
+    });
   }
 }
 
