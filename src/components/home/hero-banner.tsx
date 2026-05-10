@@ -69,7 +69,7 @@ export function HeroBanner() {
       <div
         className={`bg-gradient-to-r ${banner.gradient} transition-all duration-700 ease-in-out`}
       >
-        <div className="w-full px-4 md:px-8 lg:px-12 py-12 md:py-20 lg:py-24">
+        <div className="container mx-auto px-4 py-12 md:py-20 lg:py-24">
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Text Content */}
             <div className="flex-1 text-white">

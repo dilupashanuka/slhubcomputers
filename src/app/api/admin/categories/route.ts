@@ -3,12 +3,10 @@
 // =============================================================================
 // Purpose: CRUD endpoints for category management
 // GET: List all categories | POST: Create new category
-// Cache: Invalidates "categories" cache on POST
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { invalidate } from "@/lib/cache";
 
 export async function GET() {
   try {
@@ -27,10 +25,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const category = await db.category.create({ data: body });
-
-    // Invalidate categories cache
-    invalidate("categories");
-
     return NextResponse.json({ success: true, data: category }, { status: 201 });
   } catch (error) {
     console.error("Admin categories POST error:", error);

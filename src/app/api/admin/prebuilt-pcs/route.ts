@@ -3,12 +3,11 @@
 // =============================================================================
 // Purpose: CRUD endpoints for pre-built PC management
 // GET: List all pre-built PCs | POST: Create new pre-built PC
-// Cache: Invalidates "prebuilt-pcs" cache on POST
+// NEW: Added for Pre-Built PCs feature
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { invalidate } from "@/lib/cache";
 
 export async function GET() {
   try {
@@ -24,10 +23,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const pc = await db.prebuiltPC.create({ data: body });
-
-    // Invalidate prebuilt-pcs cache
-    invalidate("prebuilt-pcs");
-
     return NextResponse.json({ success: true, data: pc }, { status: 201 });
   } catch (error) {
     console.error("Admin prebuilt PCs POST error:", error);

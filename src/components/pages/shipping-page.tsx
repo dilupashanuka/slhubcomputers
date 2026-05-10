@@ -102,23 +102,23 @@ const deliveryZones = [
   },
 ];
 
-import { PageHero } from "@/components/layout/page-hero";
-
 // ---------------------------------------------------------------------------
 // Shipping Page Component
 // ---------------------------------------------------------------------------
 export function ShippingPage() {
   return (
-    <div className="min-h-screen">
-      <PageHero 
-        title="Shipping Policy"
-        subtitle="We deliver across Sri Lanka!"
-        description="Learn about our delivery options, rates, and estimated times for your area. We ensure your tech arrives safely and quickly."
-        gradient="from-blue-600 to-indigo-800"
-        icon={<Truck className="w-12 h-12" />}
-      />
-
-      <div className="container mx-auto px-4 pb-16">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      {/* Header */}
+      <div className="text-center mb-10">
+        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Truck className="w-8 h-8 text-blue-600" />
+        </div>
+        <h1 className="text-3xl font-bold mb-3">Shipping Policy</h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          We deliver across Sri Lanka! Learn about our delivery options, rates,
+          and estimated times for your area.
+        </p>
+      </div>
 
       {/* ---- Free Shipping Banner ---- */}
       <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 mb-10">
@@ -342,7 +342,6 @@ export function ShippingPage() {
           </Card>
         </div>
       </section>
-      </div>
     </div>
   );
 }

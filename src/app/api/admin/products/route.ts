@@ -4,12 +4,10 @@
 // Purpose: CRUD endpoints for product management
 // GET: List all products with filters (admin view includes inactive)
 // POST: Create new product
-// Cache: Invalidates "products" cache on POST
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { invalidate } from "@/lib/cache";
 
 // GET - List all products (admin view)
 export async function GET(request: NextRequest) {
@@ -54,10 +52,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const product = await db.product.create({ data: body });
-
-    // Invalidate products cache
-    invalidate("products");
-
     return NextResponse.json({ success: true, data: product }, { status: 201 });
   } catch (error) {
     console.error("Admin products POST error:", error);

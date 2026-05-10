@@ -3,32 +3,23 @@
 // =============================================================================
 // Purpose: GET endpoint for fetching SL HUB COMPUTER services
 // Features: Returns active services ordered by sort order
-//           Server-side caching with 5min TTL
+// Services: PC Parts & Repair, Laptop Repair, Mobile Accessories, CCTV, etc.
 // =============================================================================
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { deduplicatedFetch, CACHE_TTL } from "@/lib/cache";
 
 export async function GET() {
   try {
-    const result = await deduplicatedFetch(
-      "services:all",
-      async () => {
-        const services = await db.service.findMany({
-          where: { isActive: true },
-          orderBy: { order: "asc" },
-        });
+    const services = await db.service.findMany({
+      where: { isActive: true },
+      orderBy: { order: "asc" },
+    });
 
-        return {
-          success: true,
-          data: services,
-        };
-      },
-      CACHE_TTL.SERVICES
-    );
-
-    return NextResponse.json(result);
+    return NextResponse.json({
+      success: true,
+      data: services,
+    });
   } catch (error) {
     console.error("Services API error:", error);
     return NextResponse.json(

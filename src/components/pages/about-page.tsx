@@ -142,8 +142,6 @@ const whyChooseUs = [
   },
 ];
 
-import { PageHero } from "@/components/layout/page-hero";
-
 // ---------------------------------------------------------------------------
 // About Page Component
 // ---------------------------------------------------------------------------
@@ -152,13 +150,25 @@ export function AboutPage() {
 
   return (
     <div className="min-h-screen">
-      <PageHero 
-        title="SL HUB COMPUTER"
-        subtitle="Your Trusted Tech Partner"
-        description="Located on Hakmana Road, Deiyandara — we bring quality computer products, expert services, and reliable solutions to the heart of Sri Lanka."
-        gradient="from-blue-600 to-blue-800"
-        icon={<Cpu className="w-12 h-12" />}
-      />
+      {/* ---- Hero Section ---- */}
+      <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16 md:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Cpu className="w-12 h-12" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            SL HUB COMPUTER
+          </h1>
+          <p className="text-xl md:text-2xl text-blue-100 mb-2">
+            Your Trusted Tech Partner
+          </p>
+          <p className="text-blue-200 max-w-2xl mx-auto">
+            Located on Hakmana Road, Deiyandara — we bring quality computer
+            products, expert services, and reliable solutions to the heart of
+            Sri Lanka.
+          </p>
+        </div>
+      </section>
 
       {/* ---- Our Story ---- */}
       <section className="py-16">

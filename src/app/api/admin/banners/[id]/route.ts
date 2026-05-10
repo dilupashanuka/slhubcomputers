@@ -1,8 +1,6 @@
 // Admin Banner Detail API
-// Cache: Invalidates "banners" cache on PUT/DELETE
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { invalidate } from "@/lib/cache";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,19 +13,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const body = await req.json();
   const banner = await db.banner.update({ where: { id }, data: body });
-
-  // Invalidate banners cache
-  invalidate("banners");
-
   return NextResponse.json({ success: true, data: banner });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await db.banner.delete({ where: { id } });
-
-  // Invalidate banners cache
-  invalidate("banners");
-
   return NextResponse.json({ success: true, message: "Deleted" });
 }

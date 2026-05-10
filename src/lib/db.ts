@@ -13,38 +13,23 @@ import { PrismaClient } from "@prisma/client";
 // CRITICAL: Set DATABASE_URL env var BEFORE importing PrismaClient
 // Turbopack sometimes loses env vars during HMR hot reload.
 // This ensures Prisma schema validation always finds a valid URL.
-// Also handles the case where the system env has a non-PostgreSQL URL
-// (e.g., SQLite fallback) that would fail Prisma schema validation.
 // ---------------------------------------------------------------------------
-const POSTGRES_POOLER_URL =
-  "postgresql://postgres.bmpsuwayyhmxodyaudhg:SLHUB%40Tharusha@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
-const POSTGRES_DIRECT_URL =
-  "postgresql://postgres.bmpsuwayyhmxodyaudhg:SLHUB%40Tharusha@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres";
-
-if (
-  !process.env.DATABASE_URL ||
-  !process.env.DATABASE_URL.startsWith("postgresql://") &&
-  !process.env.DATABASE_URL.startsWith("postgres://")
-) {
-  process.env.DATABASE_URL = POSTGRES_POOLER_URL;
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL =
+    "postgresql://postgres.bmpsuwayyhmxodyaudhg:SLHUB%40Tharusha@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
 }
 
-if (
-  !process.env.DIRECT_URL ||
-  !process.env.DIRECT_URL.startsWith("postgresql://") &&
-  !process.env.DIRECT_URL.startsWith("postgres://")
-) {
-  process.env.DIRECT_URL = POSTGRES_DIRECT_URL;
+if (!process.env.DIRECT_URL) {
+  process.env.DIRECT_URL =
+    "postgresql://postgres.bmpsuwayyhmxodyaudhg:SLHUB%40Tharusha@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres";
 }
 
 // ---------------------------------------------------------------------------
-// Database URL with fallback - always ensure PostgreSQL protocol
+// Database URL with fallback
 // ---------------------------------------------------------------------------
 const databaseUrl =
-  process.env.DATABASE_URL?.startsWith("postgresql://") ||
-  process.env.DATABASE_URL?.startsWith("postgres://")
-    ? process.env.DATABASE_URL
-    : POSTGRES_POOLER_URL;
+  process.env.DATABASE_URL ||
+  "postgresql://postgres.bmpsuwayyhmxodyaudhg:SLHUB%40Tharusha@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
 
 // ---------------------------------------------------------------------------
 // Global singleton to prevent multiple Prisma instances during dev HMR
