@@ -494,12 +494,14 @@ export async function POST() {
       },
     ];
 
-    // Create all products
-    const createdProducts: any[] = [];
-    for (const product of productsData) {
-      const p = await db.product.create({ data: product });
-      createdProducts.push(p);
-    }
+    // Create all products using createMany for performance
+    await db.product.createMany({
+      data: productsData,
+      skipDuplicates: true,
+    });
+    
+    // For the response count
+    const createdProducts = productsData;
 
     // ========================================================================
     // 4. SEED BANNERS - 3 homepage promotional banners
@@ -542,9 +544,10 @@ export async function POST() {
       },
     ];
 
-    for (const banner of bannersData) {
-      await db.banner.create({ data: banner });
-    }
+    await db.banner.createMany({
+      data: bannersData,
+      skipDuplicates: true,
+    });
 
     // ========================================================================
     // 5. SEED SERVICES - 6 SL HUB COMPUTER services
@@ -614,9 +617,10 @@ export async function POST() {
       },
     ];
 
-    for (const service of servicesData) {
-      await db.service.create({ data: service });
-    }
+    await db.service.createMany({
+      data: servicesData,
+      skipDuplicates: true,
+    });
 
     // ========================================================================
     // 6. SEED SITE SETTINGS - SL HUB COMPUTER defaults
@@ -839,9 +843,10 @@ export async function POST() {
       },
     ];
 
-    for (const pc of prebuiltPCsData) {
-      await db.prebuiltPC.create({ data: pc });
-    }
+    await db.prebuiltPC.createMany({
+      data: prebuiltPCsData,
+      skipDuplicates: true,
+    });
 
     // ========================================================================
     // Return success response with summary

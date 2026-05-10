@@ -78,19 +78,28 @@ export default function HomePageRouter() {
     if (!loading) trackPageView();
   }, [currentView, selectedProductId, loading]);
 
-  // Auto-seed database on first load
+  // Auto-seed database on first load with safety timeout
   useEffect(() => {
     const seedDatabase = async () => {
       if (seeded) return;
+      
+      // Safety timeout to hide loading even if API hangs
+      const timeout = setTimeout(() => {
+        setLoading(false);
+      }, 5000);
+
       try {
         const res = await fetch("/api/seed", { method: "POST" });
-        const data = await res.json();
-        if (data.success) {
-          console.log("Database seeded successfully");
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (data.success) {
+            console.log("Database seeded successfully");
+          }
         }
       } catch (error) {
         console.error("Seed error:", error);
       } finally {
+        clearTimeout(timeout);
         setSeeded(true);
         setLoading(false);
       }
@@ -123,17 +132,7 @@ export default function HomePageRouter() {
   const renderView = () => {
     switch (currentView) {
       case "home":
-        return useMemo(() => (
-          <div className="flex flex-col gap-12 pb-20">
-            <HeroBanner />
-            <CategoryGrid />
-            <FlashDeals />
-            <ProductSection />
-            <BrandCarousel />
-            <RecentlyViewed />
-            <NewsletterSection />
-          </div>
-        ), []);
+        return <HomePage />;
       case "category":
         return <ProductGrid />;
       case "product":
