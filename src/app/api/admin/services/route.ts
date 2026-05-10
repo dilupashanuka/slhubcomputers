@@ -1,9 +1,10 @@
 // =============================================================================
 // SL HUB COMPUTER - Admin Services API
 // =============================================================================
-
+// Cache: Invalidates "services" cache on POST
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { invalidate } from "@/lib/cache";
 
 export async function GET() {
   try {
@@ -16,6 +17,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const service = await db.service.create({ data: body });
+
+    // Invalidate services cache
+    invalidate("services");
+
     return NextResponse.json({ success: true, data: service }, { status: 201 });
   } catch (error) { return NextResponse.json({ success: false, error: "Failed" }, { status: 500 }); }
 }

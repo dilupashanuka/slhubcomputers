@@ -6,11 +6,13 @@
 //           creates admin notification, sends email to admin,
 //           returns success/error response
 // Fields: name, email, phone (optional), subject, message
+// Security: Input sanitization, email/phone validation
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendContactFormNotification } from "@/lib/email";
+import { sanitizeForStorage, validateEmail, validatePhone } from "@/lib/sanitize";
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,15 +27,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate email
+    const emailValidation = validateEmail(String(email));
+    if (!emailValidation.valid) {
+      return NextResponse.json(
+        { success: false, error: emailValidation.error },
+        { status: 400 }
+      );
+    }
+
+    // Validate phone if provided
+    if (phone) {
+      const phoneValidation = validatePhone(String(phone));
+      if (!phoneValidation.valid) {
+        return NextResponse.json(
+          { success: false, error: phoneValidation.error },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Sanitize inputs for storage
+    const sanitizedData = {
+      name: sanitizeForStorage(name),
+      email: emailValidation.valid ? String(email).trim().toLowerCase() : email,
+      phone: phone ? sanitizeForStorage(phone) : null,
+      subject: sanitizeForStorage(subject),
+      message: sanitizeForStorage(message),
+    };
+
     // Create contact message in database
     const contactMessage = await db.contactMessage.create({
-      data: {
-        name,
-        email,
-        phone: phone || null,
-        subject,
-        message,
-      },
+      data: sanitizedData,
     });
 
     // ---------------------------------------------------------------
@@ -43,8 +68,8 @@ export async function POST(request: NextRequest) {
       await db.notification.create({
         data: {
           type: "message",
-          title: `Message from ${name}`,
-          message: subject || "No subject",
+          title: `Message from ${sanitizedData.name}`,
+          message: sanitizedData.subject || "No subject",
           link: "/admin/messages",
         },
       });
@@ -57,11 +82,11 @@ export async function POST(request: NextRequest) {
     // Send contact form notification email to admin (non-blocking)
     // ---------------------------------------------------------------
     sendContactFormNotification({
-      name,
-      email,
-      phone: phone || null,
-      subject,
-      message,
+      name: sanitizedData.name,
+      email: sanitizedData.email,
+      phone: sanitizedData.phone,
+      subject: sanitizedData.subject,
+      message: sanitizedData.message,
     }).catch((emailError) => {
       console.error("Contact form email error:", emailError);
     });

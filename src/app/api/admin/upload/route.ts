@@ -1,24 +1,23 @@
 // =============================================================================
 // SL HUB COMPUTER - Image Upload API
 // =============================================================================
-// Purpose: Handle image uploads with Supabase support and local fallback
+// Purpose: Handle image uploads with Cloudinary support and local fallback
 // Features:
-//   - Supabase upload when configured
-//   - Local file upload fallback when Supabase not configured
+//   - Cloudinary upload when configured (server-side signed upload)
+//   - Local file upload fallback when Cloudinary not configured
 //   - File validation (type, size)
-//   - Returns URL and publicId for Supabase images
+//   - Returns URL and publicId for Cloudinary images
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import sharp from "sharp";
-import { uploadImage, isSupabaseConfigured } from "@/lib/supabase-storage";
+import { uploadImage, isCloudinaryConfigured } from "@/lib/cloudinary";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = [
   "image/jpeg",
   "image/png",
@@ -59,42 +58,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum: 10MB`,
+          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum: 5MB`,
         },
         { status: 400 }
       );
     }
 
-    // Convert file to Buffer
-    const bytes = await file.arrayBuffer();
-    let buffer: any = Buffer.from(bytes);
-    let fileName = file.name;
-    let mimeType = file.type;
-
-    // Convert to WebP using sharp if it's an image (and not already svg/gif which might lose animation/vector)
-    if (file.type !== "image/svg+xml" && file.type !== "image/gif") {
-      buffer = await sharp(buffer)
-        .webp({ quality: 80 })
-        .toBuffer();
-      // Replace extension with .webp
-      fileName = fileName.replace(/\.[^/.]+$/, "") + ".webp";
-      mimeType = "image/webp";
-    }
-
     // ---------------------------------------------------------------
-    // Try Supabase upload if configured
+    // Try Cloudinary upload if configured
     // ---------------------------------------------------------------
-    if (isSupabaseConfigured()) {
+    if (isCloudinaryConfigured()) {
       try {
-        const result = await uploadImage(buffer, fileName, folder, mimeType);
+        const result = await uploadImage(file, folder);
         return NextResponse.json({
           success: true,
           url: result.url,
           publicId: result.publicId,
-          provider: "supabase",
+          provider: "cloudinary",
+          width: result.width,
+          height: result.height,
         });
-      } catch (supabaseError) {
-        console.error("Supabase upload failed, falling back to local:", supabaseError);
+      } catch (cloudinaryError) {
+        console.error("Cloudinary upload failed, falling back to local:", cloudinaryError);
         // Fall through to local upload
       }
     }
@@ -102,8 +87,11 @@ export async function POST(request: NextRequest) {
     // ---------------------------------------------------------------
     // Local file upload fallback
     // ---------------------------------------------------------------
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
     // Generate unique filename
-    const ext = path.extname(fileName) || ".png";
+    const ext = path.extname(file.name) || ".png";
     const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
     const uploadDir = path.join(process.cwd(), "public", "uploads", folder);
 
@@ -140,11 +128,11 @@ export async function DELETE(request: NextRequest) {
     const publicId = searchParams.get("publicId");
     const url = searchParams.get("url");
 
-    // If Supabase image with publicId, delete from Supabase
-    if (publicId && isSupabaseConfigured()) {
-      const { deleteImage } = await import("@/lib/supabase-storage");
+    // If Cloudinary image with publicId, delete from Cloudinary
+    if (publicId && isCloudinaryConfigured()) {
+      const { deleteImage } = await import("@/lib/cloudinary");
       await deleteImage(publicId);
-      return NextResponse.json({ success: true, message: "Image deleted from Supabase" });
+      return NextResponse.json({ success: true, message: "Image deleted from Cloudinary" });
     }
 
     // If local file, delete from filesystem

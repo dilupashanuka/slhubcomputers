@@ -1,140 +1,180 @@
 // =============================================================================
-// SL HUB COMPUTER - Stock Alerts API
+// SL HUB COMPUTER - Stock Alerts Admin API
 // =============================================================================
-// Purpose: GET endpoint for admin stock alerts - products with low stock
-// Features: Configurable threshold, returns product name, current stock,
-//           category, and brand information for restocking decisions
-// Query Params: threshold (default: 5)
+// Purpose: Admin endpoints for managing stock alert subscriptions
+// GET: List products with stock alert subscriptions + stats
+// POST: Send manual back-in-stock notifications for a product
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-
-interface LowStockProduct {
-  id: string;
-  name: string;
-  slug: string;
-  stock: number;
-  sku: string | null;
-  price: number;
-  image: string | null;
-  category: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  brand: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-}
-
-interface StockAlertsResponse {
-  success: boolean;
-  data: {
-    threshold: number;
-    totalLowStock: number;
-    outOfStock: number;
-    lowStock: number;
-    products: LowStockProduct[];
-  };
-  error?: string;
-}
+import { sendBackInStockEmail } from "@/lib/email";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const search = searchParams.get("search") || "";
 
-    // -------------------------------------------------------------------------
-    // Parse threshold parameter (default: 5)
-    // -------------------------------------------------------------------------
-    const threshold = Math.max(0, parseInt(searchParams.get("threshold") || "5"));
-
-    // -------------------------------------------------------------------------
-    // Fetch products with stock at or below the threshold
-    // -------------------------------------------------------------------------
-    const products = await db.product.findMany({
+    // Get products that have stock alert subscriptions
+    const productsWithAlerts = await db.product.findMany({
       where: {
-        stock: { lte: threshold },
+        stockAlertSubscriptions: { some: {} },
+        ...(search
+          ? { name: { contains: search, mode: "insensitive" } }
+          : {}),
       },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        stock: true,
-        sku: true,
-        price: true,
-        images: true,
-        category: {
+      include: {
+        category: { select: { name: true } },
+        _count: { select: { stockAlertSubscriptions: true } },
+        stockAlertSubscriptions: {
+          orderBy: { createdAt: "desc" },
+          take: 5,
           select: {
             id: true,
-            name: true,
-            slug: true,
-          },
-        },
-        brand: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
+            email: true,
+            notifiedAt: true,
+            createdAt: true,
           },
         },
       },
-      orderBy: [{ stock: "asc" }, { name: "asc" }],
+      orderBy: { updatedAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
-    // -------------------------------------------------------------------------
-    // Parse the first image from JSON string for each product
-    // -------------------------------------------------------------------------
-    const formattedProducts: LowStockProduct[] = products.map((product) => {
-      let image: string | null = null;
-      try {
-        const images = JSON.parse(product.images);
-        if (Array.isArray(images) && images.length > 0) {
-          image = images[0];
-        }
-      } catch {
-        // If images is not valid JSON, use as-is if it's a single URL
-        image = product.images || null;
-      }
-
-      return {
-        id: product.id,
-        name: product.name,
-        slug: product.slug,
-        stock: product.stock,
-        sku: product.sku,
-        price: product.price,
-        image,
-        category: product.category,
-        brand: product.brand,
-      };
+    // Get total count for pagination
+    const total = await db.product.count({
+      where: {
+        stockAlertSubscriptions: { some: {} },
+        ...(search
+          ? { name: { contains: search, mode: "insensitive" } }
+          : {}),
+      },
     });
 
-    // -------------------------------------------------------------------------
-    // Separate out-of-stock (0) from low-stock items
-    // -------------------------------------------------------------------------
-    const outOfStock = formattedProducts.filter((p) => p.stock === 0).length;
-    const lowStock = formattedProducts.filter((p) => p.stock > 0 && p.stock <= threshold).length;
+    // Get last notification sent for each product
+    const lastNotifiedMap: Record<string, Date | null> = {};
+    for (const product of productsWithAlerts) {
+      const lastNotified = product.stockAlertSubscriptions.find(
+        (s) => s.notifiedAt
+      );
+      lastNotifiedMap[product.id] = lastNotified?.notifiedAt || null;
+    }
 
-    // -------------------------------------------------------------------------
-    // Return stock alerts data
-    // -------------------------------------------------------------------------
-    return NextResponse.json<StockAlertsResponse>({
+    const data = productsWithAlerts.map((product) => ({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: product.price,
+      stock: product.stock,
+      category: product.category?.name || null,
+      subscribersCount: product._count.stockAlertSubscriptions,
+      lastNotificationSent: lastNotifiedMap[product.id],
+      recentSubscribers: product.stockAlertSubscriptions,
+    }));
+
+    return NextResponse.json({
       success: true,
-      data: {
-        threshold,
-        totalLowStock: formattedProducts.length,
-        outOfStock,
-        lowStock,
-        products: formattedProducts,
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
-    console.error("Stock alerts API error:", error);
-    return NextResponse.json<StockAlertsResponse>(
-      { success: false, data: { threshold: 5, totalLowStock: 0, outOfStock: 0, lowStock: 0, products: [] }, error: "Failed to fetch stock alerts" },
+    console.error("Stock alerts GET error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch stock alerts" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { productId } = body;
+
+    if (!productId) {
+      return NextResponse.json(
+        { success: false, error: "Product ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const product = await db.product.findUnique({
+      where: { id: productId },
+      select: { id: true, name: true, price: true, stock: true },
+    });
+
+    if (!product) {
+      return NextResponse.json(
+        { success: false, error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    if (product.stock <= 0) {
+      return NextResponse.json(
+        { success: false, error: "Product is still out of stock" },
+        { status: 400 }
+      );
+    }
+
+    // Get all unnotified subscriptions
+    const subscriptions = await db.stockAlertSubscription.findMany({
+      where: { productId, notifiedAt: null },
+    });
+
+    if (subscriptions.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: "No pending subscriptions to notify",
+        notifiedCount: 0,
+      });
+    }
+
+    // Send emails (non-blocking)
+    for (const sub of subscriptions) {
+      sendBackInStockEmail({
+        email: sub.email,
+        productName: product.name,
+        productPrice: product.price,
+        productId: product.id,
+      }).catch((err) => {
+        console.error(`Failed to send back-in-stock email to ${sub.email}:`, err);
+      });
+    }
+
+    // Mark as notified
+    await db.stockAlertSubscription.updateMany({
+      where: { productId, notifiedAt: null },
+      data: { notifiedAt: new Date() },
+    });
+
+    // Create admin notification
+    await db.notification.create({
+      data: {
+        type: "system",
+        title: `Manual Notification: ${product.name}`,
+        message: `${subscriptions.length} customer${subscriptions.length === 1 ? "" : "s"} manually notified about back-in-stock`,
+        link: "/admin/stock-alerts",
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `Notified ${subscriptions.length} subscriber${subscriptions.length === 1 ? "" : "s"}`,
+      notifiedCount: subscriptions.length,
+    });
+  } catch (error) {
+    console.error("Stock alerts POST error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to send notifications" },
       { status: 500 }
     );
   }

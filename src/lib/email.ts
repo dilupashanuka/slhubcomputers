@@ -487,6 +487,44 @@ export async function sendStockAlertEmail(product: {
 }
 
 // ---------------------------------------------------------------------------
+// sendBackInStockEmail - Email to customer when product is back in stock
+// ---------------------------------------------------------------------------
+export async function sendBackInStockEmail(info: {
+  email: string;
+  productName: string;
+  productPrice: number;
+  productId: string;
+}): Promise<{ success: boolean; message?: string }> {
+  const html = generateEmailTemplate({
+    title: `Back in Stock: ${info.productName}`,
+    heading: "🎉 Back in Stock!",
+    body: `
+      <p>Great news! The product you've been waiting for is back in stock.</p>
+
+      <div class="divider"></div>
+
+      <p><strong>Product:</strong> <span class="highlight">${info.productName}</span></p>
+      <p><strong>Price:</strong> ${formatCurrency(info.productPrice)}</p>
+
+      <div class="alert-box info">
+        <p>📦 This item was previously out of stock and is now available again. Act fast — popular items can sell out quickly!</p>
+      </div>
+
+      <p>Visit our store or contact us on WhatsApp to place your order.</p>
+    `,
+    ctaLink: "https://wa.me/94710678944",
+    ctaText: "Order via WhatsApp",
+    footer: "You're receiving this email because you subscribed to a back-in-stock alert at SL HUB COMPUTER.",
+  });
+
+  return sendEmail({
+    to: info.email,
+    subject: `🎉 Back in Stock: ${info.productName} | SL HUB COMPUTER`,
+    html,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // isEmailConfigured - Check if SMTP is available
 // ---------------------------------------------------------------------------
 export function isEmailConfigured(): boolean {

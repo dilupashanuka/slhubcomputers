@@ -16,14 +16,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, RefreshCw, MapPin, Image as ImageIcon } from "lucide-react";
+import { Save, RefreshCw, Smartphone, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SingleImageUploader } from "@/components/admin/image-upload";
 
 // ---------------------------------------------------------------------------
 // Type Definitions - Matches SiteSettingsType with ALL fields
@@ -51,12 +50,20 @@ interface Settings {
   heroSubtitle: string;
   heroImageUrl: string;
   announcementBar: string;
-  logoUrl: string;
-  googleMapsUrl: string;
   primaryColor: string;
   accentColor: string;
   enableCCTV: boolean;
   enablePCBuilder: boolean;
+  // SMS Configuration
+  smsProvider: string;
+  smsApiKey: string;
+  smsApiSecret: string;
+  smsFromNumber: string;
+  smsEnabled: boolean;
+  smsOrderConfirmation: boolean;
+  smsStatusUpdates: boolean;
+  smsBackInStock: boolean;
+  smsDeliveryUpdates: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -85,12 +92,20 @@ const defaultSettings: Settings = {
   heroSubtitle: "Premium components at unbeatable prices",
   heroImageUrl: "",
   announcementBar: "",
-  logoUrl: "",
-  googleMapsUrl: "",
   primaryColor: "#2563eb",
   accentColor: "",
   enableCCTV: true,
   enablePCBuilder: true,
+  // SMS Configuration
+  smsProvider: "none",
+  smsApiKey: "",
+  smsApiSecret: "",
+  smsFromNumber: "",
+  smsEnabled: false,
+  smsOrderConfirmation: true,
+  smsStatusUpdates: true,
+  smsBackInStock: true,
+  smsDeliveryUpdates: true,
 };
 
 // ---------------------------------------------------------------------------
@@ -149,12 +164,20 @@ export default function SettingsPage() {
           heroSubtitle: data.data.heroSubtitle || defaultSettings.heroSubtitle,
           heroImageUrl: data.data.heroImageUrl || "",
           announcementBar: data.data.announcementBar || "",
-          logoUrl: data.data.logoUrl || "",
-          googleMapsUrl: data.data.googleMapsUrl || "",
           primaryColor: data.data.primaryColor || defaultSettings.primaryColor,
           accentColor: data.data.accentColor || "",
           enableCCTV: data.data.enableCCTV ?? defaultSettings.enableCCTV,
           enablePCBuilder: data.data.enablePCBuilder ?? defaultSettings.enablePCBuilder,
+          // SMS Configuration
+          smsProvider: data.data.smsProvider || defaultSettings.smsProvider,
+          smsApiKey: data.data.smsApiKey || "",
+          smsApiSecret: data.data.smsApiSecret || "",
+          smsFromNumber: data.data.smsFromNumber || "",
+          smsEnabled: data.data.smsEnabled ?? defaultSettings.smsEnabled,
+          smsOrderConfirmation: data.data.smsOrderConfirmation ?? defaultSettings.smsOrderConfirmation,
+          smsStatusUpdates: data.data.smsStatusUpdates ?? defaultSettings.smsStatusUpdates,
+          smsBackInStock: data.data.smsBackInStock ?? defaultSettings.smsBackInStock,
+          smsDeliveryUpdates: data.data.smsDeliveryUpdates ?? defaultSettings.smsDeliveryUpdates,
         });
       }
     } catch (error) {
@@ -197,6 +220,37 @@ export default function SettingsPage() {
     setForm({ ...form, [field]: value });
   };
 
+  // SMS test state
+  const [smsTestPhone, setSmsTestPhone] = useState("");
+  const [smsTesting, setSmsTesting] = useState(false);
+
+  // Handle SMS test
+  const handleSmsTest = async () => {
+    if (!smsTestPhone) {
+      alert("Please enter a phone number for testing");
+      return;
+    }
+    setSmsTesting(true);
+    try {
+      const res = await fetch("/api/admin/sms-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: smsTestPhone }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Test SMS sent successfully! Check the phone.");
+      } else {
+        alert(data.error || data.detail || "Failed to send test SMS");
+      }
+    } catch (error) {
+      console.error("SMS test error:", error);
+      alert("Failed to send test SMS");
+    } finally {
+      setSmsTesting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-3xl">
       {/* Page Header */}
@@ -227,32 +281,19 @@ export default function SettingsPage() {
           <CardTitle className="text-base">General</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="w-full md:w-1/3">
-              <FormField label="Site Logo">
-                <SingleImageUploader 
-                  value={form.logoUrl} 
-                  onChange={(url) => updateField("logoUrl", url)}
-                  folder="settings"
-                />
-              </FormField>
-            </div>
-            <div className="flex-1 space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <FormField label="Site Name">
-                  <Input
-                    value={form.siteName}
-                    onChange={(e) => updateField("siteName", e.target.value)}
-                  />
-                </FormField>
-                <FormField label="Tagline">
-                  <Input
-                    value={form.tagline}
-                    onChange={(e) => updateField("tagline", e.target.value)}
-                  />
-                </FormField>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="Site Name">
+              <Input
+                value={form.siteName}
+                onChange={(e) => updateField("siteName", e.target.value)}
+              />
+            </FormField>
+            <FormField label="Tagline">
+              <Input
+                value={form.tagline}
+                onChange={(e) => updateField("tagline", e.target.value)}
+              />
+            </FormField>
           </div>
           <FormField label="Description">
             <Textarea
@@ -306,21 +347,6 @@ export default function SettingsPage() {
               onChange={(e) => updateField("whatsapp", e.target.value)}
               placeholder="94710678944"
             />
-          </FormField>
-          <FormField label="Google Maps Embed URL">
-            <div className="flex gap-2">
-              <div className="bg-muted flex items-center justify-center p-2 rounded-md border">
-                <MapPin className="size-4 text-muted-foreground" />
-              </div>
-              <Input
-                value={form.googleMapsUrl}
-                onChange={(e) => updateField("googleMapsUrl", e.target.value)}
-                placeholder="https://www.google.com/maps/embed?..."
-              />
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              Go to Google Maps → Share → Embed a map → Copy the 'src' URL from the iframe tag.
-            </p>
           </FormField>
         </CardContent>
       </Card>
@@ -526,6 +552,136 @@ export default function SettingsPage() {
               <Label>Enable PC Builder</Label>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ----------------------------------------------------------------- */}
+      {/* SMS Configuration Section                                          */}
+      {/* ----------------------------------------------------------------- */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Smartphone className="size-4" />
+            SMS Notifications
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Enable SMS */}
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={form.smsEnabled}
+              onCheckedChange={(val) => updateField("smsEnabled", val)}
+            />
+            <Label>Enable SMS Notifications</Label>
+          </div>
+
+          {/* Provider Selection */}
+          <FormField label="SMS Provider">
+            <select
+              value={form.smsProvider}
+              onChange={(e) => updateField("smsProvider", e.target.value)}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="none">None (Disabled)</option>
+              <option value="twilio">Twilio</option>
+              <option value="dialog">Dialog SMS API</option>
+              <option value="hutch">Hutch Business SMS</option>
+            </select>
+          </FormField>
+
+          {form.smsProvider !== "none" && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="API Key / Account SID">
+                  <Input
+                    type="password"
+                    value={form.smsApiKey}
+                    onChange={(e) => updateField("smsApiKey", e.target.value)}
+                    placeholder="Enter API key"
+                  />
+                </FormField>
+                <FormField label="API Secret / Auth Token">
+                  <Input
+                    type="password"
+                    value={form.smsApiSecret}
+                    onChange={(e) => updateField("smsApiSecret", e.target.value)}
+                    placeholder="Enter API secret"
+                  />
+                </FormField>
+              </div>
+              <FormField label="From Number / Sender ID">
+                <Input
+                  value={form.smsFromNumber}
+                  onChange={(e) => updateField("smsFromNumber", e.target.value)}
+                  placeholder="e.g., +94XXXXXXXXX or SLHUB"
+                />
+              </FormField>
+            </>
+          )}
+
+          {/* SMS Notification Types */}
+          {form.smsEnabled && (
+            <div className="space-y-3 pt-2 border-t">
+              <p className="text-sm font-medium">SMS Notification Types</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={form.smsOrderConfirmation}
+                    onCheckedChange={(val) => updateField("smsOrderConfirmation", val)}
+                  />
+                  <Label className="text-sm">Order Confirmations</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={form.smsStatusUpdates}
+                    onCheckedChange={(val) => updateField("smsStatusUpdates", val)}
+                  />
+                  <Label className="text-sm">Status Updates</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={form.smsBackInStock}
+                    onCheckedChange={(val) => updateField("smsBackInStock", val)}
+                  />
+                  <Label className="text-sm">Back in Stock</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={form.smsDeliveryUpdates}
+                    onCheckedChange={(val) => updateField("smsDeliveryUpdates", val)}
+                  />
+                  <Label className="text-sm">Delivery Updates</Label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Test SMS */}
+          {form.smsEnabled && form.smsProvider !== "none" && (
+            <div className="space-y-3 pt-2 border-t">
+              <p className="text-sm font-medium">Test SMS</p>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={smsTestPhone}
+                  onChange={(e) => setSmsTestPhone(e.target.value)}
+                  placeholder="Enter phone number (e.g., 0712345678)"
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSmsTest}
+                  disabled={smsTesting}
+                >
+                  <Send className="size-3.5 mr-1" />
+                  {smsTesting ? "Sending..." : "Send Test"}
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Test SMS will be sent using the configured provider. If SMS is not configured, it will be logged to the console.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

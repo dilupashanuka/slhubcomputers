@@ -4,11 +4,13 @@
 // Purpose: POST endpoint for submitting product reviews
 // Features: Validates input, creates review (pending approval), updates product
 //           rating and review count, creates admin notification
+// Security: Input sanitization, email validation
 // Route: /api/reviews
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sanitizeForStorage, validateEmail } from "@/lib/sanitize";
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,11 +32,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (email && typeof email === "string" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid email format" },
-        { status: 400 }
-      );
+    // Validate email if provided
+    if (email && typeof email === "string") {
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.valid) {
+        return NextResponse.json(
+          { success: false, error: emailValidation.error },
+          { status: 400 }
+        );
+      }
     }
 
     if (!rating || typeof rating !== "number" || rating < 1 || rating > 5) {
@@ -53,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     // Verify product exists
     const product = await db.product.findUnique({
-      where: { id: productId },
+      where: { id: sanitizeForStorage(productId) },
       select: { id: true, name: true },
     });
 
@@ -67,12 +73,12 @@ export async function POST(request: NextRequest) {
     // ---- Create Review (pending approval) ----
     const review = await db.review.create({
       data: {
-        productId,
-        name: name.trim(),
-        email: email?.trim() || null,
+        productId: sanitizeForStorage(productId),
+        name: sanitizeForStorage(name.trim()),
+        email: email?.trim() ? String(email).trim().toLowerCase() : null,
         rating: Math.round(rating),
-        title: title?.trim() || null,
-        comment: comment.trim(),
+        title: title?.trim() ? sanitizeForStorage(title.trim()) : null,
+        comment: sanitizeForStorage(comment.trim()),
         isApproved: false, // Requires admin approval
       },
     });
@@ -140,7 +146,7 @@ export async function GET(request: NextRequest) {
 
     const reviews = await db.review.findMany({
       where: {
-        productId,
+        productId: sanitizeForStorage(productId),
         isApproved: true,
       },
       orderBy,

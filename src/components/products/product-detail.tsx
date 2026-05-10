@@ -12,7 +12,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useStore } from "@/store/use-store";
 import { ProductCard } from "./product-card";
 import { Button } from "@/components/ui/button";
@@ -56,9 +56,22 @@ import {
   Play,
   Loader2,
   ThumbsUp,
+  TrendingUp,
+  Bell,
+  BellRing,
+  ArrowDownRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import type {
   ProductType,
   CartItemType,
@@ -304,6 +317,22 @@ export function ProductDetail({ productId }: ProductDetailProps) {
   });
   const [submittingReview, setSubmittingReview] = useState(false);
 
+  // ---- Price History State ----
+  const [priceHistory, setPriceHistory] = useState<
+    { date: string; price: number; originalPrice: number | null }[]
+  >([]);
+  const [priceStats, setPriceStats] = useState({
+    lowestPrice: 0,
+    highestPrice: 0,
+    priceDroppedRecently: false,
+    lowestInDays: 0,
+  });
+
+  // ---- Stock Alert State ----
+  const [alertEmail, setAlertEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+
   // ---- Fetch product data ----
   useEffect(() => {
     if (!activeProductId) return;
@@ -399,6 +428,26 @@ export function ProductDetail({ productId }: ProductDetailProps) {
   useEffect(() => {
     fetchReviews();
   }, [fetchReviews]);
+
+  // ---- Fetch price history ----
+  useEffect(() => {
+    if (!activeProductId) return;
+    fetch(`/api/products/${activeProductId}/price-history`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setPriceHistory(
+            data.data.map((h: { date: string; price: number; originalPrice: number | null }) => ({
+              date: h.date,
+              price: h.price,
+              originalPrice: h.originalPrice,
+            }))
+          );
+          if (data.stats) setPriceStats(data.stats);
+        }
+      })
+      .catch(() => {});
+  }, [activeProductId]);
 
   // ---- Derived Values ----
   const images: string[] = product
@@ -954,6 +1003,72 @@ export function ProductDetail({ productId }: ProductDetailProps) {
               </a>
             </div>
           </div>
+
+          {/* Notify Me When Available - Only shown when out of stock */}
+          {product.stock === 0 && (
+            <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
+              <div className="flex items-center gap-2 mb-3">
+                <BellRing className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <h3 className="text-sm font-semibold">Notify Me When Available</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Enter your email and we&apos;ll let you know when this item is back in stock.
+              </p>
+              {subscribed ? (
+                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-sm font-medium">
+                  <Check className="w-4 h-4" />
+                  You&apos;re subscribed! We&apos;ll email you when this item is back in stock.
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={alertEmail}
+                    onChange={(e) => setAlertEmail(e.target.value)}
+                    className="flex-1 h-9 text-sm bg-white dark:bg-gray-900"
+                    disabled={subscribing}
+                  />
+                  <Button
+                    size="sm"
+                    className="bg-amber-600 hover:bg-amber-700 text-white shrink-0"
+                    disabled={subscribing || !alertEmail}
+                    onClick={async () => {
+                      if (!alertEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(alertEmail)) {
+                        toast.error("Please enter a valid email address");
+                        return;
+                      }
+                      setSubscribing(true);
+                      try {
+                        const res = await fetch("/api/stock-alerts/subscribe", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ productId: product.id, email: alertEmail }),
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                          setSubscribed(true);
+                          toast.success(data.message);
+                          if (data.alreadySubscribed) {
+                            setSubscribed(true);
+                          }
+                        } else {
+                          toast.error(data.error || "Failed to subscribe");
+                        }
+                      } catch {
+                        toast.error("Failed to subscribe. Please try again.");
+                      } finally {
+                        setSubscribing(false);
+                      }
+                    }}
+                  >
+                    {subscribing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4 mr-1" />}
+                    Notify Me
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1064,6 +1179,9 @@ export function ProductDetail({ productId }: ProductDetailProps) {
           <TabsTrigger value="reviews">
             Reviews ({totalReviews})
           </TabsTrigger>
+          <TabsTrigger value="price-history" className="gap-1">
+            <TrendingUp className="w-3.5 h-3.5" /> Price History
+          </TabsTrigger>
         </TabsList>
 
         {/* Description Tab */}
@@ -1103,6 +1221,141 @@ export function ProductDetail({ productId }: ProductDetailProps) {
               No specifications available for this product.
             </p>
           )}
+        </TabsContent>
+
+        {/* Price History Tab */}
+        <TabsContent value="price-history" className="mt-4">
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
+            {/* Header with badges */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-emerald-500" />
+                  Price History
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Track price changes for this product
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {priceStats.priceDroppedRecently && (
+                  <Badge className="bg-emerald-500 text-white gap-1">
+                    <ArrowDownRight className="w-3 h-3" /> Price Drop!
+                  </Badge>
+                )}
+                {priceStats.lowestInDays > 0 && (
+                  <Badge variant="outline" className="border-emerald-500 text-emerald-600 dark:text-emerald-400">
+                    Lowest in {priceStats.lowestInDays} day{priceStats.lowestInDays !== 1 ? "s" : ""}
+                  </Badge>
+                )}
+                {priceStats.lowestPrice > 0 && (
+                  <Badge variant="outline" className="border-gray-400 dark:border-gray-600">
+                    Lowest: Rs. {priceStats.lowestPrice.toLocaleString()}
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Chart */}
+            {priceHistory.length > 1 ? (
+              <div className="h-64 sm:h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={priceHistory.map((h) => ({
+                      date: new Date(h.date).toLocaleDateString("en-LK", {
+                        month: "short",
+                        day: "numeric",
+                      }),
+                      price: h.price,
+                      originalPrice: h.originalPrice,
+                    }))}
+                    margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                  >
+                    <defs>
+                      <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="originalGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#64748b" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="#64748b" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                    <XAxis
+                      dataKey="date"
+                      stroke="#94a3b8"
+                      fontSize={11}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      stroke="#94a3b8"
+                      fontSize={11}
+                      tickLine={false}
+                      tickFormatter={(v: number) => `Rs.${(v / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#1e293b",
+                        border: "1px solid #334155",
+                        borderRadius: "8px",
+                        color: "#e2e8f0",
+                        fontSize: "12px",
+                      }}
+                      formatter={(value: number, name: string) => [
+                        `Rs. ${value.toLocaleString()}`,
+                        name === "price" ? "Selling Price" : "Original Price",
+                      ]}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="originalPrice"
+                      stroke="#64748b"
+                      strokeWidth={1.5}
+                      strokeDasharray="5 5"
+                      fill="url(#originalGradient)"
+                      connectNulls
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="price"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      fill="url(#priceGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <TrendingUp className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                <p className="font-medium">No price history yet</p>
+                <p className="text-sm">Price changes will appear here when the product price is updated.</p>
+              </div>
+            )}
+
+            {/* Price Stats Cards */}
+            {priceHistory.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Current</p>
+                  <p className="text-sm font-bold text-emerald-600">Rs. {product.price.toLocaleString()}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Lowest</p>
+                  <p className="text-sm font-bold">Rs. {priceStats.lowestPrice.toLocaleString()}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Highest</p>
+                  <p className="text-sm font-bold">Rs. {priceStats.highestPrice.toLocaleString()}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Changes</p>
+                  <p className="text-sm font-bold">{priceHistory.length}</p>
+                </div>
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* Videos Tab */}

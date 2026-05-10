@@ -5,12 +5,15 @@
 // Features: Creates order with items in a transaction, generates order number,
 //           validates required fields, returns created order with order number,
 //           sends email confirmation, creates admin notification
+// Security: Input sanitization, phone validation
 // API: POST /api/orders - Create a new order
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendOrderConfirmation } from "@/lib/email";
+import { sendOrderConfirmationSMS } from "@/lib/sms";
+import { sanitizeForStorage, validatePhone, validateEmail } from "@/lib/sanitize";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -46,16 +49,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate phone number
+    const phoneValidation = validatePhone(String(phone));
+    if (!phoneValidation.valid) {
+      return NextResponse.json(
+        { success: false, error: phoneValidation.error },
+        { status: 400 }
+      );
+    }
+
+    // Validate email if provided
+    if (body.email) {
+      const emailValidation = validateEmail(String(body.email));
+      if (!emailValidation.valid) {
+        return NextResponse.json(
+          { success: false, error: emailValidation.error },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Sanitize inputs
+    const sanitizedName = sanitizeForStorage(String(name).trim());
+    const sanitizedPhone = phoneValidation.formatted || sanitizeForStorage(String(phone).trim());
+    const sanitizedAddress = sanitizeForStorage(String(address).trim());
+    const sanitizedEmail = body.email ? String(body.email).trim().toLowerCase() : null;
+    const sanitizedCity = body.city ? sanitizeForStorage(String(body.city).trim()) : null;
+    const sanitizedNotes = body.notes ? sanitizeForStorage(String(body.notes).trim()) : null;
+
     // Create the order with items using nested create
     const order = await db.order.create({
       data: {
-        orderNumber,
-        name: String(name).trim(),
-        email: body.email ? String(body.email).trim() : null,
-        phone: String(phone).trim(),
-        address: String(address).trim(),
-        city: body.city ? String(body.city).trim() : null,
-        notes: body.notes ? String(body.notes).trim() : null,
+        orderNumber: sanitizeForStorage(String(orderNumber)),
+        name: sanitizedName,
+        email: sanitizedEmail,
+        phone: sanitizedPhone,
+        address: sanitizedAddress,
+        city: sanitizedCity,
+        notes: sanitizedNotes,
         subtotal: Number(subtotal) || 0,
         shipping: Number(body.shipping) || 0,
         total: Number(total) || 0,
@@ -63,8 +94,8 @@ export async function POST(request: NextRequest) {
         paymentMethod: body.paymentMethod || "cod",
         items: {
           create: items.create.map((item: { productId: string; name: string; price: number; quantity: number }) => ({
-            productId: String(item.productId),
-            name: String(item.name),
+            productId: sanitizeForStorage(String(item.productId)),
+            name: sanitizeForStorage(String(item.name)),
             price: Number(item.price),
             quantity: Number(item.quantity),
           })),
@@ -72,6 +103,65 @@ export async function POST(request: NextRequest) {
       },
       include: { items: true },
     });
+
+    // ---------------------------------------------------------------
+    // Handle Affiliate Commission Tracking
+    // Check for affiliate code in cookies or request body
+    // ---------------------------------------------------------------
+    try {
+      const affiliateCode = body.affiliateCode || request.cookies.get("slhub_affiliate_code")?.value;
+
+      if (affiliateCode) {
+        const affiliate = await db.affiliate.findUnique({
+          where: { code: sanitizeForStorage(affiliateCode.toUpperCase()) },
+        });
+
+        if (affiliate && affiliate.isActive) {
+          const commissionAmount = (order.total * affiliate.commissionRate) / 100;
+
+          // Create referral record
+          await db.affiliateReferral.create({
+            data: {
+              affiliateId: affiliate.id,
+              orderId: order.id,
+              orderNumber: order.orderNumber,
+              customerName: order.name,
+              customerEmail: order.email,
+              amount: order.total,
+              commission: commissionAmount,
+              status: "pending",
+            },
+          });
+
+          // Update affiliate stats
+          await db.affiliate.update({
+            where: { id: affiliate.id },
+            data: {
+              conversions: { increment: 1 },
+              pendingEarnings: { increment: commissionAmount },
+              totalEarnings: { increment: commissionAmount },
+            },
+          });
+
+          // Create notification for affiliate referral
+          try {
+            await db.notification.create({
+              data: {
+                type: "system",
+                title: `Affiliate Referral - ${affiliate.code}`,
+                message: `${affiliate.name} earned Rs. ${commissionAmount.toLocaleString("en-LK")} from order ${order.orderNumber}`,
+                link: "/admin/affiliates",
+              },
+            });
+          } catch {
+            // Notification is non-critical
+          }
+        }
+      }
+    } catch (affiliateError) {
+      console.error("Affiliate tracking error:", affiliateError);
+      // Don't fail the order if affiliate tracking fails
+    }
 
     // ---------------------------------------------------------------
     // Create admin notification for new order
@@ -115,6 +205,20 @@ export async function POST(request: NextRequest) {
         // Non-blocking
       });
     }
+
+    // ---------------------------------------------------------------
+    // Send order confirmation SMS (non-blocking)
+    // ---------------------------------------------------------------
+    sendOrderConfirmationSMS({
+      orderNumber: order.orderNumber,
+      name: order.name,
+      phone: order.phone,
+      total: order.total,
+      paymentMethod: order.paymentMethod,
+    }).catch((smsError) => {
+      console.error("Order confirmation SMS error:", smsError);
+      // Non-blocking
+    });
 
     return NextResponse.json(
       { success: true, data: order, message: "Order created successfully" },

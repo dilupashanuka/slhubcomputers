@@ -5,10 +5,12 @@
 // Features:
 //   - GET: Fetch messages for a session (?sessionId=xxx)
 //   - POST: Send a message (sessionId, name, email, message, sender=customer)
+// Security: Input sanitization
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sanitizeForStorage } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -28,13 +30,13 @@ export async function GET(request: NextRequest) {
     }
 
     const messages = await db.chatMessage.findMany({
-      where: { sessionId },
+      where: { sessionId: sanitizeForStorage(sessionId) },
       orderBy: { createdAt: "asc" },
     });
 
     // Count unread messages from admin
     const unreadCount = await db.chatMessage.count({
-      where: { sessionId, sender: "admin", isRead: false },
+      where: { sessionId: sanitizeForStorage(sessionId), sender: "admin", isRead: false },
     });
 
     return NextResponse.json({
@@ -69,13 +71,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Sanitize inputs
+    const sanitizedSessionId = sanitizeForStorage(sessionId);
+    const sanitizedName = name?.trim() ? sanitizeForStorage(name.trim()) : null;
+    const sanitizedEmail = email?.trim() ? sanitizeForStorage(email.trim()) : null;
+    const sanitizedMessage = sanitizeForStorage(message.trim());
+
+    if (sanitizedMessage.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Message cannot be empty" },
+        { status: 400 }
+      );
+    }
+
     // Create the customer message
     const chatMessage = await db.chatMessage.create({
       data: {
-        sessionId,
-        name: name?.trim() || null,
-        email: email?.trim() || null,
-        message: message.trim(),
+        sessionId: sanitizedSessionId,
+        name: sanitizedName,
+        email: sanitizedEmail,
+        message: sanitizedMessage,
         sender: "customer",
         isRead: false,
       },
@@ -87,9 +102,9 @@ export async function POST(request: NextRequest) {
         data: {
           type: "message",
           title: `New chat message`,
-          message: name
-            ? `${name}: ${message.trim().substring(0, 80)}`
-            : `Visitor: ${message.trim().substring(0, 80)}`,
+          message: sanitizedName
+            ? `${sanitizedName}: ${sanitizedMessage.substring(0, 80)}`
+            : `Visitor: ${sanitizedMessage.substring(0, 80)}`,
           link: "/admin/chat",
         },
       });

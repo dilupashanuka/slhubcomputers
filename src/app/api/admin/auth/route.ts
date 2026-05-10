@@ -1,23 +1,46 @@
 // =============================================================================
 // SL HUB COMPUTER - Admin Authentication API
 // =============================================================================
-// POST  /api/admin/auth      - Validate credentials, set httpOnly cookie
+// POST  /api/admin/auth      - Validate credentials, check 2FA, set cookie
 // DELETE /api/admin/auth      - Clear cookie (logout)
+// Security: IP blocking, rate limiting (handled in middleware)
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { db } from "@/lib/db";
+import { recordFailedAuthAttempt, resetFailedAuthAttempts, isIPBlocked } from "@/lib/ip-block";
 
 // Cookie configuration
 const COOKIE_NAME = "admin-token";
 const COOKIE_MAX_AGE = 60 * 60 * 24; // 24 hours
 const ADMIN_USERNAME = "admin";
 
-// Simple token generator (not cryptographic, but sufficient for simple auth)
+// Simple token generator
 function generateToken(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
   return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+// Get client IP from request
+function getClientIP(request: NextRequest): string {
+  const headers = [
+    "x-forwarded-for",
+    "x-real-ip",
+    "cf-connecting-ip",
+    "x-client-ip",
+  ];
+
+  for (const header of headers) {
+    const value = request.headers.get(header);
+    if (value) {
+      const ip = value.split(",")[0].trim();
+      if (ip) return ip;
+    }
+  }
+
+  return "unknown";
 }
 
 // ---------------------------------------------------------------------------
@@ -25,6 +48,17 @@ function generateToken(): string {
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIP(request);
+
+    // Check if IP is blocked
+    const ipCheck = await isIPBlocked(ip);
+    if (ipCheck.blocked) {
+      return NextResponse.json(
+        { success: false, error: "Access denied. Your IP has been blocked." },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { username, password } = body;
 
@@ -33,16 +67,49 @@ export async function POST(request: NextRequest) {
 
     // Validate credentials
     if (username !== ADMIN_USERNAME || password !== adminPassword) {
+      // Record failed attempt
+      const result = await recordFailedAuthAttempt(ip);
+
+      if (result.blocked) {
+        return NextResponse.json(
+          { success: false, error: "Too many failed attempts. Your IP has been temporarily blocked." },
+          { status: 429 }
+        );
+      }
+
       return NextResponse.json(
         { success: false, error: "Invalid username or password" },
         { status: 401 }
       );
     }
 
-    // Generate auth token
+    // Reset failed attempts on successful password validation
+    resetFailedAuthAttempts(ip);
+
+    // Check if 2FA is enabled
+    try {
+      const twoFactor = await db.adminTwoFactor.findUnique({
+        where: { userId: ADMIN_USERNAME },
+      });
+
+      if (twoFactor && twoFactor.isEnabled) {
+        // 2FA is enabled - return pending state, don't set cookie yet
+        const pendingToken = generateToken();
+        return NextResponse.json({
+          success: true,
+          requires2FA: true,
+          pendingToken,
+          message: "2FA verification required",
+        });
+      }
+    } catch (dbError) {
+      console.error("2FA check error:", dbError);
+      // If 2FA check fails, proceed without 2FA (graceful fallback)
+    }
+
+    // No 2FA - generate auth token and set cookie
     const token = generateToken();
 
-    // Set httpOnly cookie
     const cookieStore = await cookies();
     cookieStore.set(COOKIE_NAME, token, {
       httpOnly: true,

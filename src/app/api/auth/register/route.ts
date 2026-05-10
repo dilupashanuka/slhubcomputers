@@ -7,12 +7,14 @@
 // - Hashes password using crypto (scrypt)
 // - Creates Customer record in database
 // - Returns customer data (without password)
+// Security: Input sanitization, strict email validation, phone validation
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { scrypt, randomBytes } from "crypto";
 import { promisify } from "util";
+import { sanitizeForStorage, validateEmail, validatePhone } from "@/lib/sanitize";
 
 const scryptAsync = promisify(scrypt);
 
@@ -35,13 +37,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    // Validate email format (strict)
+    const emailValidation = validateEmail(String(email));
+    if (!emailValidation.valid) {
       return NextResponse.json(
-        { success: false, error: "Invalid email format" },
+        { success: false, error: emailValidation.error },
         { status: 400 }
       );
+    }
+
+    // Validate phone if provided
+    if (phone) {
+      const phoneValidation = validatePhone(String(phone));
+      if (!phoneValidation.valid) {
+        return NextResponse.json(
+          { success: false, error: phoneValidation.error },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate password length
@@ -52,9 +65,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Sanitize inputs
+    const sanitizedName = sanitizeForStorage(String(name).trim());
+    const sanitizedEmail = String(email).trim().toLowerCase();
+
     // Check for existing email
     const existingCustomer = await db.customer.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: sanitizedEmail },
     });
 
     if (existingCustomer) {
@@ -70,9 +87,9 @@ export async function POST(req: NextRequest) {
     // Create customer
     const customer = await db.customer.create({
       data: {
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
-        phone: phone?.trim() || null,
+        name: sanitizedName,
+        email: sanitizedEmail,
+        phone: phone ? sanitizeForStorage(String(phone).trim()) : null,
         password: hashedPassword,
       },
     });

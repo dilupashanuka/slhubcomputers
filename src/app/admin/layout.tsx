@@ -52,6 +52,12 @@ import {
   Info,
   CheckCheck,
   Trash2,
+  TrendingUp,
+  Shield,
+  Palette,
+  Users,
+  CreditCard,
+  Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -83,14 +89,18 @@ const navGroups = [
       { label: "Categories", href: "/admin/categories", icon: FolderTree },
       { label: "Brands", href: "/admin/brands", icon: Tag },
       { label: "Pre-Built PCs", href: "/admin/prebuilt-pcs", icon: Monitor },
+      { label: "Price History", href: "/admin/price-history", icon: TrendingUp },
+      { label: "Gift Cards", href: "/admin/gift-cards", icon: CreditCard },
     ],
   },
   {
     label: "Sales",
     items: [
       { label: "Orders", href: "/admin/orders", icon: ShoppingCart, badge: "pending" },
+      { label: "Affiliates", href: "/admin/affiliates", icon: Users },
       { label: "Reports", href: "/admin/reports", icon: BarChart3 },
       { label: "Reviews", href: "/admin/reviews", icon: Star },
+      { label: "Stock Alerts", href: "/admin/stock-alerts", icon: Bell },
     ],
   },
   {
@@ -109,6 +119,9 @@ const navGroups = [
     label: "System",
     items: [
       { label: "Settings", href: "/admin/settings", icon: Settings },
+      { label: "Shipping", href: "/admin/shipping", icon: Truck },
+      { label: "Theme", href: "/admin/theme", icon: Palette },
+      { label: "Security", href: "/admin/settings/2fa", icon: Shield },
     ],
   },
 ];

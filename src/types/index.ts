@@ -29,7 +29,9 @@ export type ViewType =
   | "prebuilt"
   | "order-tracking"
   | "customer-login"
-  | "customer-account";
+  | "customer-account"
+  | "affiliate"
+  | "gift-card";
 
 // ---------------------------------------------------------------------------
 // Category Types

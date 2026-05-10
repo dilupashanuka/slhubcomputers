@@ -182,12 +182,25 @@ model SiteSettings {
   heroSubtitle    String   @default("Premium components at unbeatable prices")
   heroImageUrl    String?
   announcementBar String?
-  logoUrl         String?
-  googleMapsUrl   String?
   primaryColor    String   @default("#2563eb")
   accentColor     String?
+  headerBgColor   String?  // Header background color
+  buttonRadius    Int      @default(8) // Border radius for buttons (0-16px)
+  buttonStyle     String   @default("rounded") // rounded, sharp, pill
+  fontFamily      String   @default("Inter") // Inter, Poppins, Roboto, Montserrat, Space Grotesk
+  cardStyle       String   @default("shadowed") // flat, bordered, shadowed
   enableCCTV      Boolean  @default(true)
   enablePCBuilder Boolean  @default(true)
+  // SMS Notification Settings
+  smsProvider     String?  // twilio, dialog, hutch, none
+  smsApiKey       String?
+  smsApiSecret    String?
+  smsFromNumber   String?
+  smsEnabled      Boolean  @default(false)
+  smsOrderConfirmation Boolean @default(true)
+  smsStatusUpdates     Boolean @default(true)
+  smsBackInStock       Boolean @default(true)
+  smsDeliveryUpdates   Boolean @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -485,4 +498,192 @@ model AnalyticsEvent {
   @@index([type])
   @@index([createdAt])
   @@index([sessionId])
+}
+
+// ---------------------------------------------------------------------------
+// PriceHistory Model - Track product price changes over time
+// ---------------------------------------------------------------------------
+model PriceHistory {
+  id            String   @id @default(cuid())
+  productId     String
+  price         Float
+  originalPrice Float?
+  changedBy     String?
+  changeType    String   @default("manual")
+  createdAt     DateTime @default(now())
+
+  @@index([productId])
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// StockAlertSubscription Model - Customer subscriptions for back-in-stock alerts
+// ---------------------------------------------------------------------------
+model StockAlertSubscription {
+  id         String    @id @default(cuid())
+  productId  String
+  email      String
+  notifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([productId, email])
+  @@index([productId])
+  @@index([notifiedAt])
+}
+
+// ---------------------------------------------------------------------------
+// AdminTwoFactor Model - TOTP-based two-factor authentication for admin
+// ---------------------------------------------------------------------------
+model AdminTwoFactor {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  secret      String    // TOTP secret (encrypted)
+  backupCodes String    // JSON array of hashed backup codes
+  isEnabled   Boolean   @default(false)
+  verifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// BlockedIP Model - IP addresses blocked for security reasons
+// ---------------------------------------------------------------------------
+model BlockedIP {
+  id          String    @id @default(cuid())
+  ip          String    @unique
+  reason      String?
+  blockedBy   String?
+  autoBlocked Boolean   @default(false)
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([ip])
+}
+
+// ---------------------------------------------------------------------------
+// Affiliate Model - Referral partners for the affiliate program
+// ---------------------------------------------------------------------------
+model Affiliate {
+  id             String   @id @default(cuid())
+  code           String   @unique // Unique referral code (e.g., "SLHUB-SHANU")
+  name           String
+  email          String
+  phone          String?
+  bankDetails    String?  // JSON: { bank, account, name }
+  commissionRate Float    @default(5) // Percentage
+  totalEarnings  Float    @default(0)
+  pendingEarnings Float   @default(0)
+  paidEarnings   Float    @default(0)
+  clicks         Int      @default(0)
+  conversions    Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  referrals AffiliateReferral[]
+  payments  AffiliatePayment[]
+
+  @@index([code])
+  @@index([email])
+}
+
+// ---------------------------------------------------------------------------
+// AffiliateReferral Model - Individual referral records from affiliate links
+// ---------------------------------------------------------------------------
+model AffiliateReferral {
+  id            String    @id @default(cuid())
+  affiliateId   String
+  affiliate     Affiliate @relation(fields: [affiliateId], references: [id])
+  orderId       String?
+  orderNumber   String?
+  customerName  String?
+  customerEmail String?
+  amount        Float     @default(0) // Order amount
+  commission    Float     @default(0) // Commission earned
+  status        String    @default("pending") // pending, approved, paid, rejected
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([affiliateId])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// AffiliatePayment Model - Payment records for affiliate payouts
+// ---------------------------------------------------------------------------
+model AffiliatePayment {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+  amount      Float
+  method      String    @default("bank_transfer") // bank_transfer, cash, check
+  reference   String?
+  status      String    @default("pending") // pending, completed, failed
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([affiliateId])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// GiftCard Model - Gift cards for purchase and redemption
+// ---------------------------------------------------------------------------
+model GiftCard {
+  id            String    @id @default(cuid())
+  code          String    @unique  // Unique gift card code (e.g., SLHUB-XXXX-XXXX)
+  name          String    // Gift card name (e.g., "Birthday Special")
+  amount        Float     // Original amount in LKR
+  balance       Float     // Remaining balance
+  currency      String    @default("LKR")
+  purchaserName String?
+  purchaserEmail String?
+  recipientName String?
+  recipientEmail String?
+  message       String?   // Gift message
+  occasion      String?   // birthday, wedding, graduation, holiday, general
+  isActive      Boolean   @default(true)
+  isRedeemed    Boolean   @default(false)
+  redeemedAt    DateTime?
+  redeemedBy    String?   // email or order ID
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  transactions GiftCardTransaction[]
+
+  @@index([code])
+  @@index([isActive])
+  @@index([expiresAt])
+}
+
+// ---------------------------------------------------------------------------
+// GiftCardTransaction Model - Gift card transaction history
+// ---------------------------------------------------------------------------
+model GiftCardTransaction {
+  id          String   @id @default(cuid())
+  giftCardId  String
+  giftCard    GiftCard @relation(fields: [giftCardId], references: [id])
+  type        String   // purchase, redemption, adjustment, refund
+  amount      Float
+  orderId     String?
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([giftCardId])
+}
+
+// ---------------------------------------------------------------------------
+// AISettings Model - AI chatbot configuration
+// ---------------------------------------------------------------------------
+model AISettings {
+  id              String   @id @default("ai-settings")
+  enabled         Boolean  @default(true)
+  model           String   @default("glm-4-flash")
+  temperature     Float    @default(0.7)
+  welcomeMessage  String   @default("Hi! I'm SL HUB's AI assistant. How can I help you today? 😊")
+  fallbackMessage String   @default("I'm not sure about that. Let me connect you with our support team for more help.")
+  maxMessagesPerDay Int    @default(20)
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
 }

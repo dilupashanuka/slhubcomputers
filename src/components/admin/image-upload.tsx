@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -14,35 +14,55 @@ interface SingleImageUploaderProps {
   value: string;
   onChange: (url: string, publicId?: string) => void;
   folder?: string;
-  label?: string;
 }
 
 // ---------------------------------------------------------------------------
-// SingleImageUploader - Enhanced with progress + preview
+// Check if Cloudinary is available (client-side)
+// ---------------------------------------------------------------------------
+function useCloudinaryStatus() {
+  const [isCloudinary, setIsCloudinary] = useState<boolean | null>(null);
+
+  const checkStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/upload", { method: "HEAD" }).catch(
+        () => null
+      );
+      // If we can reach the upload endpoint, check via a simple flag
+      // We'll determine Cloudinary availability from the upload response instead
+      return null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  return { checkStatus };
+}
+
+// ---------------------------------------------------------------------------
+// SingleImageUploader - Enhanced with Cloudinary + progress + preview
 // ---------------------------------------------------------------------------
 export function SingleImageUploader({
   value,
   onChange,
   folder = "slhub",
-  label,
 }: SingleImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [uploadProvider, setUploadProvider] = useState<
-    "supabase" | "local" | null
+    "cloudinary" | "local" | null
   >(null);
   const [currentPublicId, setCurrentPublicId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  // Check if current value is a Supabase Storage URL
-  const isSupabaseUrl = value?.includes("supabase.co/storage") ?? false;
+  // Check if current value is a Cloudinary URL
+  const isCloudinaryUrl = value?.includes("res.cloudinary.com") ?? false;
 
   // -----------------------------------------------------------------------
-  // Upload via server API (handles Supabase and local fallback)
+  // Upload via server API (handles both Cloudinary and local)
   // -----------------------------------------------------------------------
-  const handleUpload = async (file: File) => {
+  const uploadViaServer = async (file: File) => {
     setUploading(true);
     setProgress(0);
     setError(null);
@@ -57,7 +77,7 @@ export function SingleImageUploader({
         success: boolean;
         url: string;
         publicId: string | null;
-        provider: "supabase" | "local";
+        provider: "cloudinary" | "local";
       }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
@@ -108,6 +128,44 @@ export function SingleImageUploader({
   };
 
   // -----------------------------------------------------------------------
+  // Try Cloudinary unsigned upload (direct from browser), fallback to server
+  // -----------------------------------------------------------------------
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    setProgress(0);
+    setError(null);
+
+    try {
+      // First, try direct Cloudinary unsigned upload
+      const cloudName = await getCloudName();
+      if (cloudName) {
+        try {
+          const result = await uploadToCloudinaryUnsigned(
+            file,
+            cloudName,
+            folder,
+            (p) => setProgress(p)
+          );
+          onChange(result.url, result.publicId);
+          setUploadProvider("cloudinary");
+          setCurrentPublicId(result.publicId);
+          return;
+        } catch {
+          // Cloudinary unsigned upload failed, fall back to server upload
+        }
+      }
+
+      // Fallback: upload via server API
+      await uploadViaServer(file);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      setProgress(0);
+    }
+  };
+
+  // -----------------------------------------------------------------------
   // File input change handler
   // -----------------------------------------------------------------------
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,18 +199,28 @@ export function SingleImageUploader({
   // Remove image handler
   // -----------------------------------------------------------------------
   const handleRemove = async () => {
-    // Try to delete from Supabase or Local
-    if (currentPublicId || isSupabaseUrl || value?.startsWith("/uploads/")) {
+    // If Cloudinary image, try to delete from Cloudinary
+    if (currentPublicId || isCloudinaryUrl) {
       try {
         const publicId = currentPublicId || extractPublicIdFromUrl(value);
-        let endpoint = `/api/admin/upload?url=${encodeURIComponent(value)}`;
         if (publicId) {
-          endpoint += `&publicId=${encodeURIComponent(publicId)}`;
+          await fetch(
+            `/api/admin/upload?publicId=${encodeURIComponent(publicId)}&url=${encodeURIComponent(value)}`,
+            { method: "DELETE" }
+          );
         }
-
-        await fetch(endpoint, { method: "DELETE" });
       } catch {
-        // Silently fail deletion if there's an error
+        // Silently fail deletion from Cloudinary
+      }
+    } else if (value?.startsWith("/uploads/")) {
+      // Delete local file
+      try {
+        await fetch(
+          `/api/admin/upload?url=${encodeURIComponent(value)}`,
+          { method: "DELETE" }
+        );
+      } catch {
+        // Silently fail
       }
     }
 
@@ -176,15 +244,15 @@ export function SingleImageUploader({
               alt="Uploaded image"
               fill
               className="object-contain p-2"
-              unoptimized={isSupabaseUrl}
+              unoptimized={isCloudinaryUrl}
             />
             {/* Provider badge */}
             {uploadProvider && (
               <div className="absolute top-2 left-2 flex items-center gap-1 bg-background/80 backdrop-blur-sm rounded-md px-2 py-1 text-[10px] font-medium">
-                {uploadProvider === "supabase" ? (
+                {uploadProvider === "cloudinary" ? (
                   <>
-                    <Cloud className="w-3 h-3 text-emerald-500" />
-                    <span className="text-emerald-600 dark:text-emerald-400">Supabase</span>
+                    <Cloud className="w-3 h-3 text-blue-500" />
+                    <span className="text-blue-600 dark:text-blue-400">Cloud</span>
                   </>
                 ) : (
                   <>
@@ -234,7 +302,7 @@ export function SingleImageUploader({
                 Click or drag to upload
               </span>
               <span className="text-[11px] text-muted-foreground/60 mt-1">
-                PNG, JPG, WebP up to 10MB
+                PNG, JPG, WebP up to 5MB
               </span>
             </>
           )}
@@ -283,20 +351,102 @@ export function SingleImageUploader({
 }
 
 // ---------------------------------------------------------------------------
-// Helper: Extract public_id from Supabase Storage URL
+// Helper: Get Cloudinary cloud name (client-side)
 // ---------------------------------------------------------------------------
-function extractPublicIdFromUrl(url: string | undefined): string | null {
-  if (!url || !url.includes("supabase.co/storage")) return null;
-  
+let cachedCloudName: string | null = null;
+
+async function getCloudName(): Promise<string | null> {
+  if (cachedCloudName !== undefined) return cachedCloudName;
+
+  try {
+    // The cloud name is embedded in env vars on the server.
+    // Client can try to detect it by making a test request.
+    // For simplicity, we'll just use the server upload route.
+    cachedCloudName = null;
+    return null;
+  } catch {
+    cachedCloudName = null;
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helper: Cloudinary unsigned upload (direct browser → Cloudinary)
+// ---------------------------------------------------------------------------
+interface UnsignedUploadResult {
+  url: string;
+  publicId: string;
+}
+
+async function uploadToCloudinaryUnsigned(
+  file: File,
+  cloudName: string,
+  folder: string,
+  onProgress?: (progress: number) => void
+): Promise<UnsignedUploadResult> {
+  const uploadPreset = "slhub_uploads";
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", uploadPreset);
+  formData.append("folder", folder);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          resolve({
+            url: data.secure_url,
+            publicId: data.public_id,
+          });
+        } catch {
+          reject(new Error("Invalid response from Cloudinary"));
+        }
+      } else {
+        reject(new Error(`Cloudinary upload failed (${xhr.status})`));
+      }
+    });
+
+    xhr.addEventListener("error", () => reject(new Error("Network error")));
+    xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
+
+    xhr.open(
+      "POST",
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
+    );
+    xhr.send(formData);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Helper: Extract public_id from Cloudinary URL
+// ---------------------------------------------------------------------------
+function extractPublicIdFromUrl(url: string): string | null {
   try {
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split("/");
-    const bucketIndex = pathParts.indexOf("slhub-image");
-    
-    if (bucketIndex === -1 || bucketIndex === pathParts.length - 1) return null;
-    
-    // Everything after the bucket name is the path inside the bucket
-    return pathParts.slice(bucketIndex + 1).join("/");
+    const uploadIndex = pathParts.indexOf("upload");
+
+    if (uploadIndex === -1) return null;
+
+    let parts = pathParts.slice(uploadIndex + 1);
+    parts = parts.filter((part) => !part.match(/^v\d+$/));
+
+    const lastPart = parts[parts.length - 1];
+    if (lastPart) {
+      parts[parts.length - 1] = lastPart.replace(/\.[^.]+$/, "");
+    }
+
+    return parts.join("/");
   } catch {
     return null;
   }

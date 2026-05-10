@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendOrderStatusUpdate } from "@/lib/email";
+import { sendOrderStatusSMS, sendDeliveryUpdateSMS } from "@/lib/sms";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -48,6 +49,31 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         body.status
       ).catch((emailError) => {
         console.error("Order status email error:", emailError);
+      });
+    }
+
+    // Send status update SMS to customer (non-blocking)
+    sendOrderStatusSMS(
+      {
+        orderNumber: order.orderNumber,
+        name: order.name,
+        phone: order.phone,
+        status: existingOrder.status,
+        total: order.total,
+      },
+      body.status
+    ).catch((smsError) => {
+      console.error("Order status SMS error:", smsError);
+    });
+
+    // Send delivery update SMS when order is shipped (non-blocking)
+    if (body.status === "shipped") {
+      sendDeliveryUpdateSMS({
+        orderNumber: order.orderNumber,
+        name: order.name,
+        phone: order.phone,
+      }).catch((smsError) => {
+        console.error("Delivery update SMS error:", smsError);
       });
     }
 
