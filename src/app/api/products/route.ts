@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     const isFeatured = searchParams.get("isFeatured");
     const isNew = searchParams.get("isNew");
     const isOnSale = searchParams.get("isOnSale");
+    const isBestSeller = searchParams.get("isBestSeller");
     const search = searchParams.get("search");
     const sort = searchParams.get("sort") || "newest";
     const page = parseInt(searchParams.get("page") || "1");
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
       isFeatured,
       isNew,
       isOnSale,
+      isBestSeller,
       search,
       sort,
       page,
@@ -53,9 +55,12 @@ export async function GET(request: NextRequest) {
 
         if (categoryId) where.categoryId = categoryId;
         if (brandId) where.brandId = brandId;
-        if (isFeatured === "true") where.isFeatured = true;
-        if (isNew === "true") where.isNew = true;
-        if (isOnSale === "true") where.isOnSale = true;
+        
+        // Handle boolean flags (case-insensitive "true")
+        if (isFeatured?.toLowerCase() === "true") where.isFeatured = true;
+        if (isNew?.toLowerCase() === "true") where.isNew = true;
+        if (isOnSale?.toLowerCase() === "true") where.isOnSale = true;
+        if (isBestSeller?.toLowerCase() === "true") where.isBestSeller = true;
 
         // Price range filter
         if (minPrice || maxPrice) {
@@ -144,10 +149,14 @@ export async function GET(request: NextRequest) {
         "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30",
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Products API error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to fetch products" },
+      { 
+        success: false, 
+        error: "Failed to fetch products",
+        message: process.env.NODE_ENV === "development" ? error.message : undefined 
+      },
       { status: 500 }
     );
   }
