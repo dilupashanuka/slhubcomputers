@@ -35,55 +35,13 @@ const PrebuiltPCPage = dynamic(() => import("@/components/pages/prebuilt-pc-page
 const OrderTrackingPage = dynamic(() => import("@/components/pages/order-tracking-page").then(mod => mod.OrderTrackingPage), { ssr: false });
 const CustomerLoginPage = dynamic(() => import("@/components/pages/customer-login-page").then(mod => mod.CustomerLoginPage), { ssr: false });
 const CustomerAccountPage = dynamic(() => import("@/components/pages/customer-account-page").then(mod => mod.CustomerAccountPage), { ssr: false });
+const AffiliatePage = dynamic(() => import("@/components/pages/affiliate-page").then(mod => mod.AffiliatePage), { ssr: false });
+const GiftCardPage = dynamic(() => import("@/components/pages/gift-card-page").then(mod => mod.GiftCardPage), { ssr: false });
 
-import { HeroBanner } from "@/components/home/hero-banner";
-import { CategoryGrid } from "@/components/home/category-grid";
-import { FlashDeals } from "@/components/home/flash-deals";
-import { ProductSection } from "@/components/home/product-section";
-import { BrandCarousel } from "@/components/home/brand-carousel";
-import { RecentlyViewed } from "@/components/home/recently-viewed";
-import { NewsletterSection } from "@/components/home/newsletter-section";
-import { AffiliatePage } from "@/components/pages/affiliate-page";
-import { GiftCardPage } from "@/components/pages/gift-card-page";
 import { WhatsAppFloat } from "@/components/layout/whatsapp-float";
 import { BackToTop } from "@/components/layout/back-to-top";
 import ChatWidget from "@/components/chat/chat-widget";
-import { Sparkles, TrendingUp, Star, Zap } from "lucide-react";
-
-// ---------------------------------------------------------------------------
-// Home Page Component - The main landing page view
-// Merged: SL HUB sections + TechZone-style section icons
-// ---------------------------------------------------------------------------
-function HomePage() {
-  return (
-    <div className="space-y-8">
-      <HeroBanner />
-      <CategoryGrid />
-      <FlashDeals />
-      <ProductSection
-        title="Featured Products"
-        subtitle="Hand-picked by our experts"
-        endpoint="/api/products?isFeatured=true&limit=10"
-        icon={<Star className="h-5 w-5 text-blue-600" />}
-      />
-      <ProductSection
-        title="Best Sellers"
-        subtitle="Most popular items this month"
-        endpoint="/api/products?isBestSeller=true&limit=10"
-        icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
-      />
-      <ProductSection
-        title="New Arrivals"
-        subtitle="The latest and greatest"
-        endpoint="/api/products?isNew=true&limit=10"
-        icon={<Sparkles className="h-5 w-5 text-blue-600" />}
-      />
-      <BrandCarousel />
-      <NewsletterSection />
-      <RecentlyViewed />
-    </div>
-  );
-}
+import { Zap } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Main Page Component - Routes between views based on Zustand state
