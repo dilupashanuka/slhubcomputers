@@ -51,6 +51,8 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {product.isNew && <Badge className="bg-blue-600 text-[10px]">New</Badge>}
+          {product.isBestSeller && <Badge className="bg-purple-600 text-[10px]">Best Seller</Badge>}
+          {product.isDeal && <Badge className="bg-pink-600 text-[10px]">Special Deal</Badge>}
           {discount > 0 && <Badge className="bg-red-500 text-[10px]">-{discount}%</Badge>}
           {product.isOnSale && <Badge className="bg-orange-500 text-[10px]">Sale</Badge>}
           {product.stock <= 3 && product.stock > 0 && (

@@ -101,7 +101,7 @@ export async function POST() {
         price: 62000, originalPrice: 68000, stock: 15, sku: "INT-14400F",
         categoryId: findCat("processors"), brandId: findBrand("intel"),
         specs: JSON.stringify({ Cores: "10 (6P + 4E)", Threads: "16", "Base Clock": "2.5 GHz", "Boost Clock": "4.7 GHz", "L3 Cache": "20 MB", TDP: "65W", Socket: "LGA 1700" }),
-        images: JSON.stringify(["/images/products/cpu-intel-14400f.jpg"]), isFeatured: true, isNew: true, isOnSale: true, isBestSeller: true, isDeal: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/intel-i9-14900k.webp"]), isFeatured: true, isNew: true, isOnSale: true, isBestSeller: true, isDeal: false, warranty: "3 Years"
       },
       {
         name: "Intel Core i7-14700K", slug: "intel-core-i7-14700k",
@@ -110,7 +110,7 @@ export async function POST() {
         price: 125000, originalPrice: null, stock: 8, sku: "INT-14700K",
         categoryId: findCat("processors"), brandId: findBrand("intel"),
         specs: JSON.stringify({ Cores: "20 (8P + 12E)", Threads: "28", "Base Clock": "3.4 GHz", "Boost Clock": "5.6 GHz", "L3 Cache": "33 MB", TDP: "125W", Socket: "LGA 1700" }),
-        images: JSON.stringify(["/images/products/cpu-intel-14700k.jpg"]), isFeatured: true, isNew: false, isOnSale: false, isBestSeller: true, isDeal: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/intel-i9-14900k.webp"]), isFeatured: true, isNew: false, isOnSale: false, isBestSeller: true, isDeal: false, warranty: "3 Years"
       },
       {
         name: "Intel Core i9-14900K", slug: "intel-core-i9-14900k",
@@ -119,7 +119,7 @@ export async function POST() {
         price: 185000, originalPrice: 195000, stock: 5, sku: "INT-14900K",
         categoryId: findCat("processors"), brandId: findBrand("intel"),
         specs: JSON.stringify({ Cores: "24 (8P + 16E)", Threads: "32", "Base Clock": "3.2 GHz", "Boost Clock": "6.0 GHz", "L3 Cache": "36 MB", TDP: "125W", Socket: "LGA 1700" }),
-        images: JSON.stringify(["/images/products/cpu-intel-14900k.jpg"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/intel-i9-14900k.webp"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
       },
       {
         name: "AMD Ryzen 5 7600X", slug: "amd-ryzen-5-7600x",
@@ -128,7 +128,7 @@ export async function POST() {
         price: 55000, originalPrice: null, stock: 12, sku: "AMD-7600X",
         categoryId: findCat("processors"), brandId: findBrand("amd"),
         specs: JSON.stringify({ Cores: "6", Threads: "12", "Base Clock": "4.7 GHz", "Boost Clock": "5.3 GHz", "L3 Cache": "32 MB", TDP: "105W", Socket: "AM5" }),
-        images: JSON.stringify(["/images/products/cpu-amd-7600x.jpg"]), isFeatured: false, isNew: true, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/amd-ryzen9-7950x.webp"]), isFeatured: false, isNew: true, isOnSale: false, warranty: "3 Years"
       },
       {
         name: "AMD Ryzen 7 7800X3D", slug: "amd-ryzen-7-7800x3d",
@@ -137,7 +137,7 @@ export async function POST() {
         price: 115000, originalPrice: 128000, stock: 6, sku: "AMD-7800X3D",
         categoryId: findCat("processors"), brandId: findBrand("amd"),
         specs: JSON.stringify({ Cores: "8", Threads: "16", "Base Clock": "4.2 GHz", "Boost Clock": "5.0 GHz", "L3 Cache": "96 MB (3D V-Cache)", TDP: "120W", Socket: "AM5" }),
-        images: JSON.stringify(["/images/products/cpu-amd-7800x3d.jpg"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/amd-ryzen9-7950x.webp"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
       },
 
       // ---- Graphics Cards (6) ----
@@ -148,7 +148,7 @@ export async function POST() {
         price: 115000, originalPrice: 125000, stock: 10, sku: "NVI-4060-8G",
         categoryId: findCat("graphics-cards"), brandId: findBrand("nvidia"),
         specs: JSON.stringify({ "VRAM": "8 GB GDDR6", "Memory Bus": "128-bit", "Boost Clock": "2460 MHz", "CUDA Cores": "3072", TDP: "115W", "Outputs": "3x DP 1.4a, 1x HDMI 2.1" }),
-        images: JSON.stringify(["/images/products/gpu-rtx4060.jpg"]), isFeatured: true, isNew: false, isOnSale: true, isBestSeller: true, isDeal: true, dealEndDate: new Date(Date.now() + 86400000 * 3), warranty: "3 Years"
+        images: JSON.stringify(["/images/products/nvidia-rtx4090.webp"]), isFeatured: true, isNew: false, isOnSale: true, isBestSeller: true, isDeal: true, dealEndDate: new Date(Date.now() + 86400000 * 3), warranty: "3 Years"
       },
       {
         name: "NVIDIA GeForce RTX 4070 Super 12GB", slug: "nvidia-rtx-4070-super-12gb",
@@ -157,7 +157,7 @@ export async function POST() {
         price: 205000, originalPrice: null, stock: 7, sku: "NVI-4070S-12G",
         categoryId: findCat("graphics-cards"), brandId: findBrand("nvidia"),
         specs: JSON.stringify({ "VRAM": "12 GB GDDR6X", "Memory Bus": "192-bit", "Boost Clock": "2520 MHz", "CUDA Cores": "7168", TDP: "220W", "Outputs": "3x DP 1.4a, 1x HDMI 2.1" }),
-        images: JSON.stringify(["/images/products/gpu-rtx4070s.jpg"]), isFeatured: true, isNew: true, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/nvidia-rtx4090.webp"]), isFeatured: true, isNew: true, isOnSale: false, warranty: "3 Years"
       },
       {
         name: "NVIDIA GeForce RTX 4080 Super 16GB", slug: "nvidia-rtx-4080-super-16gb",
@@ -166,7 +166,7 @@ export async function POST() {
         price: 385000, originalPrice: 410000, stock: 3, sku: "NVI-4080S-16G",
         categoryId: findCat("graphics-cards"), brandId: findBrand("nvidia"),
         specs: JSON.stringify({ "VRAM": "16 GB GDDR6X", "Memory Bus": "256-bit", "Boost Clock": "2550 MHz", "CUDA Cores": "10240", TDP: "320W", "Outputs": "3x DP 1.4a, 1x HDMI 2.1" }),
-        images: JSON.stringify(["/images/products/gpu-rtx4080s.jpg"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/nvidia-rtx4090.webp"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
       },
       {
         name: "NVIDIA GeForce RTX 4090 24GB", slug: "nvidia-rtx-4090-24gb",
@@ -175,7 +175,7 @@ export async function POST() {
         price: 650000, originalPrice: null, stock: 2, sku: "NVI-4090-24G",
         categoryId: findCat("graphics-cards"), brandId: findBrand("nvidia"),
         specs: JSON.stringify({ "VRAM": "24 GB GDDR6X", "Memory Bus": "384-bit", "Boost Clock": "2520 MHz", "CUDA Cores": "16384", TDP: "450W", "Outputs": "3x DP 1.4a, 1x HDMI 2.1" }),
-        images: JSON.stringify(["/images/products/gpu-rtx4090.jpg"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/nvidia-rtx4090.webp"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "3 Years"
       },
       {
         name: "AMD Radeon RX 7600 8GB", slug: "amd-rx-7600-8gb",
@@ -184,7 +184,7 @@ export async function POST() {
         price: 88000, originalPrice: 95000, stock: 9, sku: "AMD-RX7600",
         categoryId: findCat("graphics-cards"), brandId: findBrand("amd"),
         specs: JSON.stringify({ "VRAM": "8 GB GDDR6", "Memory Bus": "128-bit", "Boost Clock": "2655 MHz", "Stream Processors": "2048", TDP: "165W", "Outputs": "3x DP 2.1, 1x HDMI 2.1" }),
-        images: JSON.stringify(["/images/products/gpu-rx7600.jpg"]), isFeatured: false, isNew: true, isOnSale: true, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/nvidia-rtx4090.webp"]), isFeatured: false, isNew: true, isOnSale: true, warranty: "3 Years"
       },
       {
         name: "ASUS Dual RTX 4060 Ti 16GB", slug: "asus-dual-rtx-4060-ti-16gb",
@@ -193,7 +193,7 @@ export async function POST() {
         price: 155000, originalPrice: null, stock: 5, sku: "ASUS-4060TI-16G",
         categoryId: findCat("graphics-cards"), brandId: findBrand("asus"),
         specs: JSON.stringify({ "VRAM": "16 GB GDDR6", "Memory Bus": "128-bit", "Boost Clock": "2535 MHz", "CUDA Cores": "4352", TDP: "165W", "Outputs": "2x DP 1.4a, 2x HDMI 2.1" }),
-        images: JSON.stringify(["/images/products/gpu-asus-4060ti.jpg"]), isFeatured: false, isNew: true, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/nvidia-rtx4090.webp"]), isFeatured: false, isNew: true, isOnSale: false, warranty: "3 Years"
       },
 
       // ---- Motherboards (4) ----
@@ -204,7 +204,7 @@ export async function POST() {
         price: 72000, originalPrice: 78000, stock: 8, sku: "ASUS-B760A",
         categoryId: findCat("motherboards"), brandId: findBrand("asus"),
         specs: JSON.stringify({ Socket: "LGA 1700", Chipset: "Intel B760", "Memory Slots": "4x DDR4", "Max Memory": "128 GB", WiFi: "WiFi 6E", LAN: "2.5G LAN", "Form Factor": "ATX" }),
-        images: JSON.stringify(["/images/products/mb-asus-b760a.jpg"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/asus-z790-hero.webp"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
       },
       {
         name: "MSI MAG B650 Tomahawk WiFi", slug: "msi-mag-b650-tomahawk",
@@ -213,7 +213,7 @@ export async function POST() {
         price: 65000, originalPrice: null, stock: 6, sku: "MSI-B650T",
         categoryId: findCat("motherboards"), brandId: findBrand("msi"),
         specs: JSON.stringify({ Socket: "AM5", Chipset: "AMD B650", "Memory Slots": "4x DDR5", "Max Memory": "128 GB", WiFi: "WiFi 6E", LAN: "2.5G LAN", "Form Factor": "ATX" }),
-        images: JSON.stringify(["/images/products/mb-msi-b650t.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/asus-z790-hero.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
       },
       {
         name: "Gigabyte B760 Gaming X DDR4", slug: "gigabyte-b760-gaming-x",
@@ -222,7 +222,7 @@ export async function POST() {
         price: 42000, originalPrice: null, stock: 10, sku: "GIG-B760GX",
         categoryId: findCat("motherboards"), brandId: findBrand("gigabyte"),
         specs: JSON.stringify({ Socket: "LGA 1700", Chipset: "Intel B760", "Memory Slots": "4x DDR4", "Max Memory": "128 GB", WiFi: "No", LAN: "1G LAN", "Form Factor": "ATX" }),
-        images: JSON.stringify(["/images/products/mb-gig-b760.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/asus-z790-hero.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
       },
       {
         name: "ASRock A620M Pro RS", slug: "asrock-a620m-pro-rs",
@@ -231,7 +231,7 @@ export async function POST() {
         price: 28000, originalPrice: null, stock: 12, sku: "ASR-A620M",
         categoryId: findCat("motherboards"), brandId: findBrand("asrock"),
         specs: JSON.stringify({ Socket: "AM5", Chipset: "AMD A620", "Memory Slots": "2x DDR5", "Max Memory": "64 GB", WiFi: "No", LAN: "1G LAN", "Form Factor": "Micro-ATX" }),
-        images: JSON.stringify(["/images/products/mb-asr-a620m.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/asus-z790-hero.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
       },
 
       // ---- Memory (4) ----
@@ -242,7 +242,7 @@ export async function POST() {
         price: 22000, originalPrice: 25000, stock: 20, sku: "COR-VEN16-6000",
         categoryId: findCat("memory"), brandId: findBrand("corsair"),
         specs: JSON.stringify({ Type: "DDR5", Capacity: "16 GB (2x8 GB)", Speed: "6000 MHz", Latency: "CL36-36-36-36", Voltage: "1.35V", "Heat Spreader": "Aluminum" }),
-        images: JSON.stringify(["/images/products/ram-corsair-ddr5.jpg"]), isFeatured: false, isNew: true, isOnSale: true, warranty: "Lifetime"
+        images: JSON.stringify(["/images/products/corsair-ddr5.webp"]), isFeatured: false, isNew: true, isOnSale: true, warranty: "Lifetime"
       },
       {
         name: "G.Skill Trident Z5 RGB DDR5 32GB (2x16GB) 6400MHz", slug: "gskill-trident-z5-32gb-6400",
@@ -251,7 +251,7 @@ export async function POST() {
         price: 48000, originalPrice: null, stock: 8, sku: "GS-TZ5-32-6400",
         categoryId: findCat("memory"), brandId: findBrand("gskill"),
         specs: JSON.stringify({ Type: "DDR5", Capacity: "32 GB (2x16 GB)", Speed: "6400 MHz", Latency: "CL32-39-39-39", Voltage: "1.4V", "Heat Spreader": "Aluminum + RGB" }),
-        images: JSON.stringify(["/images/products/ram-gskill-tz5.jpg"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "Lifetime"
+        images: JSON.stringify(["/images/products/corsair-ddr5.webp"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "Lifetime"
       },
       {
         name: "Kingston Fury Beast DDR5 16GB 5200MHz", slug: "kingston-fury-beast-16gb-5200",
@@ -260,7 +260,7 @@ export async function POST() {
         price: 14000, originalPrice: null, stock: 25, sku: "KST-FB16-5200",
         categoryId: findCat("memory"), brandId: findBrand("kingston"),
         specs: JSON.stringify({ Type: "DDR5", Capacity: "16 GB (1x16 GB)", Speed: "5200 MHz", Latency: "CL40", Voltage: "1.25V", "Heat Spreader": "Aluminum" }),
-        images: JSON.stringify(["/images/products/ram-kingston-fury.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "Lifetime"
+        images: JSON.stringify(["/images/products/corsair-ddr5.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "Lifetime"
       },
       {
         name: "Corsair Vengeance LPX DDR4 16GB (2x8GB) 3200MHz", slug: "corsair-vengeance-lpx-16gb-3200",
@@ -269,7 +269,7 @@ export async function POST() {
         price: 11000, originalPrice: 13000, stock: 30, sku: "COR-LPX16-3200",
         categoryId: findCat("memory"), brandId: findBrand("corsair"),
         specs: JSON.stringify({ Type: "DDR4", Capacity: "16 GB (2x8 GB)", Speed: "3200 MHz", Latency: "CL16-18-18-18", Voltage: "1.35V", "Heat Spreader": "Aluminum" }),
-        images: JSON.stringify(["/images/products/ram-corsair-lpx.jpg"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "Lifetime"
+        images: JSON.stringify(["/images/products/corsair-ddr5.webp"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "Lifetime"
       },
 
       // ---- Storage (4) ----
@@ -280,7 +280,7 @@ export async function POST() {
         price: 28000, originalPrice: 32000, stock: 15, sku: "SAM-990P-1T",
         categoryId: findCat("storage"), brandId: findBrand("samsung"),
         specs: JSON.stringify({ Capacity: "1 TB", Interface: "PCIe 4.0 x4 NVMe", "Read Speed": "7450 MB/s", "Write Speed": "6900 MB/s", Form: "M.2 2280", Warranty: "5 Years" }),
-        images: JSON.stringify(["/images/products/ssd-samsung-990p.jpg"]), isFeatured: true, isNew: true, isOnSale: true, warranty: "5 Years"
+        images: JSON.stringify(["/images/products/samsung-990pro.webp"]), isFeatured: true, isNew: true, isOnSale: true, warranty: "5 Years"
       },
       {
         name: "Samsung 870 EVO 1TB SATA SSD", slug: "samsung-870-evo-1tb",
@@ -289,7 +289,7 @@ export async function POST() {
         price: 15000, originalPrice: null, stock: 20, sku: "SAM-870E-1T",
         categoryId: findCat("storage"), brandId: findBrand("samsung"),
         specs: JSON.stringify({ Capacity: "1 TB", Interface: "SATA III", "Read Speed": "560 MB/s", "Write Speed": "530 MB/s", Form: "2.5-inch", Warranty: "5 Years" }),
-        images: JSON.stringify(["/images/products/ssd-samsung-870.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "5 Years"
+        images: JSON.stringify(["/images/products/samsung-990pro.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "5 Years"
       },
       {
         name: "WD Blue SN580 500GB NVMe SSD", slug: "wd-blue-sn580-500gb",
@@ -298,7 +298,7 @@ export async function POST() {
         price: 9000, originalPrice: null, stock: 25, sku: "WD-SN580-500",
         categoryId: findCat("storage"), brandId: findBrand("wd"),
         specs: JSON.stringify({ Capacity: "500 GB", Interface: "PCIe 4.0 x4 NVMe", "Read Speed": "4150 MB/s", "Write Speed": "4150 MB/s", Form: "M.2 2280", Warranty: "5 Years" }),
-        images: JSON.stringify(["/images/products/ssd-wd-sn580.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "5 Years"
+        images: JSON.stringify(["/images/products/samsung-990pro.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "5 Years"
       },
       {
         name: "WD Blue 2TB HDD 7200RPM", slug: "wd-blue-2tb-hdd",
@@ -307,7 +307,7 @@ export async function POST() {
         price: 12000, originalPrice: 14000, stock: 18, sku: "WD-BLUE-2T",
         categoryId: findCat("storage"), brandId: findBrand("wd"),
         specs: JSON.stringify({ Capacity: "2 TB", Interface: "SATA III", RPM: "7200", Cache: "256 MB", Form: "3.5-inch", Warranty: "2 Years" }),
-        images: JSON.stringify(["/images/products/hdd-wd-blue.jpg"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/samsung-990pro.webp"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "2 Years"
       },
 
       // ---- Power Supplies (3) ----
@@ -318,7 +318,7 @@ export async function POST() {
         price: 35000, originalPrice: null, stock: 10, sku: "SEA-GX750",
         categoryId: findCat("power-supplies"), brandId: findBrand("seasonic"),
         specs: JSON.stringify({ Wattage: "750W", Efficiency: "80+ Gold", Modular: "Fully Modular", Fan: "120mm FDB", Warranty: "10 Years", Protections: "OVP, UVP, OCP, SCP, OTP" }),
-        images: JSON.stringify(["/images/products/psu-seasonic-gx750.jpg"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "10 Years"
+        images: JSON.stringify(["/images/products/corsair-psu.webp"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "10 Years"
       },
       {
         name: "Corsair RM750e 750W 80+ Gold", slug: "corsair-rm750e-750w",
@@ -327,7 +327,7 @@ export async function POST() {
         price: 32000, originalPrice: 36000, stock: 12, sku: "COR-RM750E",
         categoryId: findCat("power-supplies"), brandId: findBrand("corsair"),
         specs: JSON.stringify({ Wattage: "750W", Efficiency: "80+ Gold", Modular: "Fully Modular", Fan: "135mm Rifle Bearing", Warranty: "7 Years", "ATX 3.0": "Yes" }),
-        images: JSON.stringify(["/images/products/psu-corsair-rm750e.jpg"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "7 Years"
+        images: JSON.stringify(["/images/products/corsair-psu.webp"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "7 Years"
       },
       {
         name: "Cooler Master MWE 550W 80+ Bronze", slug: "cooler-master-mwe-550w",
@@ -336,7 +336,7 @@ export async function POST() {
         price: 13000, originalPrice: null, stock: 20, sku: "CM-MWE550",
         categoryId: findCat("power-supplies"), brandId: findBrand("cooler-master"),
         specs: JSON.stringify({ Wattage: "550W", Efficiency: "80+ Bronze", Modular: "Non-Modular", Fan: "120mm", Warranty: "3 Years", Protections: "OVP, UVP, OCP, SCP" }),
-        images: JSON.stringify(["/images/products/psu-cm-mwe550.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/corsair-psu.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
       },
 
       // ---- PC Cases (3) ----
@@ -347,7 +347,7 @@ export async function POST() {
         price: 28000, originalPrice: null, stock: 7, sku: "NZXT-H6F",
         categoryId: findCat("pc-cases"), brandId: findBrand("nzxt"),
         specs: JSON.stringify({ "Form Factor": "Mid-Tower ATX", "Motherboard Support": "ATX, Micro-ATX, Mini-ITX", "Fans Included": "2x 120mm", "Max GPU Length": "365mm", "Max CPU Cooler Height": "165mm", "Drive Bays": "2x 2.5\", 2x 3.5\"" }),
-        images: JSON.stringify(["/images/products/case-nzxt-h6.jpg"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/nzxt-h7flow.webp"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "2 Years"
       },
       {
         name: "Corsair 4000D Airflow ATX Mid-Tower", slug: "corsair-4000d-airflow",
@@ -356,7 +356,7 @@ export async function POST() {
         price: 22000, originalPrice: 25000, stock: 9, sku: "COR-4000D",
         categoryId: findCat("pc-cases"), brandId: findBrand("corsair"),
         specs: JSON.stringify({ "Form Factor": "Mid-Tower ATX", "Motherboard Support": "ATX, Micro-ATX, Mini-ITX", "Fans Included": "2x 120mm", "Max GPU Length": "360mm", "Max CPU Cooler Height": "170mm", "Drive Bays": "2x 2.5\", 2x 3.5\"" }),
-        images: JSON.stringify(["/images/products/case-corsair-4000d.jpg"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/nzxt-h7flow.webp"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "2 Years"
       },
       {
         name: "Cooler Master MasterBox Q300L Mini-ITX", slug: "cooler-master-q300l",
@@ -365,7 +365,7 @@ export async function POST() {
         price: 9500, originalPrice: null, stock: 15, sku: "CM-Q300L",
         categoryId: findCat("pc-cases"), brandId: findBrand("cooler-master"),
         specs: JSON.stringify({ "Form Factor": "Mini-Tower", "Motherboard Support": "Mini-ITX, Micro-ATX", "Fans Included": "1x 120mm", "Max GPU Length": "360mm", "Max CPU Cooler Height": "155mm", "Drive Bays": "2x 2.5\", 2x 3.5\"" }),
-        images: JSON.stringify(["/images/products/case-cm-q300l.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/nzxt-h7flow.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "2 Years"
       },
 
       // ---- Cooling (3) ----
@@ -376,7 +376,7 @@ export async function POST() {
         price: 28000, originalPrice: null, stock: 6, sku: "NOC-D15B",
         categoryId: findCat("cooling"), brandId: findBrand("noctua"),
         specs: JSON.stringify({ Type: "Dual-Tower Air Cooler", Fans: "2x NF-A15 140mm", "Heat Pipes": "6x Nickel-Plated Copper", TDP: "250W+", "Height": "165mm", Noise: "24.6 dBA" }),
-        images: JSON.stringify(["/images/products/cooler-noctua-d15.jpg"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "6 Years"
+        images: JSON.stringify(["/images/products/noctua-nhd15.webp"]), isFeatured: true, isNew: false, isOnSale: false, warranty: "6 Years"
       },
       {
         name: "Corsair iCUE H100i Elite Capellix 240mm AIO", slug: "corsair-h100i-elite-240mm",
@@ -385,7 +385,7 @@ export async function POST() {
         price: 32000, originalPrice: 36000, stock: 8, sku: "COR-H100IE",
         categoryId: findCat("cooling"), brandId: findBrand("corsair"),
         specs: JSON.stringify({ Type: "240mm AIO Liquid Cooler", Fans: "2x ML120 RGB", Radiator: "240mm Aluminum", RGB: "33 Capellix LEDs", Noise: "10-36 dBA", Warranty: "5 Years" }),
-        images: JSON.stringify(["/images/products/cooler-corsair-h100i.jpg"]), isFeatured: false, isNew: true, isOnSale: true, warranty: "5 Years"
+        images: JSON.stringify(["/images/products/noctua-nhd15.webp"]), isFeatured: false, isNew: true, isOnSale: true, warranty: "5 Years"
       },
       {
         name: "Cooler Master Hyper 212 Black Edition", slug: "cooler-master-hyper-212-black",
@@ -394,7 +394,7 @@ export async function POST() {
         price: 7500, originalPrice: null, stock: 25, sku: "CM-212BE",
         categoryId: findCat("cooling"), brandId: findBrand("cooler-master"),
         specs: JSON.stringify({ Type: "Single-Tower Air Cooler", Fans: "1x SickleFlow 120mm", "Heat Pipes": "4x Direct Contact", TDP: "150W+", "Height": "158mm", Noise: "8-27 dBA" }),
-        images: JSON.stringify(["/images/products/cooler-cm-212.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/noctua-nhd15.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "2 Years"
       },
 
       // ---- Monitors (3) ----
@@ -405,7 +405,7 @@ export async function POST() {
         price: 125000, originalPrice: 135000, stock: 5, sku: "LG-27GP850",
         categoryId: findCat("monitors"), brandId: findBrand("lg"),
         specs: JSON.stringify({ Size: "27\"", Resolution: "2560 x 1440 (QHD)", "Refresh Rate": "165Hz (OC 180Hz)", "Response Time": "1ms GTG", Panel: "Nano IPS", HDR: "HDR10", Sync: "NVIDIA G-Sync Compatible" }),
-        images: JSON.stringify(["/images/products/monitor-lg-27gp.jpg"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/lg-ultragear.webp"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "3 Years"
       },
       {
         name: "LG 24MP60G-B 24\" 75Hz FHD IPS Monitor", slug: "lg-24mp60g-b",
@@ -414,7 +414,7 @@ export async function POST() {
         price: 35000, originalPrice: null, stock: 10, sku: "LG-24MP60",
         categoryId: findCat("monitors"), brandId: findBrand("lg"),
         specs: JSON.stringify({ Size: "24\"", Resolution: "1920 x 1080 (FHD)", "Refresh Rate": "75Hz", "Response Time": "5ms GTG", Panel: "IPS", HDR: "No", Sync: "AMD FreeSync" }),
-        images: JSON.stringify(["/images/products/monitor-lg-24mp.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/lg-ultragear.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
       },
       {
         name: "LG 32UN880-B 32\" 4K USB-C HDR Monitor", slug: "lg-32un880-b",
@@ -423,7 +423,7 @@ export async function POST() {
         price: 245000, originalPrice: null, stock: 3, sku: "LG-32UN880",
         categoryId: findCat("monitors"), brandId: findBrand("lg"),
         specs: JSON.stringify({ Size: "32\"", Resolution: "3840 x 2160 (4K UHD)", "Refresh Rate": "60Hz", "Response Time": "5ms GTG", Panel: "IPS", HDR: "HDR10", "USB-C": "96W Power Delivery" }),
-        images: JSON.stringify(["/images/products/monitor-lg-32un.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
+        images: JSON.stringify(["/images/products/lg-ultragear.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "3 Years"
       },
 
       // ---- Peripherals (4) ----
@@ -434,7 +434,7 @@ export async function POST() {
         price: 12000, originalPrice: 14500, stock: 15, sku: "LOG-G502",
         categoryId: findCat("peripherals"), brandId: findBrand("logitech"),
         specs: JSON.stringify({ Sensor: "HERO 25K", DPI: "100-25600", Buttons: "11 Programmable", Weight: "121g (adjustable)", Cable: "Braided USB", RGB: "Yes" }),
-        images: JSON.stringify(["/images/products/mouse-logitech-g502.jpg"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/logitech-mouse.webp"]), isFeatured: true, isNew: false, isOnSale: true, warranty: "2 Years"
       },
       {
         name: "Razer BlackWidow V3 Mechanical Keyboard", slug: "razer-blackwidow-v3",
@@ -443,7 +443,7 @@ export async function POST() {
         price: 22000, originalPrice: null, stock: 8, sku: "RZR-BWV3",
         categoryId: findCat("peripherals"), brandId: findBrand("razer"),
         specs: JSON.stringify({ Switches: "Razer Green Mechanical", Layout: "Full-Size", RGB: "Chroma RGB per-key", "Key Rollover": "N-Key", "Cable Length": "1.8m USB-C", "Wrist Rest": "Included" }),
-        images: JSON.stringify(["/images/products/kb-razer-bwv3.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/razer-keyboard.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "2 Years"
       },
       {
         name: "Logitech G Pro X Gaming Headset", slug: "logitech-g-pro-x-headset",
@@ -452,7 +452,7 @@ export async function POST() {
         price: 25000, originalPrice: 28000, stock: 6, sku: "LOG-GPX-HS",
         categoryId: findCat("peripherals"), brandId: findBrand("logitech"),
         specs: JSON.stringify({ Drivers: "50mm Pro-G", Microphone: "Detachable Boom (Blue VO!CE)", Surround: "DTS:X 7.1 Virtual", Connection: "USB / 3.5mm", Weight: "320g", RGB: "No" }),
-        images: JSON.stringify(["/images/products/hs-logitech-gpx.jpg"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/logitech-mouse.webp"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "2 Years"
       },
       {
         name: "Razer DeathAdder V2 Gaming Mouse", slug: "razer-deathadder-v2",
@@ -461,7 +461,7 @@ export async function POST() {
         price: 9000, originalPrice: null, stock: 12, sku: "RZR-DAV2",
         categoryId: findCat("peripherals"), brandId: findBrand("razer"),
         specs: JSON.stringify({ Sensor: "Focus+ 20K", DPI: "100-20000", Buttons: "8 Programmable", Weight: "82g", Cable: "Speedflex USB", RGB: "Yes" }),
-        images: JSON.stringify(["/images/products/mouse-razer-da.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/logitech-mouse.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "2 Years"
       },
 
       // ---- CCTV & Security (3) ----
@@ -472,7 +472,7 @@ export async function POST() {
         price: 18000, originalPrice: 22000, stock: 20, sku: "TND-TC32C",
         categoryId: findCat("cctv-security"), brandId: findBrand("tiandy"),
         specs: JSON.stringify({ Resolution: "4MP (2560x1440)", "IR Range": "50m", Protection: "IP67", Power: "PoE / 12V DC", Lens: "2.8-12mm Motorized", "Smart Features": "Smart IR, WDR" }),
-        images: JSON.stringify(["/images/products/cctv-tiandy-c32c.jpg"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/hikvision-camera.webp"]), isFeatured: false, isNew: false, isOnSale: true, warranty: "2 Years"
       },
       {
         name: "Hikvision DS-2CD2143G2-I 4MP Dome Camera", slug: "hikvision-ds-2cd2143g2",
@@ -481,7 +481,7 @@ export async function POST() {
         price: 25000, originalPrice: null, stock: 12, sku: "HIK-2143G2",
         categoryId: findCat("cctv-security"), brandId: findBrand("hikvision"),
         specs: JSON.stringify({ Resolution: "4MP (2560x1440)", "IR Range": "30m", Protection: "IP67", Power: "PoE / 12V DC", Lens: "2.8mm Fixed", "Smart Features": "AcuSense, WDR 120dB" }),
-        images: JSON.stringify(["/images/products/cctv-hikvision-dome.jpg"]), isFeatured: false, isNew: true, isOnSale: false, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/hikvision-camera.webp"]), isFeatured: false, isNew: true, isOnSale: false, warranty: "2 Years"
       },
       {
         name: "Tiandy NVR 16-Channel 4K", slug: "tiandy-nvr-16ch-4k",
@@ -490,7 +490,7 @@ export async function POST() {
         price: 55000, originalPrice: null, stock: 5, sku: "TND-NVR16",
         categoryId: findCat("cctv-security"), brandId: findBrand("tiandy"),
         specs: JSON.stringify({ Channels: "16", "Max Resolution": "4K (8MP)", "HDD Bays": "2x SATA (up to 10TB each)", PoE: "Built-in 16-port PoE", Network: "RJ-45 1000M", "Smart Features": "AI Search, Motion Detection" }),
-        images: JSON.stringify(["/images/products/cctv-tiandy-nvr.jpg"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "2 Years"
+        images: JSON.stringify(["/images/products/hikvision-nvr.webp"]), isFeatured: false, isNew: false, isOnSale: false, warranty: "2 Years"
       },
     ];
 
@@ -663,7 +663,7 @@ export async function POST() {
         category: "budget",
         price: 85000,
         originalPrice: 95000,
-        image: "/images/prebuilt/budget-starter.jpg",
+        image: "/images/products/nzxt-h7flow.webp",
         specs: JSON.stringify({
           cpu: "Intel Core i5-12400F",
           gpu: "Intel UHD 730 (Integrated)",
@@ -694,7 +694,7 @@ export async function POST() {
         category: "budget",
         price: 145000,
         originalPrice: 158000,
-        image: "/images/prebuilt/budget-gaming.jpg",
+        image: "/images/products/nzxt-h7flow.webp",
         specs: JSON.stringify({
           cpu: "Intel Core i5-14400F",
           gpu: "NVIDIA RTX 4060 8GB",
@@ -725,7 +725,7 @@ export async function POST() {
         category: "gaming",
         price: 250000,
         originalPrice: 270000,
-        image: "/images/prebuilt/gaming-fighter.jpg",
+        image: "/images/products/nzxt-h7flow.webp",
         specs: JSON.stringify({
           cpu: "Intel Core i7-14700K",
           gpu: "NVIDIA RTX 4070 Super 12GB",
@@ -756,7 +756,7 @@ export async function POST() {
         category: "gaming",
         price: 450000,
         originalPrice: 480000,
-        image: "/images/prebuilt/gaming-beast.jpg",
+        image: "/images/products/nzxt-h7flow.webp",
         specs: JSON.stringify({
           cpu: "Intel Core i9-14900K",
           gpu: "NVIDIA RTX 4080 Super 16GB",
@@ -787,7 +787,7 @@ export async function POST() {
         category: "office",
         price: 95000,
         originalPrice: null,
-        image: "/images/prebuilt/office-pro.jpg",
+        image: "/images/products/nzxt-h7flow.webp",
         specs: JSON.stringify({
           cpu: "Intel Core i5-14400",
           gpu: "Intel UHD 730 (Integrated)",
