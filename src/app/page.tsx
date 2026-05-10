@@ -9,7 +9,8 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useState, useMemo } from "react";
 import { useStore } from "@/store/use-store";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -20,36 +21,39 @@ import { ProductSection } from "@/components/home/product-section";
 import { BrandCarousel } from "@/components/home/brand-carousel";
 import { RecentlyViewed } from "@/components/home/recently-viewed";
 import { NewsletterSection } from "@/components/home/newsletter-section";
-import { ProductGrid } from "@/components/products/product-grid";
-import { ProductDetail } from "@/components/products/product-detail";
-import { Builder } from "@/components/pc-builder/builder";
-import { CartPage } from "@/components/cart/cart-page";
-import { CheckoutPage } from "@/components/checkout/checkout-page";
-import { WishlistPage } from "@/components/wishlist/wishlist-page";
-import { ComparePage } from "@/components/compare/compare-page";
-import { SearchResults } from "@/components/search/search-results";
-import { AboutPage } from "@/components/pages/about-page";
-import { ContactPage } from "@/components/pages/contact-page";
-import { FaqPage } from "@/components/pages/faq-page";
-import { ShippingPage } from "@/components/pages/shipping-page";
-import { ReturnsPage } from "@/components/pages/returns-page";
-import { TermsPage } from "@/components/pages/terms-page";
-import { PrebuiltPCPage } from "@/components/pages/prebuilt-pc-page";
-import { OrderTrackingPage } from "@/components/pages/order-tracking-page";
-import { CustomerLoginPage } from "@/components/pages/customer-login-page";
-import { CustomerAccountPage } from "@/components/pages/customer-account-page";
 import { WhatsAppFloat } from "@/components/layout/whatsapp-float";
 import { BackToTop } from "@/components/layout/back-to-top";
 import ChatWidget from "@/components/chat/chat-widget";
-import { Sparkles, TrendingUp, Star, Zap } from "lucide-react";
+import { Sparkles, TrendingUp, Star } from "lucide-react";
+
+// ---------------------------------------------------------------------------
+// Dynamic Imports for Code Splitting (Optimizes bundle size)
+// ---------------------------------------------------------------------------
+const ProductGrid = dynamic(() => import("@/components/products/product-grid").then(m => m.ProductGrid));
+const ProductDetail = dynamic(() => import("@/components/products/product-detail").then(m => m.ProductDetail));
+const Builder = dynamic(() => import("@/components/pc-builder/builder").then(m => m.Builder));
+const CartPage = dynamic(() => import("@/components/cart/cart-page").then(m => m.CartPage));
+const CheckoutPage = dynamic(() => import("@/components/checkout/checkout-page").then(m => m.CheckoutPage));
+const WishlistPage = dynamic(() => import("@/components/wishlist/wishlist-page").then(m => m.WishlistPage));
+const ComparePage = dynamic(() => import("@/components/compare/compare-page").then(m => m.ComparePage));
+const SearchResults = dynamic(() => import("@/components/search/search-results").then(m => m.SearchResults));
+const AboutPage = dynamic(() => import("@/components/pages/about-page").then(m => m.AboutPage));
+const ContactPage = dynamic(() => import("@/components/pages/contact-page").then(m => m.ContactPage));
+const FaqPage = dynamic(() => import("@/components/pages/faq-page").then(m => m.FaqPage));
+const ShippingPage = dynamic(() => import("@/components/pages/shipping-page").then(m => m.ShippingPage));
+const ReturnsPage = dynamic(() => import("@/components/pages/returns-page").then(m => m.ReturnsPage));
+const TermsPage = dynamic(() => import("@/components/pages/terms-page").then(m => m.TermsPage));
+const PrebuiltPCPage = dynamic(() => import("@/components/pages/prebuilt-pc-page").then(m => m.PrebuiltPCPage));
+const OrderTrackingPage = dynamic(() => import("@/components/pages/order-tracking-page").then(m => m.OrderTrackingPage));
+const CustomerLoginPage = dynamic(() => import("@/components/pages/customer-login-page").then(m => m.CustomerLoginPage));
+const CustomerAccountPage = dynamic(() => import("@/components/pages/customer-account-page").then(m => m.CustomerAccountPage));
 
 // ---------------------------------------------------------------------------
 // Home Page Component - The main landing page view
-// Merged: SL HUB sections + TechZone-style section icons
 // ---------------------------------------------------------------------------
 function HomePage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
       <HeroBanner />
       <CategoryGrid />
       <FlashDeals />
@@ -82,12 +86,11 @@ function HomePage() {
 // Main Page Component - Routes between views based on Zustand state
 // ---------------------------------------------------------------------------
 export default function HomePageRouter() {
-  const { currentView, selectedCategoryId, selectedProductId } = useStore();
-  const [seeded, setSeeded] = useState(false);
+  const { currentView, selectedProductId } = useStore();
   const [loading, setLoading] = useState(true);
 
-  // Track page views for analytics
   useEffect(() => {
+    // Analytics tracking
     const trackPageView = async () => {
       try {
         const sessionId = localStorage.getItem("slhub_session_id") || (() => {
@@ -105,79 +108,42 @@ export default function HomePageRouter() {
             productId: currentView === "product" ? selectedProductId : undefined,
             sessionId,
           }),
-        }).catch(() => {}); // Silent fail for analytics
-      } catch {
-        // Analytics tracking should never break the app
-      }
+        }).catch(() => {});
+      } catch {}
     };
     if (!loading) trackPageView();
   }, [currentView, selectedProductId, loading]);
 
-  // Auto-seed database on first load
   useEffect(() => {
-    const seedDatabase = async () => {
-      if (seeded) return;
-      try {
-        const res = await fetch("/api/seed", { method: "POST" });
-        const data = await res.json();
-        if (data.success) {
-          console.log("Database seeded successfully");
-        }
-      } catch (error) {
-        console.error("Seed error:", error);
-      } finally {
-        setSeeded(true);
-        setLoading(false);
-      }
-    };
-    seedDatabase();
-  }, [seeded]);
+    // Initial mount hydration finish
+    setLoading(false);
+  }, []);
 
   // Render the appropriate view based on currentView
-  const renderView = () => {
+  const viewContent = useMemo(() => {
     switch (currentView) {
-      case "home":
-        return <HomePage />;
-      case "category":
-        return <ProductGrid />;
-      case "product":
-        return <ProductDetail />;
-      case "pc-builder":
-        return <Builder />;
-      case "cart":
-        return <CartPage />;
-      case "checkout":
-        return <CheckoutPage />;
-      case "wishlist":
-        return <WishlistPage />;
-      case "compare":
-        return <ComparePage />;
-      case "search":
-        return <SearchResults />;
-      case "about":
-        return <AboutPage />;
-      case "contact":
-        return <ContactPage />;
-      case "faq":
-        return <FaqPage />;
-      case "shipping":
-        return <ShippingPage />;
-      case "returns":
-        return <ReturnsPage />;
-      case "terms":
-        return <TermsPage />;
-      case "prebuilt":
-        return <PrebuiltPCPage />;
-      case "order-tracking":
-        return <OrderTrackingPage />;
-      case "customer-login":
-        return <CustomerLoginPage />;
-      case "customer-account":
-        return <CustomerAccountPage />;
-      default:
-        return <HomePage />;
+      case "home": return <HomePage />;
+      case "category": return <ProductGrid />;
+      case "product": return <ProductDetail />;
+      case "pc-builder": return <Builder />;
+      case "cart": return <CartPage />;
+      case "checkout": return <CheckoutPage />;
+      case "wishlist": return <WishlistPage />;
+      case "compare": return <ComparePage />;
+      case "search": return <SearchResults />;
+      case "about": return <AboutPage />;
+      case "contact": return <ContactPage />;
+      case "faq": return <FaqPage />;
+      case "shipping": return <ShippingPage />;
+      case "returns": return <ReturnsPage />;
+      case "terms": return <TermsPage />;
+      case "prebuilt": return <PrebuiltPCPage />;
+      case "order-tracking": return <OrderTrackingPage />;
+      case "customer-login": return <CustomerLoginPage />;
+      case "customer-account": return <CustomerAccountPage />;
+      default: return <HomePage />;
     }
-  };
+  }, [currentView]);
 
   // Show loading state while seeding
   if (loading) {
@@ -196,7 +162,7 @@ export default function HomePageRouter() {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-6">
-        {renderView()}
+        {viewContent}
       </main>
       <Footer />
       <WhatsAppFloat />

@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: products,
       total,
@@ -100,6 +100,11 @@ export async function GET(request: NextRequest) {
       limit,
       totalPages: Math.ceil(total / limit),
     });
+
+    // Add caching header - 60 seconds of public cache
+    response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=30");
+
+    return response;
   } catch (error) {
     console.error("Products API error:", error);
     return NextResponse.json(
