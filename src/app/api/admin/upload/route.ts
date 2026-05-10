@@ -67,13 +67,13 @@ export async function POST(request: NextRequest) {
 
     // Convert file to Buffer
     const bytes = await file.arrayBuffer();
-    let buffer = Buffer.from(bytes);
+    let buffer: any = Buffer.from(bytes);
     let fileName = file.name;
     let mimeType = file.type;
 
     // Convert to WebP using sharp if it's an image (and not already svg/gif which might lose animation/vector)
     if (file.type !== "image/svg+xml" && file.type !== "image/gif") {
-      buffer = await sharp(buffer as any)
+      buffer = await sharp(buffer)
         .webp({ quality: 80 })
         .toBuffer();
       // Replace extension with .webp
