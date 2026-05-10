@@ -1,0 +1,321 @@
+// =============================================================================
+// SL HUB COMPUTER - Prisma Database Schema
+// =============================================================================
+// Purpose: Complete database schema for the SL HUB COMPUTER e-commerce platform
+// Features: Products, Categories, Brands, Reviews, Orders, Banners, Services,
+//           Contact Messages, Pre-Built PCs, Site Settings
+// Database: Supabase PostgreSQL (remote)
+// Updated: 2025-01 - Added PrebuiltPC model; Merged TechZone fields (ratings, deals, best-seller, tags)
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Category Model - Hierarchical product categories (e.g., Processors, GPUs)
+// ---------------------------------------------------------------------------
+model Category {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  slug        String     @unique
+  description String?
+  image       String?
+  icon        String?    // Lucide icon name
+  parentId    String?    // Self-referencing for sub-categories
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]
+  order       Int        @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Brand Model - Product brands (e.g., Intel, AMD, NVIDIA, ASUS)
+// ---------------------------------------------------------------------------
+model Brand {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  logo      String?   // URL to brand logo
+  country   String?   // Country of origin
+  products  Product[]
+  order     Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Product Model - Full product listing with pricing, specs, and flags
+// ---------------------------------------------------------------------------
+model Product {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  description   String
+  shortDesc     String?   // Brief description for card display
+  price         Float     // Current selling price in LKR
+  originalPrice Float?    // MRP / before discount
+  images        String    // JSON array of image URLs
+  specs         String    // JSON object of specifications
+  categoryId    String
+  category      Category  @relation(fields: [categoryId], references: [id])
+  brandId       String
+  brand         Brand     @relation(fields: [brandId], references: [id])
+  stock         Int       @default(0)
+  sku           String?   // Stock keeping unit
+  rating        Float     @default(0)       // Average rating (0-5)
+  reviewCount   Int       @default(0)       // Number of reviews
+  isFeatured    Boolean   @default(false)
+  isNew         Boolean   @default(false)
+  isOnSale      Boolean   @default(false)
+  isDeal        Boolean   @default(false)   // Flash deal flag
+  dealEndDate   DateTime?                   // Flash deal end date
+  isBestSeller  Boolean   @default(false)   // Best seller flag
+  tags          String?                     // JSON array of tags
+  warranty      String?   // Warranty period text (e.g., "3 Years")
+  reviews       Review[]
+  orderItems    OrderItem[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([slug])
+}
+
+// ---------------------------------------------------------------------------
+// Review Model - Customer product reviews and ratings
+// ---------------------------------------------------------------------------
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String   // Reviewer name
+  email     String?  // Reviewer email
+  rating    Int      // 1-5 stars
+  title     String?  // Review headline
+  comment   String   // Review body
+  isApproved Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+}
+
+// ---------------------------------------------------------------------------
+// Order Model - Customer orders
+// ---------------------------------------------------------------------------
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique // SLH-YYYYMMDD-XXXX
+  name        String      // Customer name
+  email       String?     // Customer email
+  phone       String      // Customer phone
+  address     String?     // Delivery address
+  city        String?     // City
+  notes       String?     // Order notes
+  subtotal    Float       // Subtotal before shipping
+  shipping    Float       @default(0) // Shipping cost
+  total       Float       // Grand total
+  status      String      @default("pending") // pending, confirmed, processing, shipped, delivered, cancelled
+  paymentMethod String    @default("cod") // cod, bank_transfer
+  paymentStatus String    @default("unpaid") // unpaid, paid, refunded
+  discount      Float     @default(0) // Discount amount
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([orderNumber])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// OrderItem Model - Individual items within an order
+// ---------------------------------------------------------------------------
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  name      String  // Product name at time of order
+  price     Float   // Price at time of order
+  quantity  Int     // Quantity ordered
+
+  @@index([orderId])
+}
+
+// ---------------------------------------------------------------------------
+// SiteSettings Model - Singleton site configuration for SL HUB COMPUTER
+// ---------------------------------------------------------------------------
+model SiteSettings {
+  id            String   @id @default("site-settings")
+  siteName      String   @default("SL HUB COMPUTER")
+  tagline       String   @default("Your Trusted Tech Partner")
+  description   String   @default("Premium computer parts, custom PCs, and repair services in Deiyandara, Sri Lanka")
+  phone         String   @default("071 067 8944")
+  email         String   @default("slhubcomputer@gmail.com")
+  address       String   @default("Hakmana Road, Deiyandara, Sri Lanka")
+  whatsapp      String   @default("94710678944")
+  facebook      String   @default("https://www.facebook.com/profile.php?id=100063543731370")
+  instagram     String?
+  youtube       String?
+  currency      String   @default("LKR")
+  currencySymbol String  @default("Rs.")
+  shippingFee   Float    @default(500) // Default shipping fee in LKR
+  freeShippingAbove Float @default(25000) // Free shipping above this amount
+  taxRate       Float    @default(0) // Tax percentage
+  openingHours  String   @default("Mon-Sat: 9AM-7PM, Sun: 10AM-5PM")
+  metaTitle     String   @default("SL HUB COMPUTER - Your Trusted Tech Partner")
+  metaDescription String  @default("Shop premium computer parts, build custom PCs, and get expert repair services at SL HUB COMPUTER, Deiyandara, Sri Lanka.")
+  heroTitle       String   @default("Build Your Dream PC")
+  heroSubtitle    String   @default("Premium components at unbeatable prices")
+  heroImageUrl    String?
+  announcementBar String?
+  primaryColor    String   @default("#2563eb")
+  accentColor     String?
+  enableCCTV      Boolean  @default(true)
+  enablePCBuilder Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Banner Model - Homepage promotional banners
+// ---------------------------------------------------------------------------
+model Banner {
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String?
+  description String?
+  image       String?  // Banner image URL
+  link        String?  // Click-through link
+  buttonText  String?  // CTA button text
+  bgColor     String?  // Background color class
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Service Model - SL HUB COMPUTER services listing
+// ---------------------------------------------------------------------------
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String
+  icon        String?  // Lucide icon name
+  image       String?  // Service image URL
+  features    String?  // JSON array of feature strings
+  price       String?  // Price range text (e.g., "From Rs. 2,500")
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// ContactMessage Model - Messages from the contact form
+// ---------------------------------------------------------------------------
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  isReplied Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isRead])
+}
+
+// ---------------------------------------------------------------------------
+// PrebuiltPC Model - Pre-built PC packages for showcase
+// NEW: Added for Pre-Built PCs feature page
+// ---------------------------------------------------------------------------
+model PrebuiltPC {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  description   String
+  category      String   // "budget", "gaming", "office", "workstation"
+  price         Float    // Current price in LKR
+  originalPrice Float?   // Before discount
+  image         String   // Main image URL
+  specs         String   // JSON: { cpu, gpu, ram, storage, psu, case, cooler, motherboard }
+  features      String?  // JSON array of feature strings
+  isAvailable   Boolean  @default(true)
+  isFeatured    Boolean  @default(false)
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([slug])
+}
+
+// ---------------------------------------------------------------------------
+// FAQ Model - Frequently Asked Questions
+// ---------------------------------------------------------------------------
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  category  String   @default("General") // General, Products & Orders, Repair & Services, CCTV & Security
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+// ---------------------------------------------------------------------------
+// Testimonial Model - Customer testimonials/reviews
+// ---------------------------------------------------------------------------
+model Testimonial {
+  id         String   @id @default(cuid())
+  name       String   // Customer name
+  role       String?  // Job title or role (e.g., "Gamer", "Office Worker")
+  content    String   // Testimonial text
+  rating     Int      @default(5) // 1-5 stars
+  avatar     String?  // Avatar image URL
+  isFeatured Boolean  @default(false) // Show on homepage
+  isActive   Boolean  @default(true)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// PageContent Model - Editable content for static pages
+// ---------------------------------------------------------------------------
+model PageContent {
+  id              String   @id @default(cuid())
+  slug            String   @unique // e.g., "shipping", "returns", "terms", "about"
+  title           String
+  content         String   // HTML or markdown content
+  metaTitle       String?  // SEO meta title
+  metaDescription String?  // SEO meta description
+  isActive        Boolean  @default(true)
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+
+  @@index([slug])
+}
