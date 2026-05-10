@@ -17,9 +17,9 @@ import { PrismaClient } from "@prisma/client";
 // (e.g., SQLite fallback) that would fail Prisma schema validation.
 // ---------------------------------------------------------------------------
 const POSTGRES_POOLER_URL =
-  "postgresql://postgres.bmpsuwayyhmxodyaudhg:SLHUB%40Tharusha@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
+  "postgresql://postgres.qmrhukyiralrqhaoauxb:Tharusha%40slhubcomputers@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
 const POSTGRES_DIRECT_URL =
-  "postgresql://postgres.bmpsuwayyhmxodyaudhg:SLHUB%40Tharusha@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres";
+  "postgresql://postgres.qmrhukyiralrqhaoauxb:Tharusha%40slhubcomputers@aws-1-ap-south-1.pooler.supabase.com:5432/postgres";
 
 if (
   !process.env.DATABASE_URL ||
