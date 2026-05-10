@@ -19,7 +19,7 @@ export function PageHero({
 }: PageHeroProps) {
   return (
     <section className={`bg-gradient-to-br ${gradient} text-white py-12 md:py-20 mb-8`}>
-      <div className="container mx-auto px-4 text-center">
+      <div className="w-full px-4 md:px-8 lg:px-12 text-center">
         {icon && (
           <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
             {icon}
