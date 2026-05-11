@@ -47,9 +47,25 @@ import { Zap } from "lucide-react";
 // Main Page Component - Routes between views based on Zustand state
 // ---------------------------------------------------------------------------
 export default function HomePageRouter() {
-  const { currentView, selectedCategoryId, selectedProductId } = useStore();
+  const { currentView, selectedCategoryId, selectedProductId, setSiteSettings, siteSettings } = useStore();
   const [seeded, setSeeded] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Fetch site settings and sync with store
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch("/api/settings");
+        const data = await res.json();
+        if (data.success) {
+          setSiteSettings(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch settings:", error);
+      }
+    };
+    fetchSettings();
+  }, [setSiteSettings]);
 
   // Track page views for analytics
   useEffect(() => {
@@ -138,7 +154,7 @@ export default function HomePageRouter() {
       case "product":
         return <ProductDetail />;
       case "pc-builder":
-        return <Builder />;
+        return siteSettings?.enablePCBuilder === false ? <HomePage /> : <Builder />;
       case "cart":
         return <CartPage />;
       case "checkout":
@@ -162,7 +178,7 @@ export default function HomePageRouter() {
       case "terms":
         return <TermsPage />;
       case "prebuilt":
-        return <PrebuiltPCPage />;
+        return siteSettings?.enablePrebuiltPC === false ? <HomePage /> : <PrebuiltPCPage />;
       case "order-tracking":
         return <OrderTrackingPage />;
       case "customer-login":
@@ -170,9 +186,9 @@ export default function HomePageRouter() {
       case "customer-account":
         return <CustomerAccountPage />;
       case "affiliate":
-        return <AffiliatePage />;
+        return siteSettings?.enableAffiliate === false ? <HomePage /> : <AffiliatePage />;
       case "gift-card":
-        return <GiftCardPage />;
+        return siteSettings?.enableGiftCards === false ? <HomePage /> : <GiftCardPage />;
       default:
         return <HomePage />;
     }

@@ -70,7 +70,17 @@ export function Header() {
     customer,
     isLoggedIn,
     logoutCustomer,
+    siteSettings,
   } = useStore();
+
+  // Filter navigation links based on site settings
+  const filteredNavLinks = navLinks.filter(link => {
+    if (link.view === "pc-builder" && siteSettings?.enablePCBuilder === false) return false;
+    if (link.view === "prebuilt" && siteSettings?.enablePrebuiltPC === false) return false;
+    if (link.view === "gift-card" && siteSettings?.enableGiftCards === false) return false;
+    if (link.view === "affiliate" && siteSettings?.enableAffiliate === false) return false;
+    return true;
+  });
   const { theme, setTheme } = useTheme();
   const [searchInput, setSearchInput] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -344,7 +354,7 @@ export function Header() {
                   SL HUB COMPUTER
                 </SheetTitle>
                 <nav className="flex flex-col gap-2">
-                  {navLinks.map((link) => (
+                  {filteredNavLinks.map((link) => (
                     <button
                       key={link.view}
                       onClick={() => setCurrentView(link.view)}
@@ -426,7 +436,7 @@ export function Header() {
       <nav className="hidden lg:block border-t bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-1">
-            {navLinks.map((link) => (
+            {filteredNavLinks.map((link) => (
               <button
                 key={link.view}
                 onClick={() => setCurrentView(link.view)}

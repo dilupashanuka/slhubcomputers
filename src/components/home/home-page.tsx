@@ -10,6 +10,8 @@ import { RecentlyViewed } from "./recently-viewed";
 import { Sparkles, TrendingUp, Star } from "lucide-react";
 
 export function HomePage() {
+  const { siteSettings } = useStore();
+
   return (
     <div className="space-y-0">
       <HeroBanner />
@@ -43,7 +45,7 @@ export function HomePage() {
         <RecentlyViewed />
       </div>
 
-      <NewsletterSection />
+      {siteSettings?.enableNewsletter !== false && <NewsletterSection />}
     </div>
   );
 }

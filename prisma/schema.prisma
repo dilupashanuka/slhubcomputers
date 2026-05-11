@@ -190,6 +190,14 @@ model SiteSettings {
   cardStyle       String   @default("shadowed") // flat, bordered, shadowed
   enableCCTV      Boolean  @default(true)
   enablePCBuilder Boolean  @default(true)
+  enableAffiliate Boolean  @default(true)
+  enableTestimonials Boolean @default(true)
+  enableNewsletter Boolean @default(true)
+  enablePrebuiltPC Boolean @default(true)
+  enableGiftCards Boolean @default(true)
+  enableCoupons   Boolean @default(true)
+  enableReviews   Boolean @default(true)
+  enableRepairServices Boolean @default(true)
   // SMS Notification Settings
   smsProvider     String?  // twilio, dialog, hutch, none
   smsApiKey       String?

@@ -91,6 +91,10 @@ interface SLHubStore {
   // ---- UI State ----
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean) => void;
+
+  // ---- Settings State ----
+  siteSettings: any;
+  setSiteSettings: (settings: any) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -298,6 +302,12 @@ export const useStore = create<SLHubStore>()(
       // =====================================================================
       isMobileMenuOpen: false,
       setIsMobileMenuOpen: (open) => set({ isMobileMenuOpen: open }),
+
+      // =====================================================================
+      // Settings State
+      // =====================================================================
+      siteSettings: null,
+      setSiteSettings: (settings) => set({ siteSettings: settings }),
     }),
     {
       name: "slhub-store", // localStorage key

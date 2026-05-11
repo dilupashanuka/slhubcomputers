@@ -54,6 +54,14 @@ interface Settings {
   accentColor: string;
   enableCCTV: boolean;
   enablePCBuilder: boolean;
+  enableAffiliate: boolean;
+  enableTestimonials: boolean;
+  enableNewsletter: boolean;
+  enablePrebuiltPC: boolean;
+  enableGiftCards: boolean;
+  enableCoupons: boolean;
+  enableReviews: boolean;
+  enableRepairServices: boolean;
   // SMS Configuration
   smsProvider: string;
   smsApiKey: string;
@@ -96,6 +104,14 @@ const defaultSettings: Settings = {
   accentColor: "",
   enableCCTV: true,
   enablePCBuilder: true,
+  enableAffiliate: true,
+  enableTestimonials: true,
+  enableNewsletter: true,
+  enablePrebuiltPC: true,
+  enableGiftCards: true,
+  enableCoupons: true,
+  enableReviews: true,
+  enableRepairServices: true,
   // SMS Configuration
   smsProvider: "none",
   smsApiKey: "",
@@ -129,9 +145,15 @@ function FormField({
 // ---------------------------------------------------------------------------
 // Settings Page Component
 // ---------------------------------------------------------------------------
+// Developer PIN to unlock Module Management (change this to your own secret)
+const DEV_PIN = "SLHUB-DEV";
+
 export default function SettingsPage() {
   const [form, setForm] = useState<Settings>(defaultSettings);
   const [saving, setSaving] = useState(false);
+  const [devUnlocked, setDevUnlocked] = useState(false);
+  const [devPin, setDevPin] = useState("");
+  const [devPinError, setDevPinError] = useState(false);
 
   // -------------------------------------------------------------------------
   // Fetch current settings from API
@@ -168,6 +190,14 @@ export default function SettingsPage() {
           accentColor: data.data.accentColor || "",
           enableCCTV: data.data.enableCCTV ?? defaultSettings.enableCCTV,
           enablePCBuilder: data.data.enablePCBuilder ?? defaultSettings.enablePCBuilder,
+          enableAffiliate: data.data.enableAffiliate ?? defaultSettings.enableAffiliate,
+          enableTestimonials: data.data.enableTestimonials ?? defaultSettings.enableTestimonials,
+          enableNewsletter: data.data.enableNewsletter ?? defaultSettings.enableNewsletter,
+          enablePrebuiltPC: data.data.enablePrebuiltPC ?? defaultSettings.enablePrebuiltPC,
+          enableGiftCards: data.data.enableGiftCards ?? defaultSettings.enableGiftCards,
+          enableCoupons: data.data.enableCoupons ?? defaultSettings.enableCoupons,
+          enableReviews: data.data.enableReviews ?? defaultSettings.enableReviews,
+          enableRepairServices: data.data.enableRepairServices ?? defaultSettings.enableRepairServices,
           // SMS Configuration
           smsProvider: data.data.smsProvider || defaultSettings.smsProvider,
           smsApiKey: data.data.smsApiKey || "",
@@ -488,11 +518,197 @@ export default function SettingsPage() {
       </Card>
 
       {/* ----------------------------------------------------------------- */}
-      {/* Appearance & Features Section                                      */}
+      {/* Module Management Section - Developer Only                         */}
+      {/* ----------------------------------------------------------------- */}
+      <Card className={devUnlocked ? "border-amber-400 shadow-amber-100 shadow-md" : ""}>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            🔒 Module Management
+            {devUnlocked && (
+              <span className="text-xs font-normal text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                Developer Mode Active
+              </span>
+            )}
+          </CardTitle>
+          {devUnlocked && (
+            <button
+              onClick={() => { setDevUnlocked(false); setDevPin(""); }}
+              className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+            >
+              🔐 Lock
+            </button>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* PIN Gate */}
+          {!devUnlocked ? (
+            <div className="flex flex-col items-center justify-center py-8 gap-4">
+              <div className="w-14 h-14 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-2xl">
+                🔒
+              </div>
+              <div className="text-center">
+                <p className="font-semibold text-sm">Developer Access Required</p>
+                <p className="text-xs text-muted-foreground mt-1">This section is restricted to developers only.</p>
+              </div>
+              <div className="flex gap-2 w-full max-w-xs">
+                <input
+                  type="password"
+                  value={devPin}
+                  onChange={(e) => { setDevPin(e.target.value); setDevPinError(false); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      if (devPin === DEV_PIN) {
+                        setDevUnlocked(true);
+                        setDevPinError(false);
+                      } else {
+                        setDevPinError(true);
+                      }
+                    }
+                  }}
+                  placeholder="Enter developer key..."
+                  className={`flex h-9 w-full rounded-md border ${
+                    devPinError ? "border-red-400" : "border-input"
+                  } bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring`}
+                />
+                <button
+                  onClick={() => {
+                    if (devPin === DEV_PIN) {
+                      setDevUnlocked(true);
+                      setDevPinError(false);
+                    } else {
+                      setDevPinError(true);
+                    }
+                  }}
+                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
+                >
+                  Unlock
+                </button>
+              </div>
+              {devPinError && (
+                <p className="text-xs text-red-500">❌ Incorrect developer key</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* E-commerce Core */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold border-b pb-1 text-primary">Core Shop Features</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-pcbuilder">PC Builder System</Label>
+                  <Switch
+                    id="f-pcbuilder"
+                    checked={form.enablePCBuilder}
+                    onCheckedChange={(val) => updateField("enablePCBuilder", val)}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-prebuilt">Prebuilt PCs Section</Label>
+                  <Switch
+                    id="f-prebuilt"
+                    checked={form.enablePrebuiltPC}
+                    onCheckedChange={(val) => updateField("enablePrebuiltPC", val)}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-coupons">Coupon & Discount System</Label>
+                  <Switch
+                    id="f-coupons"
+                    checked={form.enableCoupons}
+                    onCheckedChange={(val) => updateField("enableCoupons", val)}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-reviews">Product Reviews & Ratings</Label>
+                  <Switch
+                    id="f-reviews"
+                    checked={form.enableReviews}
+                    onCheckedChange={(val) => updateField("enableReviews", val)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Growth & Services */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold border-b pb-1 text-primary">Marketing & Services</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-affiliate">Affiliate / Agent System</Label>
+                  <Switch
+                    id="f-affiliate"
+                    checked={form.enableAffiliate}
+                    onCheckedChange={(val) => updateField("enableAffiliate", val)}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-newsletter">Newsletter Subscription</Label>
+                  <Switch
+                    id="f-newsletter"
+                    checked={form.enableNewsletter}
+                    onCheckedChange={(val) => updateField("enableNewsletter", val)}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-testimonials">Customer Testimonials</Label>
+                  <Switch
+                    id="f-testimonials"
+                    checked={form.enableTestimonials}
+                    onCheckedChange={(val) => updateField("enableTestimonials", val)}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-giftcards">Gift Cards / Vouchers</Label>
+                  <Switch
+                    id="f-giftcards"
+                    checked={form.enableGiftCards}
+                    onCheckedChange={(val) => updateField("enableGiftCards", val)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Special Services */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold border-b pb-1 text-primary">Technical Services</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-cctv">CCTV Services Section</Label>
+                  <Switch
+                    id="f-cctv"
+                    checked={form.enableCCTV}
+                    onCheckedChange={(val) => updateField("enableCCTV", val)}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-repairs">Repair Services Module</Label>
+                  <Switch
+                    id="f-repairs"
+                    checked={form.enableRepairServices}
+                    onCheckedChange={(val) => updateField("enableRepairServices", val)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  <strong>⚠️ Developer Note:</strong> Turning off these modules will hide their sections from the frontend homepage and navigation.
+                  Data remains intact in the database. The PIN is: <code className="bg-amber-100 px-1 rounded font-mono">SLHUB-DEV</code> — change it in <code className="bg-amber-100 px-1 rounded font-mono">settings/page.tsx</code>.
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ----------------------------------------------------------------- */}
+      {/* Appearance Section                                                 */}
       {/* ----------------------------------------------------------------- */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Appearance & Features</CardTitle>
+          <CardTitle className="text-base">Appearance</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <FormField label="Announcement Bar Text">
@@ -535,22 +751,6 @@ export default function SettingsPage() {
                 />
               </div>
             </FormField>
-          </div>
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={form.enableCCTV}
-                onCheckedChange={(val) => updateField("enableCCTV", val)}
-              />
-              <Label>Enable CCTV Section</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={form.enablePCBuilder}
-                onCheckedChange={(val) => updateField("enablePCBuilder", val)}
-              />
-              <Label>Enable PC Builder</Label>
-            </div>
           </div>
         </CardContent>
       </Card>
