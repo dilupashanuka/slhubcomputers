@@ -125,6 +125,10 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="SL HUB" />
+        <meta
+          httpEquiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://res.cloudinary.com https://qmrhukyiralrqhaoauxb.supabase.co https://*.supabase.co; connect-src 'self' https://res.cloudinary.com https://*.cloudinary.com https://fonts.googleapis.com https://fonts.gstatic.com https://qmrhukyiralrqhaoauxb.supabase.co https://*.supabase.co wss://qmrhukyiralrqhaoauxb.supabase.co;"
+        />
       </head>
       <body
         suppressHydrationWarning
