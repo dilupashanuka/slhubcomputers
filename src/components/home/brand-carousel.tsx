@@ -64,19 +64,21 @@ export function BrandCarousel() {
           {allBrands.map((brand, i) => (
             <Card
               key={`${brand.id}-${i}`}
-              className="shrink-0 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-none bg-white dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden"
+              className="shrink-0 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-none bg-white dark:bg-gray-800/80 backdrop-blur-sm overflow-hidden rounded-xl"
             >
-              <CardContent className="p-2 flex items-center justify-center min-w-[160px] h-28">
+              <CardContent className="p-0 flex items-center justify-center min-w-[160px] h-32">
                 {brand.logo ? (
                   <img 
                     src={brand.logo} 
                     alt={brand.name} 
-                    className="h-full w-full object-contain p-2 transition-all duration-300"
+                    className="h-full w-full object-cover transition-all duration-300"
                   />
                 ) : (
-                  <span className="font-bold text-lg text-center bg-gradient-to-br from-blue-500 to-purple-600 bg-clip-text text-transparent opacity-80">
-                    {brand.name}
-                  </span>
+                  <div className="flex items-center justify-center h-full w-full p-4">
+                    <span className="font-bold text-lg text-center bg-gradient-to-br from-blue-500 to-purple-600 bg-clip-text text-transparent opacity-80">
+                      {brand.name}
+                    </span>
+                  </div>
                 )}
               </CardContent>
             </Card>
