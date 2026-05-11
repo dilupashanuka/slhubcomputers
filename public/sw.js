@@ -5,9 +5,9 @@
 // Strategy: Cache-first for static assets, Network-first for API calls
 // =============================================================================
 
-const CACHE_NAME = "sl-hub-v1";
-const STATIC_CACHE = "sl-hub-static-v1";
-const DYNAMIC_CACHE = "sl-hub-dynamic-v1";
+const CACHE_NAME = "sl-hub-v2";
+const STATIC_CACHE = "sl-hub-static-v2";
+const DYNAMIC_CACHE = "sl-hub-dynamic-v2";
 
 // Static assets to pre-cache on install
 const STATIC_ASSETS = [
