@@ -46,8 +46,8 @@ export function BrandCarousel() {
   const allBrands = [...brands, ...brands];
 
   return (
-    <section className="py-12 bg-gray-50/50 dark:bg-gray-900/50 border-y border-border/50">
-      <div className="w-full px-6 mb-8">
+    <section className="py-6 bg-gray-50/50 dark:bg-gray-900/50 border-y border-border/50">
+      <div className="w-full px-6 mb-4">
         <h2 className="text-2xl font-bold text-center tracking-tight">Top Brands We Carry</h2>
         <p className="text-center text-muted-foreground mt-2 text-sm">
           Authentic products from world-leading manufacturers
