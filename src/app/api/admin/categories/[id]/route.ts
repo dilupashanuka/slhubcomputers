@@ -50,13 +50,32 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    
+    // 1. Get the category to be deleted to know its order
+    const existing = await db.category.findUnique({
+      where: { id },
+      select: { order: true }
+    });
+
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Category not found" }, { status: 404 });
+    }
+
+    // 2. Delete the category
     await db.category.delete({ where: { id } });
+
+    // 3. Re-order categories with higher order number
+    await db.category.updateMany({
+      where: { order: { gt: existing.order } },
+      data: { order: { decrement: 1 } },
+    });
 
     // Invalidate categories cache
     invalidate("categories");
 
-    return NextResponse.json({ success: true, message: "Deleted" });
+    return NextResponse.json({ success: true, message: "Deleted and re-ordered" });
   } catch (error) {
+    console.error("Category DELETE error:", error);
     return NextResponse.json({ success: false, error: "Failed to delete" }, { status: 500 });
   }
 }
