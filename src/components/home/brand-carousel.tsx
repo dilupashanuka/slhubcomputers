@@ -70,16 +70,16 @@ export function BrandCarousel() {
                   : "bg-white dark:bg-gray-800/80 backdrop-blur-sm shadow-sm hover:shadow-xl hover:-translate-y-1 rounded-xl"
               }`}
             >
-              <CardContent className="p-0 flex items-center justify-center min-w-[160px] h-32">
+              <CardContent className="p-0 flex items-center justify-center min-w-[140px] h-24">
                 {brand.logo ? (
                   <img 
                     src={brand.logo} 
                     alt={brand.name} 
-                    className="h-full w-full object-contain transition-all duration-300"
+                    className="h-full w-full object-contain transition-all duration-300 p-2"
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full w-full p-4">
-                    <span className="font-bold text-lg text-center bg-gradient-to-br from-blue-500 to-purple-600 bg-clip-text text-transparent opacity-80">
+                    <span className="font-bold text-base text-center bg-gradient-to-br from-blue-500 to-purple-600 bg-clip-text text-transparent opacity-80">
                       {brand.name}
                     </span>
                   </div>
