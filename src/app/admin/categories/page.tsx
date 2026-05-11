@@ -127,7 +127,15 @@ export default function CategoriesPage() {
   // -------------------------------------------------------------------------
   const handleCreate = () => {
     setEditingId(null);
-    setForm(defaultForm);
+    // Find the max order in existing categories
+    const maxOrder = categories.length > 0 
+      ? Math.max(...categories.map(c => c.order)) 
+      : 0;
+    
+    setForm({
+      ...defaultForm,
+      order: maxOrder + 1
+    });
     setDialogOpen(true);
   };
 

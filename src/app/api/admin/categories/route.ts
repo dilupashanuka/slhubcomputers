@@ -26,13 +26,23 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const order = body.order || 0;
+    let order = body.order;
 
-    // Shift existing categories' order if needed
-    await db.category.updateMany({
-      where: { order: { gte: order } },
-      data: { order: { increment: 1 } },
-    });
+    if (order === undefined || order === null) {
+      // Find the maximum order number and add 1
+      const lastCategory = await db.category.findFirst({
+        orderBy: { order: "desc" },
+        select: { order: true },
+      });
+      order = lastCategory ? lastCategory.order + 1 : 1;
+      body.order = order;
+    } else {
+      // Shift existing categories' order if a specific order is provided
+      await db.category.updateMany({
+        where: { order: { gte: order } },
+        data: { order: { increment: 1 } },
+      });
+    }
 
     const category = await db.category.create({ data: body });
 
