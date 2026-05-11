@@ -213,6 +213,7 @@ function ImageUploader({
 
       try {
         const formData = new FormData();
+        formData.append("folder", "products");
         validFiles.forEach((file) => formData.append("files", file));
 
         const res = await fetch("/api/admin/upload", {
@@ -224,9 +225,9 @@ function ImageUploader({
 
         if (data.success) {
           // Add new WebP URLs to existing images
-          onImagesChange([...images, ...data.data]);
+          onImagesChange([...images, ...data.urls]);
           toast.success(
-            `${data.data.length} image(s) uploaded & converted to WebP!`
+            `${data.urls.length} image(s) uploaded successfully!`
           );
         } else {
           toast.error(data.error || "Upload failed");
@@ -294,10 +295,8 @@ function ImageUploader({
 
       // Try to delete from server storage
       try {
-        await fetch("/api/admin/upload", {
+        await fetch(`/api/admin/upload?url=${encodeURIComponent(url)}`, {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url }),
         });
       } catch {
         // Silently fail - image removed from form either way
@@ -560,18 +559,27 @@ export default function ProductsPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      const res = await fetch(`/api/admin/products/${deleteId}`, {
+      // Optimistic update
+      const idToDelete = deleteId;
+      setProducts((prev) => prev.filter((p) => p.id !== idToDelete));
+      setDeleteId(null);
+
+      const res = await fetch(`/api/admin/products/${idToDelete}`, {
         method: "DELETE",
       });
       const data = await res.json();
       if (data.success) {
-        setDeleteId(null);
-        setRefreshKey((k) => k + 1); // Trigger re-fetch
         toast.success("Product deleted");
+        setRefreshKey((k) => k + 1); // Final sync
+      } else {
+        // Rollback if failed
+        setRefreshKey((k) => k + 1);
+        toast.error(data.error || "Failed to delete product");
       }
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Failed to delete product");
+      setRefreshKey((k) => k + 1);
     }
   };
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Upload, X, Cloud, HardDrive, Loader2 } from "lucide-react";
+import { Upload, X, Cloud, Loader2 } from "lucide-react";
 import Image from "next/image";
 
 // ---------------------------------------------------------------------------
@@ -12,34 +12,12 @@ import Image from "next/image";
 // ---------------------------------------------------------------------------
 interface SingleImageUploaderProps {
   value: string;
-  onChange: (url: string, publicId?: string) => void;
+  onChange: (url: string) => void;
   folder?: string;
 }
 
 // ---------------------------------------------------------------------------
-// Check if Cloudinary is available (client-side)
-// ---------------------------------------------------------------------------
-function useCloudinaryStatus() {
-  const [isCloudinary, setIsCloudinary] = useState<boolean | null>(null);
-
-  const checkStatus = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/upload", { method: "HEAD" }).catch(
-        () => null
-      );
-      // If we can reach the upload endpoint, check via a simple flag
-      // We'll determine Cloudinary availability from the upload response instead
-      return null;
-    } catch {
-      return null;
-    }
-  }, []);
-
-  return { checkStatus };
-}
-
-// ---------------------------------------------------------------------------
-// SingleImageUploader - Enhanced with Cloudinary + progress + preview
+// SingleImageUploader — uploads to Supabase Storage via /api/admin/upload
 // ---------------------------------------------------------------------------
 export function SingleImageUploader({
   value,
@@ -50,21 +28,14 @@ export function SingleImageUploader({
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [uploadProvider, setUploadProvider] = useState<
-    "cloudinary" | "local" | null
-  >(null);
-  const [currentPublicId, setCurrentPublicId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  // Check if current value is a Cloudinary URL
-  const isCloudinaryUrl = value?.includes("res.cloudinary.com") ?? false;
-
   // -----------------------------------------------------------------------
-  // Upload via server API (handles both Cloudinary and local)
+  // Upload via server API
   // -----------------------------------------------------------------------
-  const uploadViaServer = async (file: File) => {
+  const handleUpload = async (file: File) => {
     setUploading(true);
-    setProgress(0);
+    setProgress(10);
     setError(null);
 
     const formData = new FormData();
@@ -72,52 +43,36 @@ export function SingleImageUploader({
     formData.append("folder", folder);
 
     try {
-      // Use XMLHttpRequest for progress tracking
-      const result = await new Promise<{
-        success: boolean;
-        url: string;
-        publicId: string | null;
-        provider: "cloudinary" | "local";
-      }>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
+      const result = await new Promise<{ success: boolean; url?: string; error?: string }>(
+        (resolve, reject) => {
+          const xhr = new XMLHttpRequest();
 
-        xhr.upload.addEventListener("progress", (event) => {
-          if (event.lengthComputable) {
-            const pct = Math.round((event.loaded / event.total) * 100);
-            setProgress(pct);
-          }
-        });
+          xhr.upload.addEventListener("progress", (event) => {
+            if (event.lengthComputable) {
+              setProgress(Math.round((event.loaded / event.total) * 90));
+            }
+          });
 
-        xhr.addEventListener("load", () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
+          xhr.addEventListener("load", () => {
             try {
               resolve(JSON.parse(xhr.responseText));
             } catch {
-              reject(new Error("Invalid response"));
+              reject(new Error("Invalid response from server"));
             }
-          } else {
-            try {
-              const errData = JSON.parse(xhr.responseText);
-              reject(new Error(errData.error || "Upload failed"));
-            } catch {
-              reject(new Error(`Upload failed (${xhr.status})`));
-            }
-          }
-        });
+          });
+          xhr.addEventListener("error", () => reject(new Error("Network error")));
+          xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
 
-        xhr.addEventListener("error", () => reject(new Error("Network error")));
-        xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
-
-        xhr.open("POST", "/api/admin/upload");
-        xhr.send(formData);
-      });
+          xhr.open("POST", "/api/admin/upload");
+          xhr.send(formData);
+        }
+      );
 
       if (result.success && result.url) {
-        onChange(result.url, result.publicId || undefined);
-        setUploadProvider(result.provider);
-        setCurrentPublicId(result.publicId);
+        setProgress(100);
+        onChange(result.url);
       } else {
-        setError("Upload failed: No URL returned");
+        setError(result.error || "Upload failed: no URL returned");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -128,106 +83,33 @@ export function SingleImageUploader({
   };
 
   // -----------------------------------------------------------------------
-  // Try Cloudinary unsigned upload (direct from browser), fallback to server
+  // Delete image from Supabase Storage
   // -----------------------------------------------------------------------
-  const handleUpload = async (file: File) => {
-    setUploading(true);
-    setProgress(0);
+  const handleRemove = async () => {
+    if (value) {
+      try {
+        await fetch(`/api/admin/upload?url=${encodeURIComponent(value)}`, {
+          method: "DELETE",
+        });
+      } catch {
+        // Silently fail — removing from UI regardless
+      }
+    }
+    onChange("");
     setError(null);
-
-    try {
-      // First, try direct Cloudinary unsigned upload
-      const cloudName = await getCloudName();
-      if (cloudName) {
-        try {
-          const result = await uploadToCloudinaryUnsigned(
-            file,
-            cloudName,
-            folder,
-            (p) => setProgress(p)
-          );
-          onChange(result.url, result.publicId);
-          setUploadProvider("cloudinary");
-          setCurrentPublicId(result.publicId);
-          return;
-        } catch {
-          // Cloudinary unsigned upload failed, fall back to server upload
-        }
-      }
-
-      // Fallback: upload via server API
-      await uploadViaServer(file);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-      setProgress(0);
-    }
   };
 
-  // -----------------------------------------------------------------------
-  // File input change handler
-  // -----------------------------------------------------------------------
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    handleUpload(file);
-    // Reset input so same file can be re-selected
+    if (file) handleUpload(file);
     e.target.value = "";
   };
 
-  // -----------------------------------------------------------------------
-  // Drag & drop handlers
-  // -----------------------------------------------------------------------
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      handleUpload(file);
-    }
-  };
-
-  const onDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const onDragLeave = () => setDragOver(false);
-
-  // -----------------------------------------------------------------------
-  // Remove image handler
-  // -----------------------------------------------------------------------
-  const handleRemove = async () => {
-    // If Cloudinary image, try to delete from Cloudinary
-    if (currentPublicId || isCloudinaryUrl) {
-      try {
-        const publicId = currentPublicId || extractPublicIdFromUrl(value);
-        if (publicId) {
-          await fetch(
-            `/api/admin/upload?publicId=${encodeURIComponent(publicId)}&url=${encodeURIComponent(value)}`,
-            { method: "DELETE" }
-          );
-        }
-      } catch {
-        // Silently fail deletion from Cloudinary
-      }
-    } else if (value?.startsWith("/uploads/")) {
-      // Delete local file
-      try {
-        await fetch(
-          `/api/admin/upload?url=${encodeURIComponent(value)}`,
-          { method: "DELETE" }
-        );
-      } catch {
-        // Silently fail
-      }
-    }
-
-    onChange("", undefined);
-    setCurrentPublicId(null);
-    setUploadProvider(null);
-    setError(null);
+    if (file && file.type.startsWith("image/")) handleUpload(file);
   };
 
   // -----------------------------------------------------------------------
@@ -237,31 +119,19 @@ export function SingleImageUploader({
     <div className="space-y-2">
       {value ? (
         <div className="relative group">
-          {/* Image Preview */}
           <div className="relative w-full h-40 border rounded-lg overflow-hidden bg-muted/20">
             <Image
               src={value}
               alt="Uploaded image"
               fill
               className="object-contain p-2"
-              unoptimized={isCloudinaryUrl}
+              unoptimized
             />
-            {/* Provider badge */}
-            {uploadProvider && (
-              <div className="absolute top-2 left-2 flex items-center gap-1 bg-background/80 backdrop-blur-sm rounded-md px-2 py-1 text-[10px] font-medium">
-                {uploadProvider === "cloudinary" ? (
-                  <>
-                    <Cloud className="w-3 h-3 text-blue-500" />
-                    <span className="text-blue-600 dark:text-blue-400">Cloud</span>
-                  </>
-                ) : (
-                  <>
-                    <HardDrive className="w-3 h-3 text-amber-500" />
-                    <span className="text-amber-600 dark:text-amber-400">Local</span>
-                  </>
-                )}
-              </div>
-            )}
+            {/* Supabase badge */}
+            <div className="absolute top-2 left-2 flex items-center gap-1 bg-background/80 backdrop-blur-sm rounded-md px-2 py-1 text-[10px] font-medium">
+              <Cloud className="w-3 h-3 text-green-500" />
+              <span className="text-green-600 dark:text-green-400">Supabase</span>
+            </div>
             {/* Remove button */}
             <button
               onClick={handleRemove}
@@ -276,8 +146,8 @@ export function SingleImageUploader({
         <div
           onClick={() => fileInputRef.current?.click()}
           onDrop={onDrop}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
           className={`
             w-full h-40 border-2 border-dashed rounded-lg flex flex-col items-center justify-center
             cursor-pointer transition-all duration-200
@@ -290,20 +160,14 @@ export function SingleImageUploader({
           {uploading ? (
             <div className="flex flex-col items-center gap-3 px-6 w-full max-w-[200px]">
               <Loader2 className="w-6 h-6 text-primary animate-spin" />
-              <span className="text-xs text-muted-foreground">
-                Uploading... {progress}%
-              </span>
+              <span className="text-xs text-muted-foreground">Uploading... {progress}%</span>
               <Progress value={progress} className="h-1.5" />
             </div>
           ) : (
             <>
               <Upload className="w-8 h-8 text-muted-foreground/50 mb-2" />
-              <span className="text-sm text-muted-foreground font-medium">
-                Click or drag to upload
-              </span>
-              <span className="text-[11px] text-muted-foreground/60 mt-1">
-                PNG, JPG, WebP up to 5MB
-              </span>
+              <span className="text-sm text-muted-foreground font-medium">Click or drag to upload</span>
+              <span className="text-[11px] text-muted-foreground/60 mt-1">PNG, JPG, WebP up to 10MB</span>
             </>
           )}
         </div>
@@ -322,132 +186,18 @@ export function SingleImageUploader({
       <div className="flex gap-2">
         <Input
           value={value}
-          onChange={(e) => {
-            onChange(e.target.value);
-            setError(null);
-          }}
+          onChange={(e) => { onChange(e.target.value); setError(null); }}
           placeholder="Or paste image URL"
           className="text-xs"
         />
         {value && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="shrink-0 h-9 w-9"
-            onClick={handleRemove}
-            title="Clear"
-          >
+          <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9" onClick={handleRemove}>
             <X className="w-3 h-3" />
           </Button>
         )}
       </div>
 
-      {/* Error message */}
-      {error && (
-        <p className="text-xs text-destructive">{error}</p>
-      )}
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
-}
-
-// ---------------------------------------------------------------------------
-// Helper: Get Cloudinary cloud name (client-side)
-// ---------------------------------------------------------------------------
-let cachedCloudName: string | null = null;
-
-async function getCloudName(): Promise<string | null> {
-  if (cachedCloudName !== undefined) return cachedCloudName;
-
-  try {
-    // The cloud name is embedded in env vars on the server.
-    // Client can try to detect it by making a test request.
-    // For simplicity, we'll just use the server upload route.
-    cachedCloudName = null;
-    return null;
-  } catch {
-    cachedCloudName = null;
-    return null;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Helper: Cloudinary unsigned upload (direct browser → Cloudinary)
-// ---------------------------------------------------------------------------
-interface UnsignedUploadResult {
-  url: string;
-  publicId: string;
-}
-
-async function uploadToCloudinaryUnsigned(
-  file: File,
-  cloudName: string,
-  folder: string,
-  onProgress?: (progress: number) => void
-): Promise<UnsignedUploadResult> {
-  const uploadPreset = "slhub_uploads";
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", uploadPreset);
-  formData.append("folder", folder);
-
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-
-    xhr.upload.addEventListener("progress", (event) => {
-      if (event.lengthComputable && onProgress) {
-        onProgress(Math.round((event.loaded / event.total) * 100));
-      }
-    });
-
-    xhr.addEventListener("load", () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const data = JSON.parse(xhr.responseText);
-          resolve({
-            url: data.secure_url,
-            publicId: data.public_id,
-          });
-        } catch {
-          reject(new Error("Invalid response from Cloudinary"));
-        }
-      } else {
-        reject(new Error(`Cloudinary upload failed (${xhr.status})`));
-      }
-    });
-
-    xhr.addEventListener("error", () => reject(new Error("Network error")));
-    xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
-
-    xhr.open(
-      "POST",
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
-    );
-    xhr.send(formData);
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Helper: Extract public_id from Cloudinary URL
-// ---------------------------------------------------------------------------
-function extractPublicIdFromUrl(url: string): string | null {
-  try {
-    const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split("/");
-    const uploadIndex = pathParts.indexOf("upload");
-
-    if (uploadIndex === -1) return null;
-
-    let parts = pathParts.slice(uploadIndex + 1);
-    parts = parts.filter((part) => !part.match(/^v\d+$/));
-
-    const lastPart = parts[parts.length - 1];
-    if (lastPart) {
-      parts[parts.length - 1] = lastPart.replace(/\.[^.]+$/, "");
-    }
-
-    return parts.join("/");
-  } catch {
-    return null;
-  }
 }

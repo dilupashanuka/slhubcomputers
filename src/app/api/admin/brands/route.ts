@@ -16,6 +16,14 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const order = body.order || 0;
+
+    // Shift existing brands' order if needed
+    await db.brand.updateMany({
+      where: { order: { gte: order } },
+      data: { order: { increment: 1 } },
+    });
+
     const brand = await db.brand.create({ data: body });
 
     // Invalidate brands cache

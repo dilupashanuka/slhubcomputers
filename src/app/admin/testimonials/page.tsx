@@ -15,7 +15,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Star, UserCircle } from "lucide-react";
+import { SingleImageUploader } from "@/components/admin/image-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -370,13 +371,15 @@ export default function TestimonialsPage() {
               </div>
             </div>
 
-            {/* Avatar URL */}
             <div className="space-y-1.5">
-              <Label>Avatar URL</Label>
-              <Input
+              <Label className="flex items-center gap-2">
+                <UserCircle className="size-3.5" />
+                Customer Avatar (Drag & Drop)
+              </Label>
+              <SingleImageUploader
                 value={form.avatar}
-                onChange={(e) => setForm({ ...form, avatar: e.target.value })}
-                placeholder="https://..."
+                onChange={(url) => setForm({ ...form, avatar: url })}
+                folder="testimonials"
               />
             </div>
 

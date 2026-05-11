@@ -15,7 +15,8 @@
 "use client";
 
 import { useEffect, useState, KeyboardEvent } from "react";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X, ImageIcon } from "lucide-react";
+import { SingleImageUploader } from "@/components/admin/image-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -376,11 +377,14 @@ export default function ServicesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Image URL</Label>
-                <Input
+                <Label className="flex items-center gap-2">
+                  <ImageIcon className="size-3.5" />
+                  Service Image (Drag & Drop)
+                </Label>
+                <SingleImageUploader
                   value={form.image}
-                  onChange={(e) => setForm({ ...form, image: e.target.value })}
-                  placeholder="https://..."
+                  onChange={(url) => setForm({ ...form, image: url })}
+                  folder="services"
                 />
               </div>
             </div>

@@ -14,6 +14,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json();
+
+  // If order is changing, shift others
+  if (body.order !== undefined) {
+    const existing = await db.brand.findUnique({ where: { id } });
+    if (existing && body.order !== existing.order) {
+      await db.brand.updateMany({
+        where: { order: { gte: body.order } },
+        data: { order: { increment: 1 } },
+      });
+    }
+  }
+
   const brand = await db.brand.update({ where: { id }, data: body });
 
   // Invalidate brands cache

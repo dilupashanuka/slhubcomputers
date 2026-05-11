@@ -14,7 +14,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ImageIcon } from "lucide-react";
+import { SingleImageUploader } from "@/components/admin/image-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -332,22 +333,26 @@ export default function BrandsPage() {
               </div>
             </div>
 
-            {/* Logo URL and Country */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Logo and Country */}
+            <div className="grid grid-cols-1 gap-3 border p-3 rounded-lg bg-muted/10">
               <div className="space-y-1.5">
-                <Label>Logo URL</Label>
-                <Input
+                <Label className="flex items-center gap-2">
+                  <ImageIcon className="size-3.5" />
+                  Brand Logo (Drag & Drop)
+                </Label>
+                <SingleImageUploader
                   value={form.logo}
-                  onChange={(e) => setForm({ ...form, logo: e.target.value })}
-                  placeholder="https://..."
+                  onChange={(url) => setForm({ ...form, logo: url })}
+                  folder="brands"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>Country</Label>
+              <div className="space-y-1.5 mt-2">
+                <Label>Country / Origin</Label>
                 <Input
                   value={form.country}
                   onChange={(e) => setForm({ ...form, country: e.target.value })}
-                  placeholder="e.g. USA"
+                  placeholder="e.g. USA, Japan, Sri Lanka"
+                  className="h-8 text-xs"
                 />
               </div>
             </div>

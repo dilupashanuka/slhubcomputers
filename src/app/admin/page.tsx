@@ -195,41 +195,37 @@ export default function AdminDashboard() {
     if (showLoading) setLoading(true);
     setIsRefreshing(true);
     try {
-      const [statsRes, analyticsRes] = await Promise.all([
+      const [statsRes, analyticsRes, productsRes, couponsRes, ordersRes] = await Promise.all([
         fetch("/api/admin/stats"),
         fetch("/api/admin/analytics"),
+        fetch("/api/products?limit=5&sortBy=stock&sortOrder=asc"),
+        fetch("/api/coupons?isActive=true&limit=5"),
+        fetch("/api/admin/orders?limit=5")
       ]);
-      const statsData = await statsRes.json();
-      const analyticsData = await analyticsRes.json();
+
+      const [statsData, analyticsData, productsData, couponsData, ordersData] = await Promise.all([
+        statsRes.json(),
+        analyticsRes.json(),
+        productsRes.json(),
+        couponsRes.json(),
+        ordersRes.json()
+      ]);
+
       if (statsData.success) setStats(statsData.data);
       if (analyticsData.success) setAnalytics(analyticsData.data);
+      
+      if (productsData.success) {
+        const rawProducts = Array.isArray(productsData.data) ? productsData.data : [];
+        const processedProducts = rawProducts.map((p: any) => ({
+          ...p,
+          images: typeof p.images === "string" ? JSON.parse(p.images || "[]") : (p.images || [])
+        }));
+        const lowStock = processedProducts.filter((p: any) => p.stock <= 5);
+        setStockAlerts(lowStock.slice(0, 5));
+      }
 
-      // Fetch extra data for widgets
-      try {
-        const productsRes = await fetch("/api/products?limit=5&sortBy=stock&sortOrder=asc");
-        const productsData = await productsRes.json();
-        if (productsData.success) {
-          const rawProducts = Array.isArray(productsData.data) ? productsData.data : [];
-          const processedProducts = rawProducts.map((p: any) => ({
-            ...p,
-            images: typeof p.images === "string" ? JSON.parse(p.images || "[]") : (p.images || [])
-          }));
-          const lowStock = processedProducts.filter((p: any) => p.stock <= 5);
-          setStockAlerts(lowStock.slice(0, 5));
-        }
-      } catch {}
-
-      try {
-        const couponsRes = await fetch("/api/coupons?isActive=true&limit=5");
-        const couponsData = await couponsRes.json();
-        if (couponsData.success) setCouponData(couponsData.data || []);
-      } catch {}
-
-      try {
-        const ordersRes = await fetch("/api/admin/orders?limit=5");
-        const ordersData = await ordersRes.json();
-        if (ordersData.success) setRecentOrders(ordersData.data || []);
-      } catch {}
+      if (couponsData.success) setCouponData(couponsData.data || []);
+      if (ordersData.success) setRecentOrders(ordersData.data || []);
 
       setLastRefreshed(new Date());
     } catch (error) {

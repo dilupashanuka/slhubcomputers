@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
 import { Download, X, Smartphone } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -20,14 +21,20 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+const DISMISS_TIMEOUT = 60 * 60 * 1000; // 1 hour in milliseconds
+
 // ---------------------------------------------------------------------------
 // PWA Register Component
 // ---------------------------------------------------------------------------
 export function PwaRegister() {
+  const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+
+  // Don't show in admin panel
+  const isAdmin = pathname?.startsWith("/admin");
 
   useEffect(() => {
     // ---- Register Service Worker ----
@@ -56,10 +63,20 @@ export function PwaRegister() {
       const promptEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(promptEvent);
 
-      // Show the install banner after a short delay
-      setTimeout(() => {
-        setShowBanner(true);
-      }, 3000);
+      // Check last dismissal time
+      const lastDismissed = localStorage.getItem("pwa-install-dismissed");
+      const now = Date.now();
+
+      if (lastDismissed && now - parseInt(lastDismissed) < DISMISS_TIMEOUT) {
+        return;
+      }
+
+      // Show the install banner after a short delay if not in admin
+      if (!isAdmin) {
+        setTimeout(() => {
+          setShowBanner(true);
+        }, 3000);
+      }
     };
 
     // ---- Handle appinstalled ----
@@ -86,7 +103,7 @@ export function PwaRegister() {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
-  }, []);
+  }, [isAdmin]);
 
   // ---- Handle Install Click ----
   const handleInstallClick = async () => {
@@ -100,6 +117,7 @@ export function PwaRegister() {
         console.log("[PWA] User accepted the install prompt");
       } else {
         console.log("[PWA] User dismissed the install prompt");
+        localStorage.setItem("pwa-install-dismissed", Date.now().toString());
       }
     } catch (error) {
       console.warn("[PWA] Install prompt error:", error);
@@ -112,10 +130,11 @@ export function PwaRegister() {
   // ---- Dismiss Banner ----
   const handleDismiss = () => {
     setShowBanner(false);
+    localStorage.setItem("pwa-install-dismissed", Date.now().toString());
   };
 
-  // Don't render anything if already installed or no prompt available
-  if (isInstalled || !showBanner) return null;
+  // Don't render anything if already installed, no prompt available, or in admin
+  if (isInstalled || !showBanner || isAdmin) return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm z-50 animate-in slide-in-from-bottom-4 duration-300">

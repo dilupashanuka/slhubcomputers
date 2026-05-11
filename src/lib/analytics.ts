@@ -100,23 +100,31 @@ export async function getAnalyticsData() {
     },
   });
 
-  // Page views last 7 days (daily breakdown)
+  // Page views last 7 days - Optimized Single Query
+  const sevenDaysAgoStart = new Date(today);
+  sevenDaysAgoStart.setDate(sevenDaysAgoStart.getDate() - 6);
+
+  const allPageViewsLastWeek = await db.analyticsEvent.findMany({
+    where: {
+      type: "page_view",
+      createdAt: { gte: sevenDaysAgoStart },
+    },
+    select: { createdAt: true },
+  });
+
   const dailyPageViews: { date: string; views: number }[] = [];
   for (let i = 6; i >= 0; i--) {
-    const dayStart = new Date(today);
-    dayStart.setDate(dayStart.getDate() - i);
-    const dayEnd = new Date(dayStart);
-    dayEnd.setDate(dayEnd.getDate() + 1);
-
-    const count = await db.analyticsEvent.count({
-      where: {
-        type: "page_view",
-        createdAt: { gte: dayStart, lt: dayEnd },
-      },
-    });
+    const dayDate = new Date(today);
+    dayDate.setDate(dayDate.getDate() - i);
+    
+    const count = allPageViewsLastWeek.filter(v => 
+      v.createdAt.getDate() === dayDate.getDate() &&
+      v.createdAt.getMonth() === dayDate.getMonth() &&
+      v.createdAt.getFullYear() === dayDate.getFullYear()
+    ).length;
 
     dailyPageViews.push({
-      date: dayStart.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+      date: dayDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
       views: count,
     });
   }
@@ -144,25 +152,24 @@ export async function getAnalyticsData() {
     take: 10,
   });
 
-  // Get product names for top viewed
-  const topViewedProducts = await Promise.all(
-    topViewedProductsRaw
-      .filter((p) => p.productId)
-      .map(async (p) => {
-        const product = await db.product.findUnique({
-          where: { id: p.productId! },
-          select: { name: true, price: true, images: true },
-        });
-        const parsed = typeof product?.images === "string" ? JSON.parse(product.images || "[]") : (product?.images || []);
-        return {
-          productId: p.productId!,
-          name: product?.name || "Unknown Product",
-          price: product?.price || 0,
-          image: product ? parsed[0] : null,
-          views: p._count.productId,
-        };
-      })
-  );
+  // Batch get product names for top viewed
+  const productIds = topViewedProductsRaw.map(p => p.productId).filter(Boolean) as string[];
+  const products = await db.product.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true, name: true, price: true, images: true },
+  });
+
+  const topViewedProducts = topViewedProductsRaw.map(p => {
+    const product = products.find(prod => prod.id === p.productId);
+    const parsed = typeof product?.images === "string" ? JSON.parse(product.images || "[]") : (product?.images || []);
+    return {
+      productId: p.productId!,
+      name: product?.name || "Unknown Product",
+      price: product?.price || 0,
+      image: product ? parsed[0] : null,
+      views: p._count.productId,
+    };
+  });
 
   // Conversion funnel (last 30 days)
   const [viewCount, cartCount, checkoutCount, orderCount] = await Promise.all([

@@ -127,7 +127,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="SL HUB" />
         <meta
           httpEquiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://res.cloudinary.com https://qmrhukyiralrqhaoauxb.supabase.co https://*.supabase.co; connect-src 'self' https://res.cloudinary.com https://*.cloudinary.com https://fonts.googleapis.com https://fonts.gstatic.com https://qmrhukyiralrqhaoauxb.supabase.co https://*.supabase.co wss://qmrhukyiralrqhaoauxb.supabase.co;"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://qmrhukyiralrqhaoauxb.supabase.co https://*.supabase.co; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://qmrhukyiralrqhaoauxb.supabase.co https://*.supabase.co wss://qmrhukyiralrqhaoauxb.supabase.co;"
         />
       </head>
       <body

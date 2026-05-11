@@ -26,6 +26,14 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const order = body.order || 0;
+
+    // Shift existing categories' order if needed
+    await db.category.updateMany({
+      where: { order: { gte: order } },
+      data: { order: { increment: 1 } },
+    });
+
     const category = await db.category.create({ data: body });
 
     // Invalidate categories cache

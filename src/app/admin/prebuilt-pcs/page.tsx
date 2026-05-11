@@ -796,7 +796,7 @@ export default function PrebuiltPCsPage() {
               <SingleImageUploader
                 value={form.image}
                 onChange={(url) => setForm({ ...form, image: url })}
-                label="PC Package Image"
+                folder="prebuilt-pcs"
               />
             </div>
 

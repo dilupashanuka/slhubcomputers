@@ -1,160 +1,133 @@
 // =============================================================================
-// SL HUB COMPUTER - Image Upload API
+// SL HUB COMPUTER - Image Upload API (Supabase Storage)
 // =============================================================================
-// Purpose: Handle image uploads with Cloudinary support and local fallback
-// Features:
-//   - Cloudinary upload when configured (server-side signed upload)
-//   - Local file upload fallback when Cloudinary not configured
-//   - File validation (type, size)
-//   - Returns URL and publicId for Cloudinary images
+// Purpose: Upload images to Supabase Storage
+// Supports: "file" (single) and "files" (multiple) form fields
+// Returns:  { success, url }  for single  |  { success, urls }  for multiple
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { uploadImage, isCloudinaryConfigured } from "@/lib/cloudinary";
+import { createClient } from "@/utils/supabase/server";
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
+const BUCKET = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "slhub-image";
 
 // ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-  "image/svg+xml",
-];
-
-// ---------------------------------------------------------------------------
-// POST - Upload image
+// POST - Upload one or more images
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get("file") as File | null;
-    const folder = (formData.get("folder") as string) || "slhub";
+    const folder = (formData.get("folder") as string) || "products";
 
-    if (!file) {
+    // Collect files from both "file" and "files" fields
+    const multipleFiles = formData.getAll("files") as File[];
+    const singleFile = formData.get("file") as File | null;
+    const isMultiple = multipleFiles.length > 0;
+
+    const filesToUpload: File[] = isMultiple
+      ? multipleFiles
+      : singleFile
+      ? [singleFile]
+      : [];
+
+    if (filesToUpload.length === 0) {
       return NextResponse.json(
         { success: false, error: "No file provided" },
         { status: 400 }
       );
     }
 
-    // Validate file type
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Invalid file type: ${file.type}. Allowed: ${ALLOWED_TYPES.join(", ")}`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum: 5MB`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // ---------------------------------------------------------------
-    // Try Cloudinary upload if configured
-    // ---------------------------------------------------------------
-    if (isCloudinaryConfigured()) {
-      try {
-        const result = await uploadImage(file, folder);
-        return NextResponse.json({
-          success: true,
-          url: result.url,
-          publicId: result.publicId,
-          provider: "cloudinary",
-          width: result.width,
-          height: result.height,
-        });
-      } catch (cloudinaryError) {
-        console.error("Cloudinary upload failed, falling back to local:", cloudinaryError);
-        // Fall through to local upload
+    // Validate each file
+    for (const file of filesToUpload) {
+      if (file.size > MAX_FILE_SIZE) {
+        return NextResponse.json(
+          { success: false, error: `"${file.name}" exceeds 10 MB limit` },
+          { status: 400 }
+        );
+      }
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        return NextResponse.json(
+          { success: false, error: `"${file.name}" has unsupported type: ${file.type}` },
+          { status: 400 }
+        );
       }
     }
 
-    // ---------------------------------------------------------------
-    // Local file upload fallback
-    // ---------------------------------------------------------------
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const supabase = await createClient();
+    const uploadedUrls: string[] = [];
 
-    // Generate unique filename
-    const ext = path.extname(file.name) || ".png";
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads", folder);
+    for (const file of filesToUpload) {
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}.${ext}`;
+      const filePath = `${folder}/${uniqueName}`;
 
-    // Ensure directory exists
-    await mkdir(uploadDir, { recursive: true });
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET)
+        .upload(filePath, file, { cacheControl: "3600", upsert: false });
 
-    const filePath = path.join(uploadDir, uniqueName);
-    await writeFile(filePath, buffer);
+      if (uploadError) {
+        console.error("Supabase upload error:", uploadError);
+        return NextResponse.json(
+          { success: false, error: `Upload failed: ${uploadError.message}` },
+          { status: 500 }
+        );
+      }
 
-    // Return URL path (relative to public)
-    const url = `/uploads/${folder}/${uniqueName}`;
+      const { data: { publicUrl } } = supabase.storage
+        .from(BUCKET)
+        .getPublicUrl(filePath);
 
-    return NextResponse.json({
-      success: true,
-      url,
-      publicId: null,
-      provider: "local",
-    });
+      uploadedUrls.push(publicUrl);
+    }
+
+    // Return format: single → { url }, multiple → { urls }
+    if (isMultiple) {
+      return NextResponse.json({ success: true, urls: uploadedUrls });
+    }
+    return NextResponse.json({ success: true, url: uploadedUrls[0] });
+
   } catch (error) {
-    console.error("Upload API error:", error);
+    console.error("Upload handler error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to upload image" },
+      { success: false, error: error instanceof Error ? error.message : "Upload failed" },
       { status: 500 }
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// DELETE - Remove image
+// DELETE - Remove an image from Supabase Storage
 // ---------------------------------------------------------------------------
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const publicId = searchParams.get("publicId");
     const url = searchParams.get("url");
 
-    // If Cloudinary image with publicId, delete from Cloudinary
-    if (publicId && isCloudinaryConfigured()) {
-      const { deleteImage } = await import("@/lib/cloudinary");
-      await deleteImage(publicId);
-      return NextResponse.json({ success: true, message: "Image deleted from Cloudinary" });
+    if (!url) {
+      return NextResponse.json(
+        { success: false, error: "No URL provided" },
+        { status: 400 }
+      );
     }
 
-    // If local file, delete from filesystem
-    if (url && url.startsWith("/uploads/")) {
-      const { unlink } = await import("fs/promises");
-      const filePath = path.join(process.cwd(), "public", url);
-      try {
-        await unlink(filePath);
-      } catch {
-        // File might not exist, that's OK
-      }
-      return NextResponse.json({ success: true, message: "Local file deleted" });
+    // Extract the storage path from the full public URL
+    // URL format: .../storage/v1/object/public/<bucket>/<path>
+    const marker = `/object/public/${BUCKET}/`;
+    const idx = url.indexOf(marker);
+    if (idx !== -1) {
+      const filePath = url.slice(idx + marker.length);
+      const supabase = await createClient();
+      const { error } = await supabase.storage.from(BUCKET).remove([filePath]);
+      if (error) console.error("Supabase delete error:", error);
     }
 
-    return NextResponse.json(
-      { success: false, error: "No valid image identifier provided" },
-      { status: 400 }
-    );
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Delete image error:", error);
+    console.error("Delete handler error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to delete image" },
+      { success: false, error: "Delete failed" },
       { status: 500 }
     );
   }

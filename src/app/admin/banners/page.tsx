@@ -380,7 +380,7 @@ export default function BannersPage() {
             <SingleImageUploader
               value={form.image}
               onChange={(url) => setForm({ ...form, image: url })}
-              label="Banner Image"
+              folder="banners"
             />
 
             {/* Link and Button Text */}

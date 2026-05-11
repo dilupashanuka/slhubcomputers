@@ -24,6 +24,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
     const body = await request.json();
+
+    // If order is changing, shift others
+    if (body.order !== undefined) {
+      const existing = await db.category.findUnique({ where: { id } });
+      if (existing && body.order !== existing.order) {
+        await db.category.updateMany({
+          where: { order: { gte: body.order } },
+          data: { order: { increment: 1 } },
+        });
+      }
+    }
+
     const category = await db.category.update({ where: { id }, data: body });
 
     // Invalidate categories cache

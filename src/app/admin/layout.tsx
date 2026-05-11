@@ -300,18 +300,42 @@ function SidebarContent({
       <Separator className="shrink-0" />
 
       {/* Footer with client info - Fixed at bottom */}
-      <div className="p-3 text-[11px] text-muted-foreground space-y-1 shrink-0">
-        <div className="flex items-center gap-2">
+      <div className="p-3 bg-muted/30 border-t shrink-0">
+        <div className="flex items-center gap-2 mb-1">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="font-medium text-foreground/70">SL HUB COMPUTER</span>
+          <span className="font-semibold text-xs text-foreground/80 uppercase tracking-wider">
+            SL HUB COMPUTER
+          </span>
         </div>
-        <p>Deiyandara | Hotline: 071 067 8944</p>
+        <p className="text-[10px] text-muted-foreground mb-3">
+          Deiyandara | Hotline: 071 067 8944
+        </p>
+
+        {/* Developer Support Card - High Visibility */}
+        <div className="mt-2 p-2.5 rounded-xl bg-primary/5 border border-primary/10 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <div className="p-1 rounded-md bg-primary/10">
+              <Code className="size-3 text-primary" />
+            </div>
+            <span className="text-[10px] font-bold text-primary uppercase tracking-tight">
+              Developer Support
+            </span>
+          </div>
+          <p className="text-xs font-extrabold text-foreground tracking-tight leading-none">
+            Shanuka Digital Solutions
+          </p>
+          <div className="flex items-center justify-between text-[9px] text-muted-foreground pt-0.5">
+            <span>Tech Partner</span>
+            <span className="opacity-60">v2.5.0</span>
+          </div>
+        </div>
+
         <Link
           href="/"
-          className="flex items-center gap-1.5 text-primary hover:underline mt-1.5"
+          className="flex items-center gap-1.5 text-primary hover:underline mt-3 text-[11px] font-medium"
         >
           <Store className="size-3" />
-          View Store
+          View Live Store
         </Link>
       </div>
     </div>

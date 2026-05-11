@@ -54,27 +54,31 @@ export async function GET() {
     const totalRevenue = revenueAggregate._sum.total || 0;
 
     // -------------------------------------------------------------------------
-    // 2. Monthly Revenue Data (Last 12 Months)
+    // 2. Monthly Revenue Data (Last 12 Months) - Optimized Single Query
     // -------------------------------------------------------------------------
-    const monthlyRevenue: { month: string; revenue: number; orders: number }[] = [];
     const now = new Date();
+    const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+    
+    const allOrdersLastYear = await db.order.findMany({
+      where: {
+        createdAt: { gte: twelveMonthsAgo },
+        status: { notIn: ["cancelled"] },
+      },
+      select: { total: true, createdAt: true },
+    });
 
+    const monthlyRevenue: { month: string; revenue: number; orders: number }[] = [];
     for (let i = 11; i >= 0; i--) {
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
-
-      const monthOrders = await db.order.findMany({
-        where: {
-          createdAt: { gte: startOfMonth, lte: endOfMonth },
-          status: { notIn: ["cancelled"] },
-        },
-        select: { total: true },
-      });
-
-      const monthLabel = startOfMonth.toLocaleDateString("en-US", {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthLabel = monthDate.toLocaleDateString("en-US", {
         month: "short",
         year: "2-digit",
       });
+
+      const monthOrders = allOrdersLastYear.filter(o => 
+        o.createdAt.getMonth() === monthDate.getMonth() && 
+        o.createdAt.getFullYear() === monthDate.getFullYear()
+      );
 
       monthlyRevenue.push({
         month: monthLabel,
@@ -258,18 +262,14 @@ export async function GET() {
     }));
 
     // -------------------------------------------------------------------------
-    // 9. Customer Stats
+    // 9. Customer Stats - Optimized
     // -------------------------------------------------------------------------
-    const uniqueCustomers = await db.order.findMany({
-      select: { phone: true },
-      distinct: ["phone"],
-    });
-
-    const returningCustomers = await db.order.groupBy({
+    const totalCustomers = await db.order.groupBy({
       by: ["phone"],
-      having: { phone: { _count: { gt: 1 } } },
       _count: { phone: true },
     });
+
+    const returningCustomersCount = totalCustomers.filter(c => c._count.phone > 1).length;
 
     // -------------------------------------------------------------------------
     // 10. Average Order Value
@@ -315,8 +315,8 @@ export async function GET() {
         recentActivity,
 
         // Customer insights
-        totalCustomers: uniqueCustomers.length,
-        returningCustomers: returningCustomers.length,
+        totalCustomers: totalCustomers.length,
+        returningCustomers: returningCustomersCount,
 
         // Averages
         avgOrderValue,

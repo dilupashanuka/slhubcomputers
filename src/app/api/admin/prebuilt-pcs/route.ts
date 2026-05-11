@@ -23,6 +23,16 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // Auto-assign display order if not provided
+    if (body.order === undefined || body.order === null) {
+      const last = await db.prebuiltPC.findFirst({
+        orderBy: { order: "desc" },
+        select: { order: true },
+      });
+      body.order = (last?.order ?? -1) + 1;
+    }
+
     const pc = await db.prebuiltPC.create({ data: body });
 
     // Invalidate prebuilt-pcs cache
