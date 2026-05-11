@@ -695,23 +695,3 @@ model AISettings {
   createdAt       DateTime @default(now())
 }
 
-// ---------------------------------------------------------------------------
-// Banner Model - Homepage Hero Banners
-// ---------------------------------------------------------------------------
-model Banner {
-  id          String   @id @default(cuid())
-  title       String
-  subtitle    String?
-  description String?
-  buttonText  String?
-  image       String?
-  link        String?
-  bgColor     String?
-  isActive    Boolean  @default(true)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isActive])
-  @@index([order])
-}
