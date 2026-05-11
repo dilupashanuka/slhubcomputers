@@ -46,26 +46,38 @@ export function BrandCarousel() {
   const allBrands = [...brands, ...brands];
 
   return (
-    <section className="py-10 bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 mb-6">
-        <h2 className="text-2xl font-bold text-center">Top Brands We Carry</h2>
-        <p className="text-center text-muted-foreground mt-1">
+    <section className="py-12 bg-gray-50/50 dark:bg-gray-900/50 border-y border-border/50">
+      <div className="w-full px-6 mb-8">
+        <h2 className="text-2xl font-bold text-center tracking-tight">Top Brands We Carry</h2>
+        <p className="text-center text-muted-foreground mt-2 text-sm">
           Authentic products from world-leading manufacturers
         </p>
       </div>
 
       {/* Infinite scroll marquee */}
-      <div className="relative overflow-hidden">
-        <div className="flex gap-4 animate-[scroll_30s_linear_infinite] hover:[animation-play-state:paused] w-max">
+      <div className="relative overflow-hidden w-full">
+        {/* Fading edges for premium look */}
+        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-gray-50 dark:from-gray-900 to-transparent z-10 hidden sm:block"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-gray-50 dark:from-gray-900 to-transparent z-10 hidden sm:block"></div>
+
+        <div className="flex gap-6 animate-[scroll_40s_linear_infinite] hover:[animation-play-state:paused] w-max py-4">
           {allBrands.map((brand, i) => (
             <Card
               key={`${brand.id}-${i}`}
-              className="shrink-0 hover:shadow-md transition-shadow"
+              className="shrink-0 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-none bg-white dark:bg-gray-800/50 backdrop-blur-sm"
             >
-              <CardContent className="p-4 flex items-center justify-center min-w-[140px] h-20">
-                <span className="font-semibold text-sm text-center text-muted-foreground hover:text-blue-600 transition-colors">
-                  {brand.name}
-                </span>
+              <CardContent className="p-4 flex items-center justify-center min-w-[160px] h-24">
+                {brand.logo ? (
+                  <img 
+                    src={brand.logo} 
+                    alt={brand.name} 
+                    className="max-h-12 max-w-[120px] object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                  />
+                ) : (
+                  <span className="font-bold text-lg text-center bg-gradient-to-br from-blue-500 to-purple-600 bg-clip-text text-transparent opacity-80">
+                    {brand.name}
+                  </span>
+                )}
               </CardContent>
             </Card>
           ))}

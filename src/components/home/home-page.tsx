@@ -11,9 +11,10 @@ import { Sparkles, TrendingUp, Star } from "lucide-react";
 
 export function HomePage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-0">
       <HeroBanner />
-      <div className="container mx-auto px-4 space-y-12 py-8">
+      
+      <div className="container mx-auto px-4 space-y-12 py-12">
         <CategoryGrid />
         <FlashDeals />
         <ProductSection
@@ -34,10 +35,15 @@ export function HomePage() {
           endpoint="/api/products?isNew=true&limit=10"
           icon={<Sparkles className="h-5 w-5 text-blue-600" />}
         />
-        <BrandCarousel />
-        <NewsletterSection />
+      </div>
+
+      <BrandCarousel />
+      
+      <div className="container mx-auto px-4 py-12">
         <RecentlyViewed />
       </div>
+
+      <NewsletterSection />
     </div>
   );
 }
