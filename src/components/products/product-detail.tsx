@@ -27,6 +27,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -1083,6 +1084,9 @@ export function ProductDetail({ productId }: ProductDetailProps) {
           <DialogTitle className="sr-only">
             {product.name} - Image {lightboxIndex + 1}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            View full size image {lightboxIndex + 1} of {images.length} for {product.name}.
+          </DialogDescription>
           <div className="relative aspect-video bg-black flex items-center justify-center">
             <AnimatePresence mode="wait">
               <motion.img

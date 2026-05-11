@@ -56,6 +56,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
@@ -744,6 +745,11 @@ export default function ProductsPage() {
             <DialogTitle>
               {editingId ? "Edit Product" : "Add New Product"}
             </DialogTitle>
+            <DialogDescription>
+              {editingId 
+                ? "Update the product details, images, and inventory information." 
+                : "Fill in the details below to add a new product to your inventory."}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">
