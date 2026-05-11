@@ -23,11 +23,20 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  await db.banner.delete({ where: { id } });
+  try {
+    const { id } = await params;
+    const existing = await db.banner.findUnique({ where: { id }, select: { order: true } });
+    if (!existing) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
 
-  // Invalidate banners cache
-  invalidate("banners");
+    await db.banner.delete({ where: { id } });
+    await db.banner.updateMany({
+      where: { order: { gt: existing.order } },
+      data: { order: { decrement: 1 } },
+    });
 
-  return NextResponse.json({ success: true, message: "Deleted" });
+    invalidate("banners");
+    return NextResponse.json({ success: true, message: "Deleted and re-ordered" });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: "Failed to delete" }, { status: 500 });
+  }
 }
