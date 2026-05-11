@@ -8,6 +8,7 @@ import { BrandCarousel } from "./brand-carousel";
 import { NewsletterSection } from "./newsletter-section";
 import { RecentlyViewed } from "./recently-viewed";
 import { Sparkles, TrendingUp, Star } from "lucide-react";
+import { useStore } from "@/store/use-store";
 
 export function HomePage() {
   const { siteSettings } = useStore();

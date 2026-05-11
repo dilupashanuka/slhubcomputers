@@ -55,7 +55,7 @@ export default function HomePageRouter() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch("/api/settings");
+        const res = await fetch("/api/admin/settings");
         const data = await res.json();
         if (data.success) {
           setSiteSettings(data.data);
