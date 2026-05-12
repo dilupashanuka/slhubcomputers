@@ -126,8 +126,8 @@ export function HeroBanner() {
               <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                 <Button
                   onClick={() => setCurrentView(banner.view || "home")}
-                  size="xl"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-10 rounded-full shadow-lg shadow-blue-900/20 transition-all hover:scale-105"
+                  size="lg"
+                  className="bg-white hover:bg-gray-100 text-blue-900 font-bold px-8 py-6 rounded-xl shadow-lg transition-all hover:scale-105 text-lg"
                 >
                   {banner.buttonText || "Learn More"}
                 </Button>
