@@ -23,6 +23,7 @@
 "use client";
 
 import { useEffect, useState, KeyboardEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   Pencil,
@@ -312,6 +313,7 @@ function PreviewCard({ pc }: { pc: PrebuiltPC | null }) {
 // Pre-Built PCs Page Component
 // ---------------------------------------------------------------------------
 export default function PrebuiltPCsPage() {
+  const router = useRouter();
   const [pcs, setPCs] = useState<PrebuiltPC[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -469,6 +471,7 @@ export default function PrebuiltPCsPage() {
       if (data.success) {
         setDialogOpen(false);
         setRefreshKey((k) => k + 1);
+        router.refresh();
       } else {
         alert(data.error || "Failed to save pre-built PC");
       }
@@ -490,6 +493,9 @@ export default function PrebuiltPCsPage() {
       if (data.success) {
         setDeleteId(null);
         setRefreshKey((k) => k + 1);
+        router.refresh();
+      } else {
+        alert(data.error || "Failed to delete pre-built PC");
       }
     } catch (error) {
       console.error("Delete error:", error);

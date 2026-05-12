@@ -19,6 +19,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   Search,
@@ -161,6 +162,7 @@ function formatLKR(amount: number): string {
 // Products Page Component
 // ---------------------------------------------------------------------------
 export default function ProductsPage() {
+  const router = useRouter();
   // State for products list, search, categories, and brands
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -286,6 +288,7 @@ export default function ProductsPage() {
       if (data.success) {
         setDialogOpen(false);
         setRefreshKey((k) => k + 1); // Trigger re-fetch
+        router.refresh();
         toast.success(
           editingId ? "Product updated!" : "Product created!"
         );
@@ -316,6 +319,7 @@ export default function ProductsPage() {
       if (data.success) {
         toast.success("Product deleted");
         setRefreshKey((k) => k + 1); // Final sync
+        router.refresh();
       } else {
         // Rollback if failed
         setRefreshKey((k) => k + 1);

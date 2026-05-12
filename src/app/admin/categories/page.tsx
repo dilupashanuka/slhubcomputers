@@ -15,6 +15,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, Search, ImageIcon } from "lucide-react";
 import { SingleImageUploader } from "@/components/admin/image-upload";
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,7 @@ function generateSlug(name: string): string {
 // Categories Page Component
 // ---------------------------------------------------------------------------
 export default function CategoriesPage() {
+  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -186,6 +188,7 @@ export default function CategoriesPage() {
       if (data.success) {
         setDialogOpen(false);
         setRefreshKey((k) => k + 1);
+        router.refresh();
       } else {
         alert(data.error || "Failed to save category");
       }
@@ -205,6 +208,7 @@ export default function CategoriesPage() {
       if (data.success) {
         setDeleteId(null);
         setRefreshKey((k) => k + 1);
+        router.refresh();
       }
     } catch (error) {
       console.error("Delete error:", error);

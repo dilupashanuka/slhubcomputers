@@ -85,8 +85,33 @@ export function Header() {
   const [searchInput, setSearchInput] = useState("");
   const [mounted, setMounted] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const searchRef = useRef<HTMLInputElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
+
+  // Smart scroll effect: hide on scroll down, show on scroll up
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Always show at the top
+      if (currentScrollY < 50) {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down & past threshold -> hide
+        setIsVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling up -> show
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -141,7 +166,9 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white dark:bg-gray-900 shadow-md">
+    <header className={`sticky top-0 z-50 w-full bg-white dark:bg-gray-900 shadow-md transition-transform duration-300 ease-in-out ${
+      isVisible ? "translate-y-0" : "-translate-y-full"
+    }`}>
       {/* ---- Top Bar - Contact info ---- */}
       <div className="bg-blue-600 text-white text-xs sm:text-sm">
         <div className="container mx-auto px-4 py-1.5 flex items-center justify-between">
