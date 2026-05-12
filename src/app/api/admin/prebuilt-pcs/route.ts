@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { invalidate } from "@/lib/cache";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const prebuiltPCs = await db.prebuiltPC.findMany({ orderBy: { order: "asc" } });
