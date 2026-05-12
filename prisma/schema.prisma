@@ -281,6 +281,7 @@ model PrebuiltPC {
   price         Float    // Current price in LKR
   originalPrice Float?   // Before discount
   image         String   // Main image URL
+  additionalImages String? // JSON array of additional image URLs
   specs         String   // JSON: { cpu, gpu, ram, storage, psu, case, cooler, motherboard }
   features      String?  // JSON array of feature strings
   isAvailable   Boolean  @default(true)

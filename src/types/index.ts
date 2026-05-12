@@ -284,6 +284,7 @@ export interface PrebuiltPCType {
   price: number;
   originalPrice: number | null;
   image: string;
+  additionalImages: string | null;
   specs: string; // JSON: { cpu, gpu, ram, storage, psu, case, cooler, motherboard }
   features: string | null; // JSON array of feature strings
   isAvailable: boolean;

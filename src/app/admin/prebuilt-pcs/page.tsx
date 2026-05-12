@@ -56,7 +56,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { SingleImageUploader } from "@/components/admin/image-upload";
+import { MultipleImageUploader } from "@/components/admin/multiple-image-uploader";
 
 // ---------------------------------------------------------------------------
 // Type Definitions
@@ -70,6 +70,7 @@ interface PrebuiltPC {
   price: number;
   originalPrice: number | null;
   image: string;
+  additionalImages: string | null;
   specs: string; // JSON: { cpu, gpu, ram, storage, psu, case, cooler, motherboard }
   features: string | null; // JSON array of feature strings
   isAvailable: boolean;
@@ -136,7 +137,7 @@ const defaultForm = {
   category: "budget" as "budget" | "gaming" | "office" | "workstation",
   price: 0,
   originalPrice: 0,
-  image: "",
+  images: [] as string[],
   specs: {} as Record<string, string>,
   features: [] as string[],
   isAvailable: true,
@@ -374,6 +375,14 @@ export default function PrebuiltPCsPage() {
   // -------------------------------------------------------------------------
   const handleEdit = (pc: PrebuiltPC) => {
     setEditingId(pc.id);
+    
+    let parsedAdditionalImages: string[] = [];
+    try {
+      parsedAdditionalImages = JSON.parse(pc.additionalImages || "[]");
+    } catch {}
+    
+    const allImages = pc.image ? [pc.image, ...parsedAdditionalImages] : [];
+
     setForm({
       name: pc.name,
       slug: pc.slug,
@@ -381,7 +390,7 @@ export default function PrebuiltPCsPage() {
       category: pc.category as "budget" | "gaming" | "office" | "workstation",
       price: pc.price,
       originalPrice: pc.originalPrice || 0,
-      image: pc.image,
+      images: allImages,
       specs: parseSpecs(pc.specs),
       features: parseFeatures(pc.features),
       isAvailable: pc.isAvailable,
@@ -437,7 +446,7 @@ export default function PrebuiltPCsPage() {
         category: form.category,
         price: form.price,
         originalPrice: form.originalPrice > 0 ? form.originalPrice : null,
-        image: form.image,
+        images: form.images,
         specs: JSON.stringify(form.specs),
         features: form.features.length > 0 ? JSON.stringify(form.features) : null,
         isAvailable: form.isAvailable,
@@ -787,15 +796,15 @@ export default function PrebuiltPCsPage() {
             <Separator />
 
             {/* ------------------------------------------------------------- */}
-            {/* Image Section - Upload from PC with WebP conversion            */}
+            {/* Images Section - Upload from PC with WebP conversion           */}
             {/* ------------------------------------------------------------- */}
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-                Image
+                Images
               </h3>
-              <SingleImageUploader
-                value={form.image}
-                onChange={(url) => setForm({ ...form, image: url })}
+              <MultipleImageUploader
+                images={form.images}
+                onImagesChange={(urls) => setForm({ ...form, images: urls })}
                 folder="prebuilt-pcs"
               />
             </div>

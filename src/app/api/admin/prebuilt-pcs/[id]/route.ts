@@ -14,6 +14,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json();
+
+  // Map `images` array to `image` and `additionalImages`
+  if (body.images && Array.isArray(body.images)) {
+    if (body.images.length > 0) {
+      body.image = body.images[0];
+      body.additionalImages = JSON.stringify(body.images.slice(1));
+    } else {
+      body.image = "";
+      body.additionalImages = "[]";
+    }
+    delete body.images;
+  }
+
   const pc = await db.prebuiltPC.update({ where: { id }, data: body });
 
   // Invalidate prebuilt-pcs cache

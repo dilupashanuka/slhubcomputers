@@ -24,6 +24,18 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    // Map `images` array to `image` and `additionalImages`
+    if (body.images && Array.isArray(body.images)) {
+      if (body.images.length > 0) {
+        body.image = body.images[0];
+        body.additionalImages = JSON.stringify(body.images.slice(1));
+      } else {
+        body.image = "";
+        body.additionalImages = "[]";
+      }
+      delete body.images;
+    }
+
     // Auto-assign display order if not provided
     if (body.order === undefined || body.order === null) {
       const last = await db.prebuiltPC.findFirst({

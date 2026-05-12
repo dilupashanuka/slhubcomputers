@@ -26,6 +26,8 @@ import {
   HardDrive,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Wrench,
   Check,
   Zap,
@@ -93,6 +95,7 @@ function getSpecIcon(key: string): React.ReactNode {
 // ---------------------------------------------------------------------------
 function PCCard({ pc }: { pc: PrebuiltPCType }) {
   const [expanded, setExpanded] = useState(false);
+  const [currentImageIdx, setCurrentImageIdx] = useState(0);
 
   // Parse JSON fields
   const specs: PrebuiltPCSpecs = pc.parsedSpecs ||
@@ -107,6 +110,13 @@ function PCCard({ pc }: { pc: PrebuiltPCType }) {
         )
       : 0;
 
+  // Extract all images
+  let parsedAdditionalImages: string[] = [];
+  try {
+    parsedAdditionalImages = pc.additionalImages ? JSON.parse(pc.additionalImages) : [];
+  } catch {}
+  const allImages = pc.image ? [pc.image, ...parsedAdditionalImages] : [];
+
   // Key specs to show (CPU, GPU, RAM, Storage)
   const keySpecKeys = ["cpu", "gpu", "ram", "storage"];
   const keySpecs = keySpecKeys
@@ -118,16 +128,54 @@ function PCCard({ pc }: { pc: PrebuiltPCType }) {
   const whatsappLink = `https://wa.me/94710678944?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
-    <Card className="group hover:shadow-xl transition-all overflow-hidden">
+    <Card className="group hover:shadow-xl transition-all overflow-hidden flex flex-col">
       {/* ---- Image + Badges ---- */}
-      <div className="relative">
-        <div className="aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
-          {pc.image ? (
-            <img
-              src={pc.image}
-              alt={pc.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+      <div className="relative group/image">
+        <div className="aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
+          {allImages.length > 0 ? (
+            <>
+              <img
+                src={allImages[currentImageIdx]}
+                alt={`${pc.name} - image ${currentImageIdx + 1}`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover/image:scale-105"
+              />
+              {/* Image Navigation Arrows */}
+              {allImages.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCurrentImageIdx((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
+                    }}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white rounded-full p-1 opacity-0 group-hover/image:opacity-100 transition-opacity z-10"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCurrentImageIdx((prev) => (prev === allImages.length - 1 ? 0 : prev + 1));
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white rounded-full p-1 opacity-0 group-hover/image:opacity-100 transition-opacity z-10"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  {/* Dots */}
+                  <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10 pointer-events-none">
+                    {allImages.map((_, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-1.5 h-1.5 rounded-full transition-all ${
+                          idx === currentImageIdx ? "bg-white scale-125" : "bg-white/50"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <Cpu className="w-16 h-16 text-gray-300" />
