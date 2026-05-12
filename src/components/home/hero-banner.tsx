@@ -33,11 +33,11 @@ const defaultBanners = [
   },
   {
     id: "default-2",
-    title: "CCTV Security Solutions",
-    subtitle: "Protect What Matters",
-    description: "Professional CCTV installation with Tiandy, Hikvision, and Dahua. Complete security solutions for homes and businesses.",
-    buttonText: "View CCTV",
-    image: null,
+    title: "Next-Gen Gaming GPUs",
+    subtitle: "Ultimate Performance",
+    description: "Experience gaming like never before with the latest NVIDIA RTX and AMD Radeon graphics cards. Unbeatable prices on all high-end GPUs.",
+    buttonText: "Shop GPUs",
+    image: "/images/gpu-hero.png",
     view: "category" as ViewType,
     gradient: "from-emerald-600 via-emerald-700 to-teal-900",
     icon: <Camera className="w-24 h-24 text-emerald-200" />,
@@ -155,7 +155,17 @@ export function HeroBanner() {
                   className="flex flex-wrap gap-4 justify-center md:justify-start"
                 >
                   <Button
-                    onClick={() => setCurrentView(banner.view || "home")}
+                    onClick={() => {
+                      if (banner.link && banner.link.startsWith("/")) {
+                        // Handle internal route if needed, or map to view
+                        // For now, assume site uses views
+                        setCurrentView(banner.view || "home");
+                      } else if (banner.link) {
+                        window.open(banner.link, "_blank");
+                      } else {
+                        setCurrentView(banner.view || "home");
+                      }
+                    }}
                     size="lg"
                     className="bg-white hover:bg-gray-100 text-blue-900 font-bold px-8 py-6 rounded-xl shadow-lg transition-all hover:scale-105 text-lg"
                   >

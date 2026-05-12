@@ -21,11 +21,14 @@ import {
   Search,
   ShoppingCart,
   Heart,
+  GitCompare,
+  User,
   GitCompareArrows,
   Menu,
   X,
   Sun,
   Moon,
+  MessageSquareText,
   Phone,
   Mail,
   MapPin,
@@ -39,7 +42,6 @@ import {
   ChevronDown,
   Building2,
   CreditCard,
-  User,
   LogOut,
   Package,
   Settings,
@@ -64,14 +66,17 @@ export function Header() {
     cart,
     wishlist,
     compareList,
-    isMobileMenuOpen,
-    setIsMobileMenuOpen,
-    navigateToSearch,
     customer,
     isLoggedIn,
     logoutCustomer,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
     siteSettings,
   } = useStore();
+
+  const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const wishlistCount = wishlist.length;
+  const compareCount = compareList.length;
 
   // Filter navigation links based on site settings
   const filteredNavLinks = navLinks.filter(link => {
@@ -87,6 +92,7 @@ export function Header() {
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
 
@@ -196,12 +202,16 @@ export function Header() {
               <Globe className="w-4 h-4" />
             </a>
             {mounted && (
-              <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="hover:text-blue-200 transition-colors"
-              >
-                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative group transition-transform hover:scale-110 active:scale-95"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
             )}
           </div>
         </div>
@@ -245,34 +255,22 @@ export function Header() {
               variant="ghost"
               size="icon"
               className="md:hidden"
-              onClick={() => searchRef.current?.focus()}
+              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
             >
               <Search className="w-5 h-5" />
             </Button>
-
-            {/* Dark mode toggle (mobile) */}
-            {mounted && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="sm:hidden"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              >
-                {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </Button>
-            )}
 
             {/* Compare */}
             <Button
               variant="ghost"
               size="icon"
-              className="relative"
+              className="relative hidden sm:flex"
               onClick={() => setCurrentView("compare")}
             >
-              <GitCompareArrows className="w-5 h-5" />
-              {compareList.length > 0 && (
-                <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-blue-600 text-[10px]">
-                  {compareList.length}
+              <GitCompare className="w-5 h-5 text-emerald-500" />
+              {compareCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-emerald-600 text-[10px]">
+                  {compareCount}
                 </Badge>
               )}
             </Button>
@@ -281,15 +279,25 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="relative"
+              className="relative hidden sm:flex"
               onClick={() => setCurrentView("wishlist")}
             >
-              <Heart className="w-5 h-5" />
-              {wishlist.length > 0 && (
-                <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-red-500 text-[10px]">
-                  {wishlist.length}
+              <Heart className="w-5 h-5 text-rose-500" />
+              {wishlistCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-rose-600 text-[10px]">
+                  {wishlistCount}
                 </Badge>
               )}
+            </Button>
+
+            {/* Chatbot Icon */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden sm:flex"
+              onClick={() => setCurrentView("contact")}
+            >
+              <MessageSquareText className="w-5 h-5 text-blue-600" />
             </Button>
 
             {/* Account */}
@@ -406,63 +414,59 @@ export function Header() {
                     <MapPin className="w-4 h-4 text-blue-600" />
                     <span>Track Order</span>
                   </button>
-                  <button
-                    onClick={() => setCurrentView("faq")}
-                    className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground text-left"
-                  >
-                    FAQ
-                  </button>
-                  <button
-                    onClick={() => setCurrentView("shipping")}
-                    className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground text-left"
-                  >
-                    Shipping Policy
-                  </button>
-                  <button
-                    onClick={() => setCurrentView("returns")}
-                    className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground text-left"
-                  >
-                    Returns & Refunds
-                  </button>
-                  <button
-                    onClick={() => setCurrentView("terms")}
-                    className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground text-left"
-                  >
-                    Terms & Conditions
-                  </button>
-                  <div className="border-t my-2" />
+                  
                   <Link
                     href="/admin"
                     className="px-4 py-2 text-sm text-blue-600 hover:underline text-left"
                   >
                     Admin Panel →
                   </Link>
-                </nav>
+
+                  <div className="mt-auto pt-6 border-t">
+                  <div className="flex flex-col gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Developer</p>
+                    <a 
+                      href="https://wa.me/94710678944" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 group"
+                    >
+                      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black group-hover:scale-110 transition-transform shadow-md">S</div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-gray-800 dark:text-gray-100">SHANUKA DIGITAL</span>
+                        <span className="text-[10px] text-blue-500 font-medium">Click to contact</span>
+                      </div>
+                    </a>
+                  </div>
+                </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
 
-        {/* Mobile Search (visible on small screens) */}
-        <form onSubmit={handleSearch} className="md:hidden mt-3">
-          <div className="flex w-full">
-            <Input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search products..."
-              className="rounded-r-none border-r-0"
-            />
-            <Button type="submit" className="rounded-l-none bg-blue-600 hover:bg-blue-700">
-              <Search className="w-4 h-4" />
-            </Button>
-          </div>
-        </form>
+        {/* Mobile Search (toggleable) */}
+        {isMobileSearchOpen && (
+          <form onSubmit={handleSearch} className="md:hidden mt-3 animate-in slide-in-from-top-2 duration-200">
+            <div className="flex w-full">
+              <Input
+                autoFocus
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search products..."
+                className="rounded-r-none border-r-0"
+              />
+              <Button type="submit" className="rounded-l-none bg-blue-600 hover:bg-blue-700">
+                <Search className="w-4 h-4" />
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
 
-      {/* ---- Desktop Navigation Bar ---- */}
-      <nav className="hidden lg:block border-t bg-gray-50 dark:bg-gray-800">
+      {/* ---- Desktop/Mobile Category Navigation Bar ---- */}
+      <nav className="border-t bg-gray-50 dark:bg-gray-800 overflow-x-auto no-scrollbar">
         <div className="container mx-auto px-4">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 min-w-max">
             {filteredNavLinks.map((link) => (
               <button
                 key={link.view}

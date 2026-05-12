@@ -198,8 +198,22 @@ export function Footer() {
       {/* Bottom Bar */}
       <Separator className="bg-gray-700" />
       <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
           <p>© {new Date().getFullYear()} SL HUB COMPUTER. All rights reserved.</p>
+          
+          <div className="flex items-center gap-2 py-2 px-3 bg-gray-800/50 rounded-full border border-gray-700/50">
+            <span className="text-gray-400 italic">Designed & Developed by</span>
+            <a 
+              href="https://wa.me/94710678944" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 font-bold transition-colors flex items-center gap-1.5"
+            >
+              <div className="w-5 h-5 bg-blue-600 rounded-md flex items-center justify-center text-[10px] text-white font-black shadow-lg">S</div>
+              SHANUKA DIGITAL SOLUTIONS
+            </a>
+          </div>
+
           <p>Your Trusted Tech Partner - Deiyandara, Sri Lanka</p>
         </div>
       </div>

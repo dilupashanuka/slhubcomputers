@@ -1,43 +1,21 @@
-// =============================================================================
-// SL HUB COMPUTER - Admin Banners Page
-// =============================================================================
-// Purpose: Full CRUD management page for homepage promotional banners with
-//          table, create/edit dialog, and delete confirmation.
-// Features:
-//   - Banners table with title, subtitle, link, order, active status
-//   - Create/Edit dialog with title, subtitle, description, image URL,
-//     link, button text, background color, order, and active toggle
-//   - Active/inactive status badges
-//   - Delete confirmation with AlertDialog
-// Client: SL HUB COMPUTER, Deiyandara | Currency: LKR (Rs.)
-// =============================================================================
-
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Eye } from "lucide-react";
-import { SingleImageUploader } from "@/components/admin/image-upload";
+import { Plus, Pencil, Trash2, Layout, ExternalLink, ImagePlus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { SingleImageUploader } from "@/components/admin/image-upload";
+import Image from "next/image";
 
-// ---------------------------------------------------------------------------
-// Type Definitions
-// ---------------------------------------------------------------------------
 interface Banner {
   id: string;
   title: string;
@@ -51,412 +29,323 @@ interface Banner {
   isActive: boolean;
 }
 
-// ---------------------------------------------------------------------------
-// Default form state
-// ---------------------------------------------------------------------------
-const defaultForm = {
-  title: "",
-  subtitle: "",
-  description: "",
-  image: "",
-  link: "",
-  buttonText: "",
-  bgColor: "",
-  order: 0,
-  isActive: true,
-};
-
-// ---------------------------------------------------------------------------
-// Banners Page Component
-// ---------------------------------------------------------------------------
 export default function BannersPage() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Dialog states
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(defaultForm);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Preview dialog state
-  const [previewBanner, setPreviewBanner] = useState<Banner | null>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    subtitle: "",
+    description: "",
+    image: "",
+    link: "",
+    buttonText: "Shop Now",
+    bgColor: "bg-blue-600",
+    order: "0",
+    isActive: true,
+  });
 
-  // Delete confirmation state
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  // -------------------------------------------------------------------------
-  // Fetch banners from API
-  // -------------------------------------------------------------------------
-  const [refreshKey, setRefreshKey] = useState(0);
+  const fetchBanners = async () => {
+    try {
+      const res = await fetch("/api/banners");
+      const data = await res.json();
+      if (data.success) setBanners(data.data);
+    } catch (error) {
+      toast.error("Failed to fetch banners");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-    const fetchData = async () => {
-      try {
-        const res = await fetch("/api/admin/banners");
-        const data = await res.json();
-        if (!cancelled && data.success) setBanners(data.data || []);
-      } catch (error) {
-        console.error("Fetch error:", error);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    fetchData();
-    return () => { cancelled = true; };
-  }, [refreshKey]);
+    fetchBanners();
+  }, []);
 
-  // -------------------------------------------------------------------------
-  // Open dialog for creating a new banner
-  // -------------------------------------------------------------------------
-  const handleCreate = () => {
-    setEditingId(null);
-    setForm(defaultForm);
+  const handleOpenDialog = (banner?: Banner) => {
+    if (banner) {
+      setSelectedBanner(banner);
+      setFormData({
+        title: banner.title,
+        subtitle: banner.subtitle || "",
+        description: banner.description || "",
+        image: banner.image || "",
+        link: banner.link || "",
+        buttonText: banner.buttonText || "Shop Now",
+        bgColor: banner.bgColor || "bg-blue-600",
+        order: banner.order.toString(),
+        isActive: banner.isActive,
+      });
+    } else {
+      setSelectedBanner(null);
+      setFormData({
+        title: "",
+        subtitle: "",
+        description: "",
+        image: "",
+        link: "",
+        buttonText: "Shop Now",
+        bgColor: "bg-blue-600",
+        order: "0",
+        isActive: true,
+      });
+    }
     setDialogOpen(true);
   };
 
-  // -------------------------------------------------------------------------
-  // Open dialog for editing an existing banner
-  // -------------------------------------------------------------------------
-  const handleEdit = (banner: Banner) => {
-    setEditingId(banner.id);
-    setForm({
-      title: banner.title,
-      subtitle: banner.subtitle || "",
-      description: banner.description || "",
-      image: banner.image || "",
-      link: banner.link || "",
-      buttonText: banner.buttonText || "",
-      bgColor: banner.bgColor || "",
-      order: banner.order,
-      isActive: banner.isActive,
-    });
-    setDialogOpen(true);
-  };
-
-  // -------------------------------------------------------------------------
-  // Handle form submission (create or update)
-  // -------------------------------------------------------------------------
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
     try {
-      const payload = {
-        ...form,
-        subtitle: form.subtitle || null,
-        description: form.description || null,
-        image: form.image || null,
-        link: form.link || null,
-        buttonText: form.buttonText || null,
-        bgColor: form.bgColor || null,
-      };
+      const method = selectedBanner ? "PUT" : "POST";
+      const body = selectedBanner ? { ...formData, id: selectedBanner.id } : formData;
 
-      const url = editingId ? `/api/admin/banners/${editingId}` : "/api/admin/banners";
-      const method = editingId ? "PUT" : "POST";
-
-      const res = await fetch(url, {
+      const res = await fetch("/api/banners", {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
       if (data.success) {
+        toast.success(selectedBanner ? "Banner updated" : "Banner created");
         setDialogOpen(false);
-        setRefreshKey((k) => k + 1);
+        fetchBanners();
       } else {
-        alert(data.error || "Failed to save banner");
+        toast.error(data.error || "Operation failed");
       }
     } catch (error) {
-      console.error("Save error:", error);
+      toast.error("An error occurred");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // -------------------------------------------------------------------------
-  // Handle banner deletion
-  // -------------------------------------------------------------------------
   const handleDelete = async () => {
-    if (!deleteId) return;
+    if (!selectedBanner) return;
     try {
-      const res = await fetch(`/api/admin/banners/${deleteId}`, { method: "DELETE" });
+      const res = await fetch(`/api/banners?id=${selectedBanner.id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
-        setDeleteId(null);
-        setRefreshKey((k) => k + 1);
+        toast.success("Banner deleted");
+        setDeleteDialogOpen(false);
+        fetchBanners();
+      } else {
+        toast.error(data.error || "Failed to delete");
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      toast.error("An error occurred");
     }
   };
 
   return (
-    <div className="space-y-4">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Banners</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage homepage banners
-          </p>
+          <h1 className="text-3xl font-bold">Banners</h1>
+          <p className="text-muted-foreground">Manage homepage hero banners and promotions</p>
         </div>
-        <Button size="sm" onClick={handleCreate}>
-          <Plus className="size-3.5 mr-1" />
-          Add Banner
+        <Button onClick={() => handleOpenDialog()} className="gap-2">
+          <Plus className="w-4 h-4" /> Add Banner
         </Button>
       </div>
 
-      {/* Banners Table */}
       <Card>
-        <CardContent className="p-0">
-          <div className="max-h-[calc(100vh-280px)] overflow-y-auto">
+        <CardHeader>
+          <CardTitle>All Banners</CardTitle>
+          <CardDescription>Banners are displayed in the homepage carousel sorted by order.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Subtitle</TableHead>
-                  <TableHead>Link</TableHead>
-                  <TableHead className="text-center">Order</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="w-[100px]">Preview</TableHead>
+                  <TableHead>Banner Info</TableHead>
+                  <TableHead>Order</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : banners.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      No banners found. Create your first banner!
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  banners.map((banner) => (
-                    <TableRow key={banner.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {/* Thumbnail preview */}
-                          {banner.image && (
-                            <img
-                              src={banner.image}
-                              alt=""
-                              className="w-8 h-5 object-cover rounded"
-                            />
-                          )}
-                          {banner.title}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">
-                        {banner.subtitle || "—"}
-                      </TableCell>
-                      <TableCell className="text-sm max-w-[120px] truncate">
-                        {banner.link ? (
-                          <span className="text-primary">{banner.link}</span>
+                {banners.map((banner) => (
+                  <TableRow key={banner.id}>
+                    <TableCell>
+                      <div className="relative w-16 h-10 rounded overflow-hidden border bg-muted">
+                        {banner.image ? (
+                          <Image src={banner.image} alt={banner.title} fill className="object-cover" />
                         ) : (
-                          "—"
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Layout className="w-4 h-4 text-muted-foreground" />
+                          </div>
                         )}
-                      </TableCell>
-                      <TableCell className="text-center text-sm">
-                        {banner.order}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant={banner.isActive ? "default" : "outline"}
-                          className="text-xs"
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{banner.title}</div>
+                      <div className="text-xs text-muted-foreground truncate max-w-[200px]">{banner.subtitle}</div>
+                    </TableCell>
+                    <TableCell>{banner.order}</TableCell>
+                    <TableCell>
+                      <Badge variant={banner.isActive ? "default" : "secondary"}>
+                        {banner.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(banner)}>
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => { setSelectedBanner(banner); setDeleteDialogOpen(true); }}
                         >
-                          {banner.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => setPreviewBanner(banner)}
-                          >
-                            <Eye className="size-3" />
-                          </Button>
-                          <Button variant="ghost" size="icon-sm" onClick={() => handleEdit(banner)}>
-                            <Pencil className="size-3" />
-                          </Button>
-                          <Button variant="ghost" size="icon-sm" onClick={() => setDeleteId(banner.id)}>
-                            <Trash2 className="size-3 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {banners.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                      No banners found. Create your first banner to get started.
+                    </TableCell>
+                  </TableRow>
                 )}
               </TableBody>
             </Table>
-          </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Banner Preview Dialog */}
-      <Dialog open={!!previewBanner} onOpenChange={(open) => !open && setPreviewBanner(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Banner Preview</DialogTitle>
-          </DialogHeader>
-          {previewBanner && (
-            <div className="space-y-3 py-2">
-              {/* Banner preview card */}
-              <div
-                className={`rounded-lg p-6 text-white ${
-                  previewBanner.bgColor || "bg-primary"
-                }`}
-              >
-                {previewBanner.image && (
-                  <img
-                    src={previewBanner.image}
-                    alt={previewBanner.title}
-                    className="w-full h-32 object-cover rounded mb-3"
-                  />
-                )}
-                <h3 className="text-lg font-bold">{previewBanner.title}</h3>
-                {previewBanner.subtitle && (
-                  <p className="text-sm opacity-90">{previewBanner.subtitle}</p>
-                )}
-                {previewBanner.description && (
-                  <p className="text-xs opacity-75 mt-1">{previewBanner.description}</p>
-                )}
-                {previewBanner.buttonText && (
-                  <div className="mt-3">
-                    <span className="inline-block px-4 py-1.5 bg-white/20 rounded text-sm">
-                      {previewBanner.buttonText}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Create/Edit Banner Dialog */}
+      {/* Edit/Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {editingId ? "Edit Banner" : "Add New Banner"}
-            </DialogTitle>
+            <DialogTitle>{selectedBanner ? "Edit Banner" : "New Banner"}</DialogTitle>
+            <DialogDescription>
+              Fill in the details for the homepage banner.
+            </DialogDescription>
           </DialogHeader>
-
-          <div className="grid gap-4 py-2">
-            {/* Title */}
-            <div className="space-y-1.5">
-              <Label>Title</Label>
-              <Input
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Banner title"
-              />
-            </div>
-
-            {/* Subtitle */}
-            <div className="space-y-1.5">
-              <Label>Subtitle</Label>
-              <Input
-                value={form.subtitle}
-                onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
-                placeholder="Banner subtitle"
-              />
-            </div>
-
-            {/* Description */}
-            <div className="space-y-1.5">
-              <Label>Description</Label>
-              <Textarea
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Banner description"
-                rows={2}
-              />
-            </div>
-
-            {/* Image Upload with WebP conversion */}
-            <SingleImageUploader
-              value={form.image}
-              onChange={(url) => setForm({ ...form, image: url })}
-              folder="banners"
-            />
-
-            {/* Link and Button Text */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Link URL</Label>
-                <Input
-                  value={form.link}
-                  onChange={(e) => setForm({ ...form, link: e.target.value })}
-                  placeholder="/category/gpus"
+          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="title">Banner Title *</Label>
+                <Input 
+                  id="title" 
+                  required 
+                  value={formData.title} 
+                  onChange={e => setFormData({...formData, title: e.target.value})}
+                  placeholder="e.g. Extreme Gaming PCs"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>Button Text</Label>
-                <Input
-                  value={form.buttonText}
-                  onChange={(e) => setForm({ ...form, buttonText: e.target.value })}
+              <div className="space-y-2">
+                <Label htmlFor="subtitle">Subtitle</Label>
+                <Input 
+                  id="subtitle" 
+                  value={formData.subtitle} 
+                  onChange={e => setFormData({...formData, subtitle: e.target.value})}
+                  placeholder="e.g. Powered by RTX 4090"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="buttonText">Button Text</Label>
+                <Input 
+                  id="buttonText" 
+                  value={formData.buttonText} 
+                  onChange={e => setFormData({...formData, buttonText: e.target.value})}
                   placeholder="Shop Now"
                 />
               </div>
-            </div>
-
-            {/* Background Color and Order */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Background Color</Label>
-                <Input
-                  value={form.bgColor}
-                  onChange={(e) => setForm({ ...form, bgColor: e.target.value })}
-                  placeholder="e.g. bg-blue-600"
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea 
+                  id="description" 
+                  value={formData.description} 
+                  onChange={e => setFormData({...formData, description: e.target.value})}
+                  placeholder="Detailed offer or info..."
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>Display Order</Label>
-                <Input
+              <div className="space-y-2">
+                <Label htmlFor="link">Link URL</Label>
+                <Input 
+                  id="link" 
+                  value={formData.link} 
+                  onChange={e => setFormData({...formData, link: e.target.value})}
+                  placeholder="/shop/gaming-pcs"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="order">Display Order</Label>
+                <Input 
+                  id="order" 
                   type="number"
-                  value={form.order}
-                  onChange={(e) => setForm({ ...form, order: Number(e.target.value) })}
-                  placeholder="0"
+                  value={formData.order} 
+                  onChange={e => setFormData({...formData, order: e.target.value})}
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Banner Image</Label>
+                <SingleImageUploader 
+                  value={formData.image}
+                  onChange={url => setFormData({...formData, image: url})}
+                  folder="banners"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bgColor">Background Theme (Tailwind class)</Label>
+                <Input 
+                  id="bgColor" 
+                  value={formData.bgColor} 
+                  onChange={e => setFormData({...formData, bgColor: e.target.value})}
+                  placeholder="bg-blue-600 or bg-[#121212]"
+                />
+                <p className="text-[10px] text-muted-foreground">Default: bg-blue-600</p>
+              </div>
+              <div className="flex items-center gap-2 pt-2">
+                <Switch 
+                  id="isActive" 
+                  checked={formData.isActive}
+                  onCheckedChange={val => setFormData({...formData, isActive: val})}
+                />
+                <Label htmlFor="isActive">Active (Visible on Homepage)</Label>
+              </div>
             </div>
-
-            {/* Active Toggle */}
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={form.isActive}
-                onCheckedChange={(val) => setForm({ ...form, isActive: val })}
-              />
-              <Label>Active</Label>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <DialogClose>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleSubmit}>
-              {editingId ? "Update" : "Create"} Banner
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {selectedBanner ? "Update Banner" : "Create Banner"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Banner</AlertDialogTitle>
+            <AlertDialogTitle>Delete Banner?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this banner?
+              This action cannot be undone. This banner will be permanently removed from the database.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete Banner
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
