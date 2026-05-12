@@ -8,10 +8,21 @@
 // NEW: Includes 6 Pre-Built PCs (2 budget, 2 gaming, 1 office, 1 workstation)
 // =============================================================================
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  // ⚠️ SECRET PROTECTION: Seed can only run if SEED_SECRET is provided
+  const { searchParams } = new URL(request.url);
+  const secret = searchParams.get("secret");
+  const expectedSecret = process.env.SEED_SECRET || "slhub-seed-2025";
+  if (secret !== expectedSecret) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized: invalid or missing seed secret" },
+      { status: 401 }
+    );
+  }
+
   try {
     // ========================================================================
     // 1. SEED CATEGORIES - 11 product categories for SL HUB COMPUTER
@@ -650,9 +661,19 @@ export async function POST() {
     });
 
     // ========================================================================
-    // 7. SEED PRE-BUILT PCs - 6 pre-built PC packages (NEW!)
+    // 7. SEED PRE-BUILT PCs - 6 pre-built PC packages
+    // ⚠️ SAFE: Only seed if NO prebuilt PCs exist (preserves admin edits)
     // ========================================================================
-    await db.prebuiltPC.deleteMany();
+    const existingPrebuilt = await db.prebuiltPC.count();
+    if (existingPrebuilt > 0) {
+      return NextResponse.json({
+        success: true,
+        message: "Seed completed. Pre-Built PCs skipped (admin data preserved).",
+        categories: categories.length,
+        brands: brands.length,
+        products: createdProducts.length,
+      });
+    }
 
     const prebuiltPCsData = [
       // Budget PC 1 - Entry Level
