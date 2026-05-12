@@ -117,7 +117,7 @@ export function HeroBanner() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex flex-col md:row items-center justify-between gap-12"
+              className="flex flex-col md:flex-row items-center justify-between gap-12"
             >
               {/* Text Content */}
               <div className="flex-1 text-white text-center md:text-left">
