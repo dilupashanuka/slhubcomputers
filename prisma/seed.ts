@@ -6,6 +6,13 @@ async function main() {
   console.log('Seeding database...')
 
   try {
+    // SAFETY CHECK: Prevent accidental data loss
+    const existingProducts = await db.product.count();
+    if (existingProducts > 0) {
+      console.log('Database already contains products. Skipping seed to prevent data loss.');
+      return;
+    }
+
     // 1. SEED CATEGORIES
     const categoriesData = [
       { name: "Processors", slug: "processors", description: "Intel & AMD CPUs for every budget and performance need", icon: "Cpu", order: 1 },
@@ -75,9 +82,6 @@ async function main() {
     const findBrand = (slug: string) => brands.find((b) => b.slug === slug)?.id || "";
 
     // 3. SEED PRODUCTS
-    await db.review.deleteMany();
-    await db.orderItem.deleteMany();
-    await db.product.deleteMany();
 
     const productsData = [
       {
@@ -223,7 +227,6 @@ async function main() {
     console.log(`Created ${productsData.length} products`);
 
     // 4. SEED BANNERS
-    await db.banner.deleteMany();
     const bannersData = [
       { title: "Custom PC Building", subtitle: "Build Your Dream PC", description: "Configure your perfect custom PC with premium components.", link: "pc-builder", buttonText: "Start Building", bgColor: "from-blue-600 to-blue-800", order: 1, isActive: true },
       { title: "CCTV Security Solutions", subtitle: "Protect What Matters", description: "Professional CCTV installation with Tiandy, Hikvision, and Dahua.", link: "category", buttonText: "View CCTV", bgColor: "from-emerald-600 to-emerald-800", order: 2, isActive: true },
