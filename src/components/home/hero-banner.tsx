@@ -113,9 +113,9 @@ export function HeroBanner() {
           <AnimatePresence mode="wait">
             <motion.div
               key={current}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
               className="flex flex-col md:flex-row items-center justify-between gap-12"
             >
