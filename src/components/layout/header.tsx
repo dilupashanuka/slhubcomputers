@@ -421,6 +421,7 @@ export function Header() {
                   >
                     Admin Panel →
                   </Link>
+                </nav>
 
                   <div className="mt-auto pt-6 border-t">
                   <div className="flex flex-col gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border">
