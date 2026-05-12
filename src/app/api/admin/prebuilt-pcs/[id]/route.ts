@@ -14,27 +14,40 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const body = await req.json();
+  try {
+    const { id } = await params;
+    const body = await req.json();
 
-  // Map `images` array to `image` and `additionalImages`
-  if (body.images && Array.isArray(body.images)) {
-    if (body.images.length > 0) {
-      body.image = body.images[0];
-      body.additionalImages = JSON.stringify(body.images.slice(1));
-    } else {
-      body.image = "";
-      body.additionalImages = "[]";
+    // Ensure numerical fields are proper numbers
+    if (body.price !== undefined) body.price = Number(body.price);
+    if (body.originalPrice !== undefined && body.originalPrice !== null) body.originalPrice = Number(body.originalPrice);
+    if (body.order !== undefined) body.order = Number(body.order);
+
+    // Map `images` array to `image` and `additionalImages`
+    if (body.images && Array.isArray(body.images)) {
+      if (body.images.length > 0) {
+        body.image = body.images[0];
+        body.additionalImages = JSON.stringify(body.images.slice(1));
+      } else {
+        body.image = "";
+        body.additionalImages = "[]";
+      }
+      delete body.images;
     }
-    delete body.images;
+
+    const pc = await db.prebuiltPC.update({ where: { id }, data: body });
+
+    // Invalidate prebuilt-pcs cache
+    invalidate("prebuilt-pcs");
+
+    return NextResponse.json({ success: true, data: pc });
+  } catch (error) {
+    console.error("PUT PrebuiltPC error:", error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Failed to update Prebuilt PC" },
+      { status: 500 }
+    );
   }
-
-  const pc = await db.prebuiltPC.update({ where: { id }, data: body });
-
-  // Invalidate prebuilt-pcs cache
-  invalidate("prebuilt-pcs");
-
-  return NextResponse.json({ success: true, data: pc });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

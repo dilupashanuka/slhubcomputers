@@ -26,6 +26,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    // Ensure numerical fields are proper numbers
+    if (body.price !== undefined) body.price = Number(body.price);
+    if (body.originalPrice !== undefined && body.originalPrice !== null) body.originalPrice = Number(body.originalPrice);
+    if (body.order !== undefined) body.order = Number(body.order);
+
     // Map `images` array to `image` and `additionalImages`
     if (body.images && Array.isArray(body.images)) {
       if (body.images.length > 0) {
