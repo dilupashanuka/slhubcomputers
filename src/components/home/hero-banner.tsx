@@ -10,6 +10,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/store/use-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -109,38 +110,73 @@ export function HeroBanner() {
         )}
 
         <div className="w-full px-6 md:px-12 lg:px-20 py-16 relative z-10">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-12">
-            {/* Text Content */}
-            <div className="flex-1 text-white text-center md:text-left">
-              {banner.subtitle && (
-                <Badge variant="secondary" className="mb-6 bg-blue-500/20 text-blue-100 hover:bg-blue-500/30 border-blue-400/30 px-4 py-1 text-sm uppercase tracking-wider">
-                  {banner.subtitle}
-                </Badge>
-              )}
-              <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight drop-shadow-sm">
-                {banner.title}
-              </h1>
-              <p className="text-lg md:text-xl mb-10 max-w-xl text-blue-50/90 leading-relaxed">
-                {banner.description}
-              </p>
-              <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                <Button
-                  onClick={() => setCurrentView(banner.view || "home")}
-                  size="lg"
-                  className="bg-white hover:bg-gray-100 text-blue-900 font-bold px-8 py-6 rounded-xl shadow-lg transition-all hover:scale-105 text-lg"
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="flex flex-col md:row items-center justify-between gap-12"
+            >
+              {/* Text Content */}
+              <div className="flex-1 text-white text-center md:text-left">
+                {banner.subtitle && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Badge variant="secondary" className="mb-6 bg-blue-500/20 text-blue-100 hover:bg-blue-500/30 border-blue-400/30 px-4 py-1 text-sm uppercase tracking-wider">
+                      {banner.subtitle}
+                    </Badge>
+                  </motion.div>
+                )}
+                <motion.h1
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight drop-shadow-sm"
                 >
-                  {banner.buttonText || "Learn More"}
-                </Button>
+                  {banner.title}
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-lg md:text-xl mb-10 max-w-xl text-blue-50/90 leading-relaxed"
+                >
+                  {banner.description}
+                </motion.p>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex flex-wrap gap-4 justify-center md:justify-start"
+                >
+                  <Button
+                    onClick={() => setCurrentView(banner.view || "home")}
+                    size="lg"
+                    className="bg-white hover:bg-gray-100 text-blue-900 font-bold px-8 py-6 rounded-xl shadow-lg transition-all hover:scale-105 text-lg"
+                  >
+                    {banner.buttonText || "Learn More"}
+                  </Button>
+                </motion.div>
               </div>
-            </div>
 
-            {/* Visual Element (Icon fallback or just spacer) */}
-            {!banner.image && banner.icon && (
-              <div className="hidden md:block opacity-40 animate-pulse">
-                {banner.icon}
-              </div>
-            )}
-          </div>
+              {/* Visual Element (Icon fallback or just spacer) */}
+              {!banner.image && banner.icon && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
+                  animate={{ opacity: 0.4, scale: 1, rotate: 0 }}
+                  transition={{ delay: 0.4, duration: 0.8 }}
+                  className="hidden md:block animate-pulse"
+                >
+                  {banner.icon}
+                </motion.div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
