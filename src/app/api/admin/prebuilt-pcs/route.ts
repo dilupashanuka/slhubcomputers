@@ -16,7 +16,7 @@ export async function GET() {
     return NextResponse.json({ success: true, data: prebuiltPCs });
   } catch (error) {
     console.error("Admin prebuilt PCs GET error:", error);
-    return NextResponse.json({ success: false, error: "Failed to fetch" }, { status: 500 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
