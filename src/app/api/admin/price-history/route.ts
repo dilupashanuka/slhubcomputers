@@ -9,6 +9,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+import { Prisma } from "@prisma/client";
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -20,11 +22,11 @@ export async function GET(request: NextRequest) {
     const categoryId = searchParams.get("categoryId");
 
     // Build where clause
-    const where: Record<string, unknown> = {};
+    const where: any = {};
 
     if (productId) where.productId = productId;
     if (categoryId) {
-      where.product = { categoryId };
+      where.product = { is: { categoryId } };
     }
 
     if (from || to) {
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [history, total] = await Promise.all([
-      db.priceHistory.findMany({
+      (db.priceHistory as any).findMany({
         where,
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
@@ -56,7 +58,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Enrich with previous price for change calculation
-    const allHistory = await db.priceHistory.findMany({
+    const allHistory = await (db.priceHistory as any).findMany({
       where,
       orderBy: { createdAt: "asc" },
       select: { id: true, productId: true, price: true, createdAt: true },
@@ -77,7 +79,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const data = history.map((h) => {
+    const data = history.map((h: any) => {
       const prevPrice = prevPriceMap[h.id];
       const changePercent =
         prevPrice !== undefined

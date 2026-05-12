@@ -280,7 +280,7 @@ export default function AdminDashboard() {
 
   // Prepare pie chart data
   const pieData = (stats?.orderStatusDistribution || []).map((item) => {
-    const total = stats.orderStatusDistribution.reduce((s, i) => s + i.count, 0);
+    const total = (stats?.orderStatusDistribution || []).reduce((s, i) => s + i.count, 0);
     return { ...item, percentage: total > 0 ? Math.round((item.count / total) * 100) : 0 };
   }) || [];
 
@@ -426,14 +426,14 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCardConfig.map((card) => {
           const Icon = card.icon;
-          const rawValue = stats ? (stats as Record<string, unknown>)[card.key] ?? 0 : 0;
+          const rawValue = stats ? (stats as any)[card.key] ?? 0 : 0;
           const value = stats
             ? card.isCurrency
               ? formatCompactLKR(rawValue as number)
               : (rawValue as number).toLocaleString("en-LK")
             : "...";
           const changeValue = card.changeKey && stats
-            ? (stats as Record<string, unknown>)[card.changeKey] as number
+            ? (stats as any)[card.changeKey] as number
             : null;
 
           return (

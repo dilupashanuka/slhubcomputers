@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       const expiresAt = new Date();
       expiresAt.setMonth(expiresAt.getMonth() + (Number(expiresMonths) || 12));
 
-      const giftCards = [];
+      const giftCards: any[] = [];
 
       for (let i = 0; i < numCount; i++) {
         const code = await generateUniqueGiftCardCode();

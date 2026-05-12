@@ -84,6 +84,8 @@ model Product {
   warranty      String?   // Warranty period text (e.g., "3 Years")
   reviews       Review[]
   orderItems    OrderItem[]
+  stockAlertSubscriptions StockAlertSubscription[]
+  priceHistories PriceHistory[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -514,6 +516,7 @@ model AnalyticsEvent {
 model PriceHistory {
   id            String   @id @default(cuid())
   productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   price         Float
   originalPrice Float?
   changedBy     String?
@@ -533,6 +536,9 @@ model StockAlertSubscription {
   email      String
   notifiedAt DateTime?
   createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, email])
   @@index([productId])

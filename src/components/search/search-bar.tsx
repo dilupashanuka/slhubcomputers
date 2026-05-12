@@ -64,13 +64,12 @@ function useVoiceSearch(
 ) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     const SpeechRecognitionAPI =
       typeof window !== "undefined"
-        ? (window as unknown as { SpeechRecognition?: typeof SpeechRecognition; webkitSpeechRecognition?: typeof SpeechRecognition }).SpeechRecognition ||
-          (window as unknown as { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
         : undefined;
 
     if (SpeechRecognitionAPI) {
@@ -81,7 +80,7 @@ function useVoiceSearch(
       recognition.lang = lang;
       recognition.maxAlternatives = 1;
 
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         if (event.results[0].isFinal) {
           onResult(transcript);
