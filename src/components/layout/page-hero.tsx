@@ -2,12 +2,18 @@
 
 import { Cpu } from "lucide-react";
 
+interface PageHeroBadge {
+  icon: React.ReactNode;
+  text: string;
+}
+
 interface PageHeroProps {
   title: string;
   subtitle?: string;
   description?: string;
   gradient?: string;
   icon?: React.ReactNode;
+  badges?: PageHeroBadge[];
 }
 
 export function PageHero({
@@ -16,6 +22,7 @@ export function PageHero({
   description,
   gradient = "from-blue-600 to-blue-800",
   icon = <Cpu className="w-12 h-12" />,
+  badges,
 }: PageHeroProps) {
   return (
     <section className={`bg-gradient-to-br ${gradient} text-white py-12 md:py-20 mb-8`}>
@@ -37,6 +44,19 @@ export function PageHero({
           <p className="text-white/70 max-w-2xl mx-auto text-sm md:text-base">
             {description}
           </p>
+        )}
+        {badges && badges.length > 0 && (
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
+            {badges.map((badge, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 bg-black/25 backdrop-blur-sm text-sm font-medium text-white/90 shadow-sm"
+              >
+                {badge.icon}
+                <span>{badge.text}</span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </section>
