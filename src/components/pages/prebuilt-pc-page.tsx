@@ -400,27 +400,26 @@ export function PrebuiltPCPage() {
         ]}
       />
 
-      <div className="container mx-auto px-4 py-8">
       {/* ---- Category Filter Tabs ---- */}
-      <div className="sticky top-20 z-30 py-6 mb-8 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 shadow-sm transition-all duration-300">
+      <div className="sticky top-16 z-30 py-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-center gap-3">
             {CATEGORY_TABS.map((tab) => (
               <Button
                 key={tab.key}
                 variant={activeCategory === tab.key ? "default" : "outline"}
-                size="lg"
+                size="sm"
                 onClick={() => setActiveCategory(tab.key)}
                 className={`
-                  rounded-full px-8 py-6 font-semibold transition-all duration-500 group
+                  rounded-full px-6 py-5 font-semibold transition-all duration-300 group
                   ${activeCategory === tab.key 
-                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-500/25 scale-105 border-0" 
+                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 scale-105 border-0" 
                     : "bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-blue-500/50"
                   }
                 `}
               >
-                <div className="flex items-center gap-2.5">
-                  <span className={`transition-transform duration-500 ${activeCategory === tab.key ? "scale-110" : "group-hover:scale-110"}`}>
+                <div className="flex items-center gap-2">
+                  <span className={`transition-transform duration-300 ${activeCategory === tab.key ? "scale-110" : "group-hover:scale-110"}`}>
                     {tab.icon}
                   </span>
                   <span>{tab.label}</span>
@@ -431,6 +430,7 @@ export function PrebuiltPCPage() {
         </div>
       </div>
 
+      <div className="container mx-auto px-4 py-8">
         {/* ---- Loading State ---- */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
