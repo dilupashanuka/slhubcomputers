@@ -21,8 +21,16 @@ import {
   Loader2, 
   Calendar as CalendarIcon,
   CheckCircle2,
-  Clock
+  Clock,
+  Layers
 } from "lucide-react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,6 +80,8 @@ export default function FlashDealsPage() {
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Fetch active deals
@@ -90,16 +100,34 @@ export default function FlashDealsPage() {
     fetchDeals();
   }, [refreshKey]);
 
+  // Fetch categories for filter
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/categories");
+        const data = await res.json();
+        if (data.success) setCategories(data.data || []);
+      } catch (error) {
+        console.error("Fetch categories error:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   // Search products to add
-  const handleSearch = async (term: string) => {
+  const handleSearch = useCallback(async (term: string, catId: string) => {
     setSearch(term);
-    if (term.length < 2) {
+    if (term.length < 2 && catId === "all") {
       setAllProducts([]);
       return;
     }
     setSearching(true);
     try {
-      const res = await fetch(`/api/admin/products?limit=10&search=${term}`);
+      let url = `/api/admin/products?limit=20`;
+      if (term) url += `&search=${term}`;
+      if (catId !== "all") url += `&categoryId=${catId}`;
+      
+      const res = await fetch(url);
       const data = await res.json();
       if (data.success) {
         // Filter out already in deals
@@ -111,7 +139,14 @@ export default function FlashDealsPage() {
     } finally {
       setSearching(false);
     }
-  };
+  }, []);
+
+  // Update search when category changes
+  useEffect(() => {
+    if (dialogOpen) {
+      handleSearch(search, selectedCategory);
+    }
+  }, [selectedCategory, dialogOpen, handleSearch, search]);
 
   const handleAddToDeals = async (productId: string) => {
     try {
@@ -302,8 +337,26 @@ export default function FlashDealsPage() {
                 placeholder="Search products by name..."
                 className="pl-8"
                 value={search}
-                onChange={(e) => handleSearch(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value, selectedCategory)}
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Filter by Category</Label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger>
+                  <Layers className="w-3 h-3 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="max-h-[300px] overflow-y-auto space-y-2">

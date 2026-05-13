@@ -72,6 +72,7 @@ interface Settings {
   smsStatusUpdates: boolean;
   smsBackInStock: boolean;
   smsDeliveryUpdates: boolean;
+  enableFlashDeals: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -122,6 +123,7 @@ const defaultSettings: Settings = {
   smsStatusUpdates: true,
   smsBackInStock: true,
   smsDeliveryUpdates: true,
+  enableFlashDeals: true,
 };
 
 // ---------------------------------------------------------------------------
@@ -208,6 +210,7 @@ export default function SettingsPage() {
           smsStatusUpdates: data.data.smsStatusUpdates ?? defaultSettings.smsStatusUpdates,
           smsBackInStock: data.data.smsBackInStock ?? defaultSettings.smsBackInStock,
           smsDeliveryUpdates: data.data.smsDeliveryUpdates ?? defaultSettings.smsDeliveryUpdates,
+          enableFlashDeals: data.data.enableFlashDeals ?? defaultSettings.enableFlashDeals,
         });
       }
     } catch (error) {
@@ -625,6 +628,14 @@ export default function SettingsPage() {
                     id="f-reviews"
                     checked={form.enableReviews}
                     onCheckedChange={(val) => updateField("enableReviews", val)}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="cursor-pointer" htmlFor="f-flashdeals">Flash Deals Section</Label>
+                  <Switch
+                    id="f-flashdeals"
+                    checked={form.enableFlashDeals}
+                    onCheckedChange={(val) => updateField("enableFlashDeals", val)}
                   />
                 </div>
               </div>

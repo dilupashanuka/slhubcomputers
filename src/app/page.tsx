@@ -40,6 +40,7 @@ const GiftCardPage = dynamic(() => import("@/components/pages/gift-card-page").t
 
 import { WhatsAppFloat } from "@/components/layout/whatsapp-float";
 import { BackToTop } from "@/components/layout/back-to-top";
+import { SEOManager } from "@/components/layout/seo-manager";
 import ChatWidget from "@/components/chat/chat-widget";
 import { Zap } from "lucide-react";
 
@@ -209,6 +210,7 @@ export default function HomePageRouter() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEOManager />
       <Header />
       <main className="flex-1">
         {renderView()}

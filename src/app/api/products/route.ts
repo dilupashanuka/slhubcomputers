@@ -29,7 +29,15 @@ export async function GET(request: NextRequest) {
     if (isNew?.toLowerCase() === "true") where.isNew = true;
     if (isOnSale?.toLowerCase() === "true") where.isOnSale = true;
     if (isBestSeller?.toLowerCase() === "true") where.isBestSeller = true;
-    if (isDeal?.toLowerCase() === "true") where.isDeal = true;
+    
+    // For deals, only show those that haven't expired
+    if (isDeal?.toLowerCase() === "true") {
+      where.isDeal = true;
+      where.OR = [
+        { dealEndDate: null }, // No end date = permanent deal
+        { dealEndDate: { gte: new Date() } } // End date in the future
+      ];
+    }
 
     if (minPrice || maxPrice) {
       where.price = {};

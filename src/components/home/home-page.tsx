@@ -19,7 +19,7 @@ export function HomePage() {
       
       <div className="container mx-auto px-4 space-y-12 py-12">
         <CategoryGrid />
-        <FlashDeals />
+        {siteSettings?.enableFlashDeals !== false && <FlashDeals />}
         <ProductSection
           title="Featured Products"
           subtitle="Hand-picked by our experts"

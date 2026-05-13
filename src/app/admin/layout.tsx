@@ -91,6 +91,7 @@ const navGroups = [
       { label: "Brands", href: "/admin/brands", icon: Tag },
       { label: "Pre-Built PCs", href: "/admin/prebuilt-pcs", icon: Monitor },
       { label: "Price History", href: "/admin/price-history", icon: TrendingUp },
+      { label: "Flash Deals", href: "/admin/flash-deals", icon: ShoppingCart },
       { label: "Gift Cards", href: "/admin/gift-cards", icon: CreditCard },
     ],
   },
@@ -210,11 +211,13 @@ function SidebarContent({
   pendingOrders,
   unreadMessages,
   unreadChat,
+  navGroups,
 }: {
   onClose?: () => void;
   pendingOrders: number;
   unreadMessages: number;
   unreadChat: number;
+  navGroups: { label: string; items: any[] }[];
 }) {
   const pathname = usePathname();
 
@@ -602,9 +605,10 @@ export default function AdminLayout({
     { type: string; title: string; description: string; timestamp: string; status?: string }[]
   >([]);
 
-  // Real notification state from Notification model
+  // State for notifications and site settings
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+  const [siteSettings, setSiteSettings] = useState<any>(null);
 
   // Logout handler
   const handleLogout = useCallback(async () => {
@@ -657,51 +661,77 @@ export default function AdminLayout({
     }
   }, []);
 
-  // Fetch notification data - both stats and notification model
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        // Fetch stats (pending orders, unread messages, recent activity)
-        const statsRes = await fetch("/api/admin/stats");
-        const statsData = await statsRes.json();
-        if (statsData.success) {
-          setPendingOrders(statsData.data.pendingOrders || 0);
-          setUnreadMessages(statsData.data.unreadMessages || 0);
-          setRecentActivity(statsData.data.recentActivity || []);
-        }
-
-        // Fetch unread chat messages count
-        try {
-          const chatRes = await fetch("/api/admin/chat");
-          const chatData = await chatRes.json();
-          if (chatData.success) {
-            const totalUnread = (chatData.data as { unreadCount: number }[]).reduce(
-              (sum, s) => sum + s.unreadCount,
-              0
-            );
-            setUnreadChat(totalUnread);
-          }
-        } catch {
-          // Chat fetch is non-critical
-        }
-
-        // Fetch real notifications from Notification model
-        const notifRes = await fetch("/api/admin/notifications?includeCount=true&limit=20");
-        const notifData = await notifRes.json();
-        if (notifData.success) {
-          setNotifications(notifData.data.notifications || []);
-          setUnreadNotificationCount(notifData.data.unreadCount || 0);
-        }
-      } catch (error) {
-        console.error("Failed to fetch notifications:", error);
+  // Fetch all data (stats, notifications, settings)
+  const fetchData = useCallback(async () => {
+    try {
+      // Fetch stats (pending orders, unread messages, recent activity)
+      const statsRes = await fetch("/api/admin/stats");
+      const statsData = await statsRes.json();
+      if (statsData.success) {
+        setPendingOrders(statsData.data.pendingOrders || 0);
+        setUnreadMessages(statsData.data.unreadMessages || 0);
+        setRecentActivity(statsData.data.recentActivity || []);
       }
-    };
-    fetchNotifications();
 
-    // Refresh notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+      // Fetch unread chat messages count
+      try {
+        const chatRes = await fetch("/api/admin/chat");
+        const chatData = await chatRes.json();
+        if (chatData.success) {
+          const totalUnread = (chatData.data as { unreadCount: number }[]).reduce(
+            (sum, s) => sum + s.unreadCount,
+            0
+          );
+          setUnreadChat(totalUnread);
+        }
+      } catch {
+        // Chat fetch is non-critical
+      }
+
+      // Fetch real notifications from Notification model
+      const notifRes = await fetch("/api/admin/notifications?includeCount=true&limit=20");
+      const notifData = await notifRes.json();
+      if (notifData.success) {
+        setNotifications(notifData.data.notifications || []);
+        setUnreadNotificationCount(notifData.data.unreadCount || 0);
+      }
+
+      // Fetch site settings for dynamic navigation
+      const settingsRes = await fetch("/api/admin/settings");
+      const settingsData = await settingsRes.json();
+      if (settingsData.success) {
+        setSiteSettings(settingsData.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch admin data:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchData();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  // Filter navigation groups based on site settings
+  const filteredNavGroups = useMemo(() => {
+    if (!siteSettings) return navGroups;
+
+    return navGroups.map(group => ({
+      ...group,
+      items: group.items.filter(item => {
+        if (item.label === "Pre-Built PCs" && siteSettings.enablePrebuiltPC === false) return false;
+        if (item.label === "Affiliates" && siteSettings.enableAffiliate === false) return false;
+        if (item.label === "Gift Cards" && siteSettings.enableGiftCards === false) return false;
+        if (item.label === "Services" && siteSettings.enableRepairServices === false) return false;
+        if (item.label === "Testimonials" && siteSettings.enableTestimonials === false) return false;
+        if (item.label === "Reviews" && siteSettings.enableReviews === false) return false;
+        if (item.label === "Flash Deals" && siteSettings.enableFlashDeals === false) return false;
+        return true;
+      })
+    })).filter(group => group.items.length > 0);
+  }, [siteSettings]);
 
   // Get pathname for conditional rendering
   const pathname = usePathname();
@@ -723,6 +753,7 @@ export default function AdminLayout({
             pendingOrders={pendingOrders}
             unreadMessages={unreadMessages}
             unreadChat={unreadChat}
+            navGroups={filteredNavGroups}
           />
         </aside>
 
@@ -749,6 +780,7 @@ export default function AdminLayout({
                   pendingOrders={pendingOrders}
                   unreadMessages={unreadMessages}
                   unreadChat={unreadChat}
+                  navGroups={filteredNavGroups}
                 />
               </SheetContent>
             </Sheet>
