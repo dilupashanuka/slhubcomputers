@@ -101,8 +101,8 @@ export default function HomePageRouter() {
         // Silent fail for affiliate tracking
       }
     };
-    if (!loading) trackAffiliate();
-  }, [loading]);
+    trackAffiliate();
+  }, []);
 
   // Render the appropriate view based on currentView
   const renderView = () => {
