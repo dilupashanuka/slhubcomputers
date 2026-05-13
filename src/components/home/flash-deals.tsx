@@ -18,15 +18,23 @@ import { ShoppingCart, Heart, Eye, Timer, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import type { ProductType, CartItemType, WishlistItemType } from "@/types";
 
-// Countdown timer - sale ends at midnight
-function useCountdown() {
+// Countdown timer - using dynamic end date
+function useCountdown(targetDate?: string | null) {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     const calculate = () => {
       const now = new Date();
-      const end = new Date();
-      end.setHours(23, 59, 59, 999);
+      let end: Date;
+      
+      if (targetDate) {
+        end = new Date(targetDate);
+      } else {
+        // Fallback to midnight if no date provided
+        end = new Date();
+        end.setHours(23, 59, 59, 999);
+      }
+
       const diff = end.getTime() - now.getTime();
       if (diff <= 0) return { hours: 0, minutes: 0, seconds: 0 };
       return {
@@ -39,7 +47,7 @@ function useCountdown() {
     setTimeLeft(calculate());
     const timer = setInterval(() => setTimeLeft(calculate()), 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [targetDate]);
 
   return timeLeft;
 }
@@ -48,13 +56,22 @@ export function FlashDeals() {
   const [products, setProducts] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart, addToWishlist, navigateToProduct, navigateToCategory } = useStore();
-  const timeLeft = useCountdown();
+  
+  // Use the end date of the first product as the reference for the section timer
+  const [dealEndDate, setDealEndDate] = useState<string | null>(null);
+  const timeLeft = useCountdown(dealEndDate);
 
   useEffect(() => {
-    fetch("/api/products?isOnSale=true&limit=6&sort=price-desc")
+    fetch("/api/products?isDeal=true&limit=6&sort=price-desc")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) setProducts(data.data);
+        if (data.success && data.data.length > 0) {
+          setProducts(data.data);
+          // Set the section timer to the first product's end date
+          setDealEndDate(data.data[0].dealEndDate);
+        } else {
+          setProducts([]);
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));

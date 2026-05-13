@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const isNew = searchParams.get("isNew");
     const isOnSale = searchParams.get("isOnSale");
     const isBestSeller = searchParams.get("isBestSeller");
+    const isDeal = searchParams.get("isDeal");
     const search = searchParams.get("search");
     const sort = searchParams.get("sort") || "newest";
     const page = parseInt(searchParams.get("page") || "1");
@@ -28,6 +29,7 @@ export async function GET(request: NextRequest) {
     if (isNew?.toLowerCase() === "true") where.isNew = true;
     if (isOnSale?.toLowerCase() === "true") where.isOnSale = true;
     if (isBestSeller?.toLowerCase() === "true") where.isBestSeller = true;
+    if (isDeal?.toLowerCase() === "true") where.isDeal = true;
 
     if (minPrice || maxPrice) {
       where.price = {};
