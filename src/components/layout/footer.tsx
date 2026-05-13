@@ -38,7 +38,7 @@ const nav = (view: ViewType) => {
 };
 
 export function Footer() {
-  const { siteSettings } = useStore();
+  const { siteSettings, isModuleEnabled } = useStore();
 
   return (
     <footer className="bg-gray-900 text-gray-300 mt-auto">

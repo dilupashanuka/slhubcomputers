@@ -48,7 +48,7 @@ import { Zap } from "lucide-react";
 // Main Page Component - Routes between views based on Zustand state
 // ---------------------------------------------------------------------------
 export default function HomePageRouter() {
-  const { currentView, selectedCategoryId, selectedProductId, siteSettings } = useStore();
+  const { currentView, selectedCategoryId, selectedProductId, siteSettings, isModuleEnabled } = useStore();
 
 
   // Analytics tracking effect

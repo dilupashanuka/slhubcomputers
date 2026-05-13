@@ -37,7 +37,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
 export function CategoryGrid() {
   const [categories, setCategories] = useState<CategoryType[]>([]);
   const [loading, setLoading] = useState(true);
-  const { navigateToCategory, siteSettings } = useStore();
+  const { navigateToCategory, isModuleEnabled } = useStore();
 
   useEffect(() => {
     fetch("/api/categories")
@@ -45,7 +45,7 @@ export function CategoryGrid() {
       .then((data) => {
         if (data.success) {
           let cats = data.data;
-          if (siteSettings?.enableCCTV === false) {
+          if (!isModuleEnabled("enableCCTV")) {
             cats = cats.filter((c: any) => c.slug !== "cctv-security");
           }
           setCategories(cats);
@@ -53,7 +53,7 @@ export function CategoryGrid() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [siteSettings]);
+  }, [isModuleEnabled]);
 
   return (
     <section className="container mx-auto px-4 py-10">
