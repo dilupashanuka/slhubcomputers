@@ -63,6 +63,8 @@ export default function HomePageRouter() {
         }
       } catch (error) {
         console.error("Failed to fetch settings:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchSettings();
@@ -95,34 +97,7 @@ export default function HomePageRouter() {
     if (!loading) trackPageView();
   }, [currentView, selectedProductId, loading]);
 
-  // Auto-seed database on first load with safety timeout
-  useEffect(() => {
-    const seedDatabase = async () => {
-      if (seeded) return;
-      
-      // Safety timeout to hide loading even if API hangs
-      const timeout = setTimeout(() => {
-        setLoading(false);
-      }, 5000);
-
-      try {
-        const res = await fetch("/api/seed", { method: "POST" });
-        if (res.ok) {
-          const data = await res.json().catch(() => ({}));
-          if (data.success) {
-            console.log("Database seeded successfully");
-          }
-        }
-      } catch (error) {
-        console.error("Seed error:", error);
-      } finally {
-        clearTimeout(timeout);
-        setSeeded(true);
-        setLoading(false);
-      }
-    };
-    seedDatabase();
-  }, [seeded]);
+  // Removed auto-seed logic for production stability
 
   // Track affiliate referral from URL
   useEffect(() => {

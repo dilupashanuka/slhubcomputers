@@ -1,49 +1,59 @@
 // =============================================================================
-// SL HUB COMPUTER - Admin FAQs Page
+// SL HUB COMPUTER - Admin FAQs Management Page
 // =============================================================================
-// Purpose: Full CRUD management page for FAQs with category filtering,
-//          table view, create/edit dialog, and delete confirmation.
-// Features:
-//   - FAQ table with question (truncated), category (color-coded badge),
-//     order, active status, actions (edit/delete)
-//   - Category filter tabs: All, General, Products & Orders, Repair & Services, CCTV & Security
-//   - Create/Edit dialog with question, answer, category select, order, active toggle
-//   - Delete confirmation with AlertDialog
-// Client: SL HUB COMPUTER, Deiyandara | Currency: LKR (Rs.)
+// Purpose: Management dashboard for FAQs.
+// Features: 
+//   - List all FAQs from database
+//   - Add new FAQs with category assignment
+//   - Edit existing questions and answers
+//   - Delete FAQs with confirmation
+//   - Toggle active status
 // =============================================================================
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { 
+  Plus, 
+  Search, 
+  Trash2, 
+  Edit2, 
+  HelpCircle, 
+  Save, 
+  X, 
+  Loader2,
+  CheckCircle2,
+  AlertCircle
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle,
+  CardDescription
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+import { Switch } from "@/components/ui/switch";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
 } from "@/components/ui/select";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
-} from "@/components/ui/alert-dialog";
 
-// ---------------------------------------------------------------------------
-// Type Definitions
-// ---------------------------------------------------------------------------
 interface FAQ {
   id: string;
   question: string;
@@ -52,342 +62,340 @@ interface FAQ {
   order: number;
   isActive: boolean;
   createdAt: string;
-  updatedAt: string;
 }
 
-// ---------------------------------------------------------------------------
-// Category options
-// ---------------------------------------------------------------------------
-const CATEGORIES = ["General", "Products & Orders", "Repair & Services", "CCTV & Security"];
+const FAQ_CATEGORIES = [
+  "General",
+  "Products & Orders",
+  "Repair & Services",
+  "CCTV & Security",
+  "Warranty & Returns",
+  "Affiliate & Partner"
+];
 
-// ---------------------------------------------------------------------------
-// Category configuration with colors
-// ---------------------------------------------------------------------------
-const categoryColors: Record<string, string> = {
-  "General": "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  "Products & Orders": "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
-  "Repair & Services": "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
-  "CCTV & Security": "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
-};
-
-function getCategoryColor(category: string) {
-  return categoryColors[category] || "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
-}
-
-// ---------------------------------------------------------------------------
-// Default form state
-// ---------------------------------------------------------------------------
-const defaultForm = {
-  question: "",
-  answer: "",
-  category: "General",
-  order: 0,
-  isActive: true,
-};
-
-// ---------------------------------------------------------------------------
-// FAQs Page Component
-// ---------------------------------------------------------------------------
-export default function FAQsPage() {
+export default function AdminFAQsPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // Dialog states
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(defaultForm);
+  // Form state
+  const [formData, setFormData] = useState({
+    question: "",
+    answer: "",
+    category: "General",
+    order: 0,
+    isActive: true
+  });
 
-  // Delete confirmation state
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  // Refresh key
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  // -------------------------------------------------------------------------
-  // Fetch FAQs from API
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    let cancelled = false;
-    const fetchData = async () => {
-      try {
-        const url = activeCategory !== "all" ? `/api/admin/faqs?category=${encodeURIComponent(activeCategory)}` : "/api/admin/faqs";
-        const res = await fetch(url);
-        const data = await res.json();
-        if (!cancelled && data.success) setFaqs(data.data || []);
-      } catch (error) {
-        console.error("Fetch error:", error);
-      } finally {
-        if (!cancelled) setLoading(false);
+  const fetchFaqs = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin/faqs");
+      const data = await res.json();
+      if (data.success) {
+        setFaqs(data.data);
       }
-    };
-    fetchData();
-    return () => { cancelled = true; };
-  }, [refreshKey, activeCategory]);
+    } catch (error) {
+      console.error("Failed to fetch FAQs:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // -------------------------------------------------------------------------
-  // Open dialog for creating a new FAQ
-  // -------------------------------------------------------------------------
-  const handleCreate = () => {
-    setEditingId(null);
-    setForm(defaultForm);
-    setDialogOpen(true);
+  useEffect(() => {
+    fetchFaqs();
+  }, [fetchFaqs]);
+
+  const handleOpenAdd = () => {
+    setEditingFaq(null);
+    setFormData({
+      question: "",
+      answer: "",
+      category: "General",
+      order: faqs.length,
+      isActive: true
+    });
+    setIsDialogOpen(true);
   };
 
-  // -------------------------------------------------------------------------
-  // Open dialog for editing an existing FAQ
-  // -------------------------------------------------------------------------
-  const handleEdit = (faq: FAQ) => {
-    setEditingId(faq.id);
-    setForm({
+  const handleOpenEdit = (faq: FAQ) => {
+    setEditingFaq(faq);
+    setFormData({
       question: faq.question,
       answer: faq.answer,
       category: faq.category,
       order: faq.order,
-      isActive: faq.isActive,
+      isActive: faq.isActive
     });
-    setDialogOpen(true);
+    setIsDialogOpen(true);
   };
 
-  // -------------------------------------------------------------------------
-  // Handle form submission (create or update)
-  // -------------------------------------------------------------------------
   const handleSubmit = async () => {
+    if (!formData.question || !formData.answer) return;
+
     try {
-      const url = editingId ? `/api/admin/faqs/${editingId}` : "/api/admin/faqs";
-      const method = editingId ? "PUT" : "POST";
+      setActionLoading(true);
+      const url = editingFaq ? `/api/admin/faqs/${editingFaq.id}` : "/api/admin/faqs";
+      const method = editingFaq ? "PUT" : "POST";
 
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
       if (data.success) {
-        setDialogOpen(false);
-        setRefreshKey((k) => k + 1);
-      } else {
-        alert(data.error || "Failed to save FAQ");
+        setIsDialogOpen(false);
+        fetchFaqs();
       }
     } catch (error) {
-      console.error("Save error:", error);
+      console.error("Error saving FAQ:", error);
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  // -------------------------------------------------------------------------
-  // Handle FAQ deletion
-  // -------------------------------------------------------------------------
-  const handleDelete = async () => {
-    if (!deleteId) return;
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this FAQ?")) return;
+
     try {
-      const res = await fetch(`/api/admin/faqs/${deleteId}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/faqs/${id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
-        setDeleteId(null);
-        setRefreshKey((k) => k + 1);
+        fetchFaqs();
       }
     } catch (error) {
-      console.error("Delete error:", error);
+      console.error("Error deleting FAQ:", error);
     }
   };
 
+  const filteredFaqs = faqs.filter(faq => 
+    faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    faq.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    faq.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="space-y-4">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto pb-20">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">FAQs</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage frequently asked questions
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">FAQ Management</h1>
+          <p className="text-muted-foreground">Manage frequently asked questions displayed on the site.</p>
         </div>
-        <Button size="sm" onClick={handleCreate}>
-          <Plus className="size-3.5 mr-1" />
-          Add FAQ
+        <Button onClick={handleOpenAdd} className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Add New FAQ
         </Button>
       </div>
 
-      {/* Category Filter Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {["all", ...CATEGORIES].map((cat) => (
-          <Button
-            key={cat}
-            variant={activeCategory === cat ? "default" : "outline"}
-            size="sm"
-            onClick={() => setActiveCategory(cat)}
-          >
-            {cat === "all" ? "All" : cat}
-          </Button>
-        ))}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total FAQs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{faqs.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Active</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-500">{faqs.filter(f => f.isActive).length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Categories</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-500">{new Set(faqs.map(f => f.category)).size}</div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* FAQs Table */}
+      {/* Filters & List */}
       <Card>
-        <CardContent className="p-0">
-          <div className="max-h-[calc(100vh-320px)] overflow-y-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[40%]">Question</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-center">Order</TableHead>
-                  <TableHead className="text-center">Active</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : faqs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      No FAQs found. Add your first FAQ!
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  faqs.map((faq) => (
-                    <TableRow key={faq.id}>
-                      <TableCell className="font-medium max-w-xs truncate">
-                        {faq.question}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={`text-xs ${getCategoryColor(faq.category)}`}>
-                          {faq.category}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center text-sm">
-                        {faq.order}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant={faq.isActive ? "default" : "outline"}
-                          className="text-xs"
-                        >
-                          {faq.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon-sm" onClick={() => handleEdit(faq)}>
-                            <Pencil className="size-3" />
-                          </Button>
-                          <Button variant="ghost" size="icon-sm" onClick={() => setDeleteId(faq.id)}>
-                            <Trash2 className="size-3 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+        <CardHeader>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search by question, answer or category..." 
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="py-20 flex flex-col items-center justify-center text-muted-foreground">
+              <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-600" />
+              <p>Loading FAQs...</p>
+            </div>
+          ) : filteredFaqs.length > 0 ? (
+            <div className="space-y-4">
+              {/* Group by Category */}
+              {Array.from(new Set(filteredFaqs.map(f => f.category))).map(cat => (
+                <div key={cat} className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mt-6 first:mt-0 flex items-center gap-2">
+                    <Badge variant="outline" className="bg-blue-50/50 border-blue-200 text-blue-600">
+                      {cat}
+                    </Badge>
+                  </h3>
+                  <div className="grid gap-4">
+                    {filteredFaqs.filter(f => f.category === cat).sort((a, b) => a.order - b.order).map(faq => (
+                      <div 
+                        key={faq.id} 
+                        className="group relative flex flex-col p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-blue-500/50 hover:shadow-md transition-all"
+                      >
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <HelpCircle className="w-4 h-4 text-blue-500" />
+                              <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">{faq.question}</h4>
+                              {!faq.isActive && (
+                                <Badge variant="secondary" className="text-[10px] uppercase font-bold py-0 h-5">Inactive</Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">{faq.answer}</p>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                              onClick={() => handleOpenEdit(faq)}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                              onClick={() => handleDelete(faq.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-20 flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed rounded-xl">
+              <HelpCircle className="w-12 h-12 mb-4 opacity-20" />
+              <p className="text-lg font-medium">No FAQs found</p>
+              <p className="text-sm">Try adjusting your search or add a new FAQ.</p>
+              <Button onClick={handleOpenAdd} variant="outline" className="mt-4">
+                Add New FAQ
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Create/Edit FAQ Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      {/* Edit/Add Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>
-              {editingId ? "Edit FAQ" : "Add New FAQ"}
-            </DialogTitle>
+            <DialogTitle>{editingFaq ? "Edit FAQ" : "Add New FAQ"}</DialogTitle>
+            <DialogDescription>
+              {editingFaq ? "Update the question, answer and category details." : "Create a new frequently asked question for your users."}
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-2">
-            {/* Question */}
-            <div className="space-y-1.5">
-              <Label>Question</Label>
-              <Input
-                value={form.question}
-                onChange={(e) => setForm({ ...form, question: e.target.value })}
-                placeholder="Enter the question"
+          <div className="grid gap-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="question">Question</Label>
+              <Input 
+                id="question" 
+                placeholder="e.g., What is your return policy?" 
+                value={formData.question}
+                onChange={(e) => setFormData({...formData, question: e.target.value})}
               />
             </div>
 
-            {/* Answer */}
-            <div className="space-y-1.5">
-              <Label>Answer</Label>
-              <Textarea
-                value={form.answer}
-                onChange={(e) => setForm({ ...form, answer: e.target.value })}
-                placeholder="Enter the answer"
-                rows={4}
+            <div className="space-y-2">
+              <Label htmlFor="answer">Answer</Label>
+              <Textarea 
+                id="answer" 
+                placeholder="Provide a detailed answer here..." 
+                className="min-h-[150px]"
+                value={formData.answer}
+                onChange={(e) => setFormData({...formData, answer: e.target.value})}
               />
             </div>
 
-            {/* Category and Order */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Category</Label>
-                <Select
-                  value={form.category}
-                  onValueChange={(val) => setForm({ ...form, category: val })}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(val) => setFormData({...formData, category: val})}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
+                    {FAQ_CATEGORIES.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label>Order</Label>
-                <Input
-                  type="number"
-                  value={form.order}
-                  onChange={(e) => setForm({ ...form, order: Number(e.target.value) })}
-                  placeholder="0"
+              <div className="space-y-2">
+                <Label htmlFor="order">Display Order</Label>
+                <Input 
+                  id="order" 
+                  type="number" 
+                  value={formData.order}
+                  onChange={(e) => setFormData({...formData, order: parseInt(e.target.value) || 0})}
                 />
               </div>
             </div>
 
-            {/* Active Toggle */}
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={form.isActive}
-                onCheckedChange={(val) => setForm({ ...form, isActive: val })}
+            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+              <div className="space-y-0.5">
+                <Label className="text-base">Active Status</Label>
+                <p className="text-sm text-muted-foreground">This FAQ will be visible to customers when active.</p>
+              </div>
+              <Switch 
+                checked={formData.isActive} 
+                onCheckedChange={(val) => setFormData({...formData, isActive: val})}
               />
-              <Label>Active</Label>
             </div>
           </div>
 
           <DialogFooter>
-            <DialogClose>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleSubmit}>
-              {editingId ? "Update" : "Create"} FAQ
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={actionLoading}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmit} 
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={actionLoading || !formData.question || !formData.answer}
+            >
+              {actionLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              {editingFaq ? "Save Changes" : "Create FAQ"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete FAQ</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this FAQ? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

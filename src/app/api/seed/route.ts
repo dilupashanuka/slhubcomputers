@@ -870,6 +870,29 @@ export async function POST(request: NextRequest) {
     });
 
     // ========================================================================
+    // 8. SEED FAQs - Migrating static FAQs to database
+    // ========================================================================
+    await db.fAQ.deleteMany();
+    const faqsData = [
+      { question: "Where is SL HUB COMPUTER located?", answer: "We are located on Hakmana Road, Deiyandara, Sri Lanka. You can visit our store during business hours: Mon-Sat 9AM-7PM, Sun 10AM-5PM.", category: "General", order: 1, isActive: true },
+      { question: "What are your business hours?", answer: "We're open Monday to Saturday from 9:00 AM to 7:00 PM, and Sunday from 10:00 AM to 5:00 PM. We are closed on Poya days.", category: "General", order: 2, isActive: true },
+      { question: "How can I contact SL HUB COMPUTER?", answer: "You can reach us through multiple channels: Hotline/WhatsApp at 071 067 8944, Email at slhubcomputer@gmail.com.", category: "General", order: 3, isActive: true },
+      { question: "Do you offer warranty on your products?", answer: "Yes! All products sold by SL HUB COMPUTER come with genuine manufacturer warranty, typically 1-3 years for components.", category: "General", order: 4, isActive: true },
+      { question: "How can I place an order?", answer: "You can place orders through our website and checking out via WhatsApp or call us at 071 067 8944.", category: "Products & Orders", order: 5, isActive: true },
+      { question: "What payment methods do you accept?", answer: "We accept cash on delivery, bank transfers, and payments at our store in Deiyandara.", category: "Products & Orders", order: 6, isActive: true },
+      { question: "Do you deliver products to my area?", answer: "We deliver island-wide across Sri Lanka! Standard delivery takes 2-5 business days.", category: "Products & Orders", order: 7, isActive: true },
+      { question: "What repair services do you offer?", answer: "We offer comprehensive repair services including: laptop repair, screen replacement, motherboard repair, and OS installation.", category: "Repair & Services", order: 8, isActive: true },
+      { question: "How long do repairs usually take?", answer: "Simple repairs like OS installation can be completed same day. Hardware repairs typically take 1-3 business days.", category: "Repair & Services", order: 9, isActive: true },
+      { question: "What CCTV brands do you carry?", answer: "We are an authorized dealer for Tiandy CCTV products, offering a range of cameras and NVRs.", category: "CCTV & Security", order: 10, isActive: true },
+      { question: "Can I view my CCTV cameras remotely on my phone?", answer: "Yes! All our Tiandy CCTV systems support remote viewing via smartphone apps from anywhere.", category: "CCTV & Security", order: 11, isActive: true },
+    ];
+
+    await db.fAQ.createMany({
+      data: faqsData,
+      skipDuplicates: true,
+    });
+
+    // ========================================================================
     // Return success response with summary
     // ========================================================================
     return NextResponse.json({
@@ -882,6 +905,7 @@ export async function POST(request: NextRequest) {
         banners: bannersData.length,
         services: servicesData.length,
         prebuiltPCs: prebuiltPCsData.length,
+        faqs: faqsData.length,
         settings: "configured",
       },
     });

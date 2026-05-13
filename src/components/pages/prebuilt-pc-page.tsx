@@ -34,6 +34,7 @@ import {
   Building2,
   Briefcase,
   Star,
+  Shield,
 } from "lucide-react";
 import type { PrebuiltPCType, PrebuiltPCSpecs } from "@/types";
 
@@ -387,45 +388,55 @@ export function PrebuiltPCPage() {
   return (
     <div className="min-h-screen">
       <PageHero 
-        title="Pre-Built PCs"
+        title="PRE-BUILT PCS"
         subtitle="Ready to Use, Ready to Play"
         description="Choose from our carefully assembled PC packages — tested, optimized, and ready to go. No hassle, just plug in and start!"
-        gradient="from-blue-600 via-blue-700 to-blue-900"
-        icon={<Cpu className="w-12 h-12" />}
+        gradient="from-blue-600 to-blue-700"
+        icon={<Cpu className="w-12 h-12 text-white" />}
       />
 
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-          <Badge className="bg-green-500 text-sm px-3 py-1">
-            ✓ Tested & Verified
-          </Badge>
-          <Badge className="bg-yellow-500 text-black text-sm px-3 py-1">
-            ⚡ Optimized Performance
-          </Badge>
-          <Badge className="bg-white/20 text-muted-foreground text-sm px-3 py-1">
-            🛡️ Warranty Included
-          </Badge>
-        </div>
+      {/* ---- Category Filter Tabs ---- */}
+      <div className="sticky top-20 z-30 py-6 mb-8 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 shadow-sm transition-all duration-300">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+            <Badge className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 text-xs px-4 py-2 flex items-center gap-2 rounded-full transition-colors">
+              <Check className="w-3.5 h-3.5" /> Tested & Verified
+            </Badge>
+            <Badge className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 text-xs px-4 py-2 flex items-center gap-2 rounded-full transition-colors">
+              <Zap className="w-3.5 h-3.5" /> High Performance
+            </Badge>
+            <Badge className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs px-4 py-2 flex items-center gap-2 rounded-full transition-colors">
+              <Shield className="w-3.5 h-3.5" /> 1-3 Year Warranty
+            </Badge>
+          </div>
 
-        {/* ---- Category Filter Tabs ---- */}
-        <div className="flex flex-wrap items-center gap-2 mb-8">
-          {CATEGORY_TABS.map((tab) => (
-            <Button
-              key={tab.key}
-              variant={activeCategory === tab.key ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveCategory(tab.key)}
-              className={
-                activeCategory === tab.key
-                  ? `${tab.badgeColor} hover:opacity-90 text-white`
-                  : ""
-              }
-            >
-              {tab.icon}
-              <span className="ml-1.5">{tab.label}</span>
-            </Button>
-          ))}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {CATEGORY_TABS.map((tab) => (
+              <Button
+                key={tab.key}
+                variant={activeCategory === tab.key ? "default" : "outline"}
+                size="lg"
+                onClick={() => setActiveCategory(tab.key)}
+                className={`
+                  rounded-full px-8 py-6 font-semibold transition-all duration-500 group
+                  ${activeCategory === tab.key 
+                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-500/25 scale-105 border-0" 
+                    : "bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-blue-500/50"
+                  }
+                `}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className={`transition-transform duration-500 ${activeCategory === tab.key ? "scale-110" : "group-hover:scale-110"}`}>
+                    {tab.icon}
+                  </span>
+                  <span>{tab.label}</span>
+                </div>
+              </Button>
+            ))}
+          </div>
         </div>
+      </div>
 
         {/* ---- Loading State ---- */}
         {loading ? (

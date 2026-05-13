@@ -1,42 +1,68 @@
 // =============================================================================
-// SL HUB COMPUTER - Admin FAQ Detail API
+// SL HUB COMPUTER - Admin FAQ Detail API Route
 // =============================================================================
-// Cache: Invalidates "faqs" cache on PUT/DELETE
+// Purpose: API endpoint for updating and deleting specific FAQs
+// Features: 
+//   - PUT /api/admin/faqs/[id]: Update an existing FAQ
+//   - DELETE /api/admin/faqs/[id]: Delete an FAQ
+// =============================================================================
+
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { invalidate } from "@/lib/cache";
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+/**
+ * PUT: Update an existing FAQ
+ */
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = await params;
+    const id = params.id;
     const body = await request.json();
-    const faq = await db.fAQ.update({ where: { id }, data: body });
+    const { question, answer, category, order, isActive } = body;
 
-    // Invalidate FAQs cache
-    invalidate("faqs");
-
-    return NextResponse.json({ success: true, data: faq });
-  } catch (error) { return NextResponse.json({ success: false, error: "Failed" }, { status: 500 }); }
-}
-
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params;
-    const existing = await db.fAQ.findUnique({ where: { id }, select: { order: true } });
-    if (!existing) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
-
-    await db.fAQ.delete({ where: { id } });
-    await db.fAQ.updateMany({
-      where: { order: { gt: existing.order } },
-      data: { order: { decrement: 1 } },
+    const faq = await db.fAQ.update({
+      where: { id },
+      data: {
+        question,
+        answer,
+        category,
+        order: parseInt(order) || 0,
+        isActive,
+      },
     });
 
-    // Invalidate FAQs cache
-    invalidate("faqs");
-
-    return NextResponse.json({ success: true, message: "Deleted and re-ordered" });
+    return NextResponse.json({ success: true, data: faq });
   } catch (error) {
-    console.error("FAQ DELETE error:", error);
-    return NextResponse.json({ success: false, error: "Failed to delete" }, { status: 500 });
+    console.error("Error updating FAQ:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to update FAQ" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE: Delete an FAQ
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const id = params.id;
+
+    await db.fAQ.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true, message: "FAQ deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting FAQ:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to delete FAQ" },
+      { status: 500 }
+    );
   }
 }
