@@ -16,8 +16,60 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const search = searchParams.get("search") || "";
+    const type = searchParams.get("type") || "subscriptions"; // 'subscriptions' or 'low-stock'
 
-    // Get products that have stock alert subscriptions
+    // If type is low-stock, fetch products with low stock
+    if (type === "low-stock") {
+      const lowStockProducts = await db.product.findMany({
+        where: {
+          stock: { lte: 10 },
+          ...(search
+            ? { name: { contains: search, mode: "insensitive" } }
+            : {}),
+        },
+        include: {
+          category: { select: { name: true } },
+          _count: { select: { stockAlertSubscriptions: true } },
+        },
+        orderBy: { stock: "asc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      const total = await db.product.count({
+        where: {
+          stock: { lte: 10 },
+          ...(search
+            ? { name: { contains: search, mode: "insensitive" } }
+            : {}),
+        },
+      });
+
+      const data = lowStockProducts.map((p) => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        price: p.price,
+        stock: p.stock,
+        category: p.category?.name || null,
+        subscribersCount: p._count.stockAlertSubscriptions,
+        lastNotificationSent: null,
+        recentSubscribers: [],
+      }));
+
+      return NextResponse.json({
+        success: true,
+        data,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    }
+
+    // Default: Get products that have stock alert subscriptions
     const productsWithAlerts = await db.product.findMany({
       where: {
         stockAlertSubscriptions: { some: {} },

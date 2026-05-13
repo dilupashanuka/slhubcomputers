@@ -2,10 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
-import { PwaRegister } from "@/components/pwa-register";
 import { ReactQueryProvider } from "@/lib/react-query-provider";
 import { ThemeProvider as CustomThemeProvider } from "@/components/theme-provider";
-import { WhatsappButton } from "@/components/ui/whatsapp-button";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -144,7 +142,6 @@ export default function RootLayout({
           >
             <CustomThemeProvider>
               {children}
-              <WhatsappButton />
               <Toaster />
               <PwaRegister />
             </CustomThemeProvider>
