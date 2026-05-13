@@ -103,9 +103,20 @@ export function HeroBanner() {
             <img 
               src={banner.image} 
               alt={banner.title} 
-              className="w-full h-full object-cover opacity-60"
+              className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-1000"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent"></div>
+            
+            {/* Premium Glow Effect */}
+            <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/20 blur-[120px] rounded-full animate-pulse"></div>
+            <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-purple-600/10 blur-[120px] rounded-full animate-pulse delay-1000"></div>
+          </div>
+        )}
+
+        {!banner.image && (
+          <div className="absolute inset-0 z-0 overflow-hidden">
+             <div className="absolute top-1/4 -left-20 w-96 h-96 bg-white/5 blur-[120px] rounded-full"></div>
+             <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-white/5 blur-[120px] rounded-full"></div>
           </div>
         )}
 
@@ -157,8 +168,6 @@ export function HeroBanner() {
                   <Button
                     onClick={() => {
                       if (banner.link && banner.link.startsWith("/")) {
-                        // Handle internal route if needed, or map to view
-                        // For now, assume site uses views
                         setCurrentView(banner.view || "home");
                       } else if (banner.link) {
                         window.open(banner.link, "_blank");
@@ -167,7 +176,7 @@ export function HeroBanner() {
                       }
                     }}
                     size="lg"
-                    className="bg-white hover:bg-gray-100 text-blue-900 font-bold px-8 py-6 rounded-xl shadow-lg transition-all hover:scale-105 text-lg"
+                    className="bg-white hover:bg-white/90 text-blue-950 font-bold px-10 py-7 rounded-2xl shadow-xl transition-all hover:scale-105 text-lg"
                   >
                     {banner.buttonText || "Learn More"}
                   </Button>
@@ -175,16 +184,39 @@ export function HeroBanner() {
               </div>
 
               {/* Visual Element (Icon fallback or just spacer) */}
-              {!banner.image && banner.icon && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-                  animate={{ opacity: 0.4, scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.4, duration: 0.8 }}
-                  className="hidden md:block animate-pulse"
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="relative hidden md:flex items-center justify-center flex-1"
+              >
+                {/* Floating Animation for Image/Icon */}
+                <motion.div
+                  animate={{ 
+                    y: [0, -15, 0],
+                  }}
+                  transition={{ 
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className="relative z-10"
                 >
-                  {banner.icon}
+                  {banner.image ? (
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-blue-600/30 blur-3xl rounded-full scale-75"></div>
+                      <img 
+                        src={banner.image} 
+                        alt="" 
+                        className="w-[300px] lg:w-[450px] h-auto rounded-3xl shadow-2xl relative z-10 border border-white/10"
+                      />
+                    </div>
+                  ) : (
+                    <div className="p-12 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 shadow-2xl">
+                      {banner.icon}
+                    </div>
+                  )}
                 </motion.div>
-              )}
+              </motion.div>
             </motion.div>
           </AnimatePresence>
         </div>
