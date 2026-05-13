@@ -160,8 +160,6 @@ export function Header() {
 
   useEffect(() => setMounted(true), []);
 
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
   // Handle search submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
