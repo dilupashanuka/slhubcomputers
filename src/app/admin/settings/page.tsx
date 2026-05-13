@@ -253,6 +253,26 @@ export default function SettingsPage() {
     setForm({ ...form, [field]: value });
   };
 
+  // Auto-save for toggles
+  const handleToggleModule = async (field: keyof Settings, value: boolean) => {
+    const updatedForm = { ...form, [field]: value };
+    setForm(updatedForm);
+    
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedForm),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        console.error("Auto-save failed");
+      }
+    } catch (error) {
+      console.error("Auto-save error:", error);
+    }
+  };
+
   // SMS test state
   const [smsTestPhone, setSmsTestPhone] = useState("");
   const [smsTesting, setSmsTesting] = useState(false);
@@ -603,7 +623,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-pcbuilder"
                     checked={form.enablePCBuilder}
-                    onCheckedChange={(val) => updateField("enablePCBuilder", val)}
+                    onCheckedChange={(val) => handleToggleModule("enablePCBuilder", val)}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -611,7 +631,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-prebuilt"
                     checked={form.enablePrebuiltPC}
-                    onCheckedChange={(val) => updateField("enablePrebuiltPC", val)}
+                    onCheckedChange={(val) => handleToggleModule("enablePrebuiltPC", val)}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -619,7 +639,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-coupons"
                     checked={form.enableCoupons}
-                    onCheckedChange={(val) => updateField("enableCoupons", val)}
+                    onCheckedChange={(val) => handleToggleModule("enableCoupons", val)}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -627,7 +647,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-reviews"
                     checked={form.enableReviews}
-                    onCheckedChange={(val) => updateField("enableReviews", val)}
+                    onCheckedChange={(val) => handleToggleModule("enableReviews", val)}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -635,7 +655,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-flashdeals"
                     checked={form.enableFlashDeals}
-                    onCheckedChange={(val) => updateField("enableFlashDeals", val)}
+                    onCheckedChange={(val) => handleToggleModule("enableFlashDeals", val)}
                   />
                 </div>
               </div>
@@ -650,7 +670,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-affiliate"
                     checked={form.enableAffiliate}
-                    onCheckedChange={(val) => updateField("enableAffiliate", val)}
+                    onCheckedChange={(val) => handleToggleModule("enableAffiliate", val)}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -658,7 +678,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-newsletter"
                     checked={form.enableNewsletter}
-                    onCheckedChange={(val) => updateField("enableNewsletter", val)}
+                    onCheckedChange={(val) => handleToggleModule("enableNewsletter", val)}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -666,7 +686,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-testimonials"
                     checked={form.enableTestimonials}
-                    onCheckedChange={(val) => updateField("enableTestimonials", val)}
+                    onCheckedChange={(val) => handleToggleModule("enableTestimonials", val)}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -674,7 +694,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-giftcards"
                     checked={form.enableGiftCards}
-                    onCheckedChange={(val) => updateField("enableGiftCards", val)}
+                    onCheckedChange={(val) => handleToggleModule("enableGiftCards", val)}
                   />
                 </div>
               </div>
@@ -689,7 +709,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-cctv"
                     checked={form.enableCCTV}
-                    onCheckedChange={(val) => updateField("enableCCTV", val)}
+                    onCheckedChange={(val) => handleToggleModule("enableCCTV", val)}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -697,7 +717,7 @@ export default function SettingsPage() {
                   <Switch
                     id="f-repairs"
                     checked={form.enableRepairServices}
-                    onCheckedChange={(val) => updateField("enableRepairServices", val)}
+                    onCheckedChange={(val) => handleToggleModule("enableRepairServices", val)}
                   />
                 </div>
               </div>
@@ -781,7 +801,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2">
             <Switch
               checked={form.smsEnabled}
-              onCheckedChange={(val) => updateField("smsEnabled", val)}
+              onCheckedChange={(val) => handleToggleModule("smsEnabled", val)}
             />
             <Label>Enable SMS Notifications</Label>
           </div>
@@ -838,28 +858,28 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={form.smsOrderConfirmation}
-                    onCheckedChange={(val) => updateField("smsOrderConfirmation", val)}
+                    onCheckedChange={(val) => handleToggleModule("smsOrderConfirmation", val)}
                   />
                   <Label className="text-sm">Order Confirmations</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={form.smsStatusUpdates}
-                    onCheckedChange={(val) => updateField("smsStatusUpdates", val)}
+                    onCheckedChange={(val) => handleToggleModule("smsStatusUpdates", val)}
                   />
                   <Label className="text-sm">Status Updates</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={form.smsBackInStock}
-                    onCheckedChange={(val) => updateField("smsBackInStock", val)}
+                    onCheckedChange={(val) => handleToggleModule("smsBackInStock", val)}
                   />
                   <Label className="text-sm">Back in Stock</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={form.smsDeliveryUpdates}
-                    onCheckedChange={(val) => updateField("smsDeliveryUpdates", val)}
+                    onCheckedChange={(val) => handleToggleModule("smsDeliveryUpdates", val)}
                   />
                   <Label className="text-sm">Delivery Updates</Label>
                 </div>
