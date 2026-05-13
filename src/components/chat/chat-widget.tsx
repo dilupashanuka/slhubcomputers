@@ -308,7 +308,7 @@ export default function ChatWidget() {
       {/* Chat Bubble Button */}
       <button
         onClick={toggleChat}
-        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-105 transition-all duration-200 flex items-center justify-center group"
+        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-105 transition-all duration-200 hidden md:flex items-center justify-center group"
         aria-label="Open chat support"
       >
         {isOpen && !isMinimized ? (
