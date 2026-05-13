@@ -3,8 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { ReactQueryProvider } from "@/lib/react-query-provider";
-import { ThemeProvider as CustomThemeProvider } from "@/components/theme-provider";
+import { CustomThemeProvider } from "@/components/theme-provider";
 import { PwaRegister } from "@/components/pwa-register";
+import { SiteSettingsLoader } from "@/components/layout/site-settings-loader";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -142,6 +143,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <CustomThemeProvider>
+              <SiteSettingsLoader />
               {children}
               <Toaster />
               <PwaRegister />

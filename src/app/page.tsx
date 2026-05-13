@@ -48,27 +48,11 @@ import { Zap } from "lucide-react";
 // Main Page Component - Routes between views based on Zustand state
 // ---------------------------------------------------------------------------
 export default function HomePageRouter() {
-  const { currentView, selectedCategoryId, selectedProductId, setSiteSettings, siteSettings } = useStore();
-  const [seeded, setSeeded] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { currentView, selectedCategoryId, selectedProductId, siteSettings } = useStore();
 
-  // Fetch site settings and sync with store
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const res = await fetch("/api/admin/settings");
-        const data = await res.json();
-        if (data.success) {
-          setSiteSettings(data.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch settings:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSettings();
-  }, [setSiteSettings]);
+
+  // Analytics tracking effect
+
 
   // Track page views for analytics
   useEffect(() => {
@@ -94,8 +78,8 @@ export default function HomePageRouter() {
         // Analytics tracking should never break the app
       }
     };
-    if (!loading) trackPageView();
-  }, [currentView, selectedProductId, loading]);
+    trackPageView();
+  }, [currentView, selectedProductId]);
 
   // Removed auto-seed logic for production stability
 
@@ -169,19 +153,6 @@ export default function HomePageRouter() {
         return <HomePage />;
     }
   };
-
-  // Show loading state while seeding
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-blue-600">SL HUB COMPUTER</h2>
-          <p className="text-muted-foreground mt-2">Loading your trusted tech partner...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

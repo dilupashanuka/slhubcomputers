@@ -325,6 +325,7 @@ export const useStore = create<SLHubStore>()(
         pcBuilderComponents: state.pcBuilderComponents,
         customer: state.customer,
         isLoggedIn: state.isLoggedIn,
+        siteSettings: state.siteSettings,
       }),
     }
   )

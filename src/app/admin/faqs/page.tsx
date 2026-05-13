@@ -187,10 +187,35 @@ export default function AdminFAQsPage() {
           <h1 className="text-3xl font-bold tracking-tight">FAQ Management</h1>
           <p className="text-muted-foreground">Manage frequently asked questions displayed on the site.</p>
         </div>
-        <Button onClick={handleOpenAdd} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add New FAQ
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            onClick={async () => {
+              if (!confirm("This will add default FAQs to the database. Continue?")) return;
+              try {
+                setActionLoading(true);
+                const res = await fetch("/api/seed?secret=SLHUB-DEV"); // Using dev secret
+                const data = await res.json();
+                if (data.success) {
+                  alert("Default FAQs seeded successfully!");
+                  fetchFaqs();
+                }
+              } catch (error) {
+                alert("Seeding failed");
+              } finally {
+                setActionLoading(false);
+              }
+            }}
+            disabled={actionLoading}
+          >
+            <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-500" />
+            Seed Defaults
+          </Button>
+          <Button onClick={handleOpenAdd} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Add New FAQ
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
