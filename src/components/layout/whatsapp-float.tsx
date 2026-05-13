@@ -10,6 +10,7 @@
 
 "use client";
 
+import { useStore } from "@/store/use-store";
 import { MessageCircle } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -19,10 +20,14 @@ const WHATSAPP_NUMBER = "94710678944"; // SL HUB COMPUTER WhatsApp (no + sign)
 const DEFAULT_MESSAGE = "Hi SL HUB COMPUTER! I'm interested in your products. Can you help me?";
 
 export function WhatsAppFloat() {
+  const { isModuleEnabled } = useStore();
+
   const handleOpenWhatsApp = () => {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
     window.open(url, "_blank");
   };
+
+  if (!isModuleEnabled("enableWhatsApp")) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">

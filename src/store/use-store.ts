@@ -95,6 +95,7 @@ interface SLHubStore {
   // ---- Settings State ----
   siteSettings: any;
   setSiteSettings: (settings: any) => void;
+  isModuleEnabled: (key: string) => boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -306,8 +307,13 @@ export const useStore = create<SLHubStore>()(
       // =====================================================================
       // Settings State
       // =====================================================================
-      siteSettings: null,
+      siteSettings: {} as any,
       setSiteSettings: (settings) => set({ siteSettings: settings }),
+      isModuleEnabled: (key: string) => {
+        const settings = get().siteSettings;
+        if (!settings || Object.keys(settings).length === 0) return true; // Default to enabled if not loaded
+        return (settings as any)[key] !== false;
+      },
     }),
     {
       name: "slhub-store", // localStorage key

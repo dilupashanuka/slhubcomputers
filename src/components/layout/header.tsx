@@ -72,6 +72,7 @@ export function Header() {
     isMobileMenuOpen,
     setIsMobileMenuOpen,
     siteSettings,
+    isModuleEnabled,
   } = useStore();
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -80,10 +81,10 @@ export function Header() {
 
   // Filter navigation links based on site settings
   const filteredNavLinks = navLinks.filter(link => {
-    if (link.view === "pc-builder" && siteSettings?.enablePCBuilder === false) return false;
-    if (link.view === "prebuilt" && siteSettings?.enablePrebuiltPC === false) return false;
-    if (link.view === "gift-card" && siteSettings?.enableGiftCards === false) return false;
-    if (link.view === "affiliate" && siteSettings?.enableAffiliate === false) return false;
+    if (link.view === "pc-builder") return isModuleEnabled("enablePCBuilder");
+    if (link.view === "prebuilt") return isModuleEnabled("enablePrebuiltPC");
+    if (link.view === "gift-card") return isModuleEnabled("enableGiftCards");
+    if (link.view === "affiliate") return isModuleEnabled("enableAffiliate");
     return true;
   });
   const { theme, setTheme } = useTheme();

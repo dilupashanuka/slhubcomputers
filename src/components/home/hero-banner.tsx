@@ -59,21 +59,29 @@ export function HeroBanner() {
   const [banners, setBanners] = useState<any[]>([]);
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { setCurrentView } = useStore();
+  const { setCurrentView, isModuleEnabled } = useStore();
 
   useEffect(() => {
     fetch("/api/banners")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.data?.length > 0) {
-          setBanners(data.data);
-        } else {
-          setBanners(defaultBanners);
-        }
+        let activeBanners = data.success && data.data?.length > 0 ? data.data : defaultBanners;
+        
+        // Filter banners based on site settings using helper
+        const filtered = activeBanners.filter((b: any) => {
+          if (b.view === "pc-builder") return isModuleEnabled("enablePCBuilder");
+          if (b.view === "prebuilt") return isModuleEnabled("enablePrebuiltPC");
+          if (b.view === "gift-card") return isModuleEnabled("enableGiftCards");
+          if (b.view === "affiliate") return isModuleEnabled("enableAffiliate");
+          if (b.view === "contact") return isModuleEnabled("enableRepairServices");
+          return true;
+        });
+
+        setBanners(filtered.length > 0 ? filtered : defaultBanners.slice(0, 1));
       })
-      .catch(() => setBanners(defaultBanners))
+      .catch(() => setBanners(defaultBanners.slice(0, 1)))
       .finally(() => setLoading(false));
-  }, []);
+  }, [isModuleEnabled]);
 
   // Auto-rotate banners every 8 seconds
   useEffect(() => {

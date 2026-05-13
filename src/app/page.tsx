@@ -114,7 +114,7 @@ export default function HomePageRouter() {
       case "product":
         return <ProductDetail />;
       case "pc-builder":
-        return siteSettings?.enablePCBuilder === false ? <HomePage /> : <Builder />;
+        return isModuleEnabled("enablePCBuilder") ? <Builder /> : <HomePage />;
       case "cart":
         return <CartPage />;
       case "checkout":
@@ -138,7 +138,7 @@ export default function HomePageRouter() {
       case "terms":
         return <TermsPage />;
       case "prebuilt":
-        return siteSettings?.enablePrebuiltPC === false ? <HomePage /> : <PrebuiltPCPage />;
+        return isModuleEnabled("enablePrebuiltPC") ? <PrebuiltPCPage /> : <HomePage />;
       case "order-tracking":
         return <OrderTrackingPage />;
       case "customer-login":
@@ -146,9 +146,9 @@ export default function HomePageRouter() {
       case "customer-account":
         return <CustomerAccountPage />;
       case "affiliate":
-        return siteSettings?.enableAffiliate === false ? <HomePage /> : <AffiliatePage />;
+        return isModuleEnabled("enableAffiliate") ? <AffiliatePage /> : <HomePage />;
       case "gift-card":
-        return siteSettings?.enableGiftCards === false ? <HomePage /> : <GiftCardPage />;
+        return isModuleEnabled("enableGiftCards") ? <GiftCardPage /> : <HomePage />;
       default:
         return <HomePage />;
     }

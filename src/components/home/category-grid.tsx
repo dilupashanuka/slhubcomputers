@@ -37,17 +37,23 @@ const categoryIcons: Record<string, React.ReactNode> = {
 export function CategoryGrid() {
   const [categories, setCategories] = useState<CategoryType[]>([]);
   const [loading, setLoading] = useState(true);
-  const { navigateToCategory } = useStore();
+  const { navigateToCategory, siteSettings } = useStore();
 
   useEffect(() => {
     fetch("/api/categories")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) setCategories(data.data);
+        if (data.success) {
+          let cats = data.data;
+          if (siteSettings?.enableCCTV === false) {
+            cats = cats.filter((c: any) => c.slug !== "cctv-security");
+          }
+          setCategories(cats);
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [siteSettings]);
 
   return (
     <section className="container mx-auto px-4 py-10">

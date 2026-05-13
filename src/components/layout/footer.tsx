@@ -127,13 +127,13 @@ export function Footer() {
             <h4 className="text-white font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li><button onClick={() => nav("home")} className="hover:text-blue-400 transition-colors">Home</button></li>
-              {siteSettings?.enablePrebuiltPC !== false && <li><button onClick={() => nav("prebuilt")} className="hover:text-blue-400 transition-colors">Pre-Built PCs</button></li>}
-              {siteSettings?.enablePCBuilder !== false && <li><button onClick={() => nav("pc-builder")} className="hover:text-blue-400 transition-colors">PC Builder</button></li>}
-              {siteSettings?.enableGiftCards !== false && <li><button onClick={() => nav("gift-card")} className="hover:text-blue-400 transition-colors">Gift Cards</button></li>}
+              {isModuleEnabled("enablePrebuiltPC") && <li><button onClick={() => nav("prebuilt")} className="hover:text-blue-400 transition-colors">Pre-Built PCs</button></li>}
+              {isModuleEnabled("enablePCBuilder") && <li><button onClick={() => nav("pc-builder")} className="hover:text-blue-400 transition-colors">PC Builder</button></li>}
+              {isModuleEnabled("enableGiftCards") && <li><button onClick={() => nav("gift-card")} className="hover:text-blue-400 transition-colors">Gift Cards</button></li>}
               <li><button onClick={() => nav("about")} className="hover:text-blue-400 transition-colors">About Us</button></li>
               <li><button onClick={() => nav("contact")} className="hover:text-blue-400 transition-colors">Contact Us</button></li>
               <li><button onClick={() => nav("faq")} className="hover:text-blue-400 transition-colors">FAQ</button></li>
-              {siteSettings?.enableAffiliate !== false && <li><button onClick={() => nav("affiliate")} className="hover:text-blue-400 transition-colors">Affiliate Program</button></li>}
+              {isModuleEnabled("enableAffiliate") && <li><button onClick={() => nav("affiliate")} className="hover:text-blue-400 transition-colors">Affiliate Program</button></li>}
             </ul>
           </div>
 
@@ -153,11 +153,11 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Our Services</h4>
             <ul className="space-y-2 text-sm">
-              {siteSettings?.enableRepairServices !== false && <li className="flex items-center gap-2"><Cpu className="w-3 h-3 text-blue-400" /> PC Parts & Repair</li>}
-              {siteSettings?.enableRepairServices !== false && <li className="flex items-center gap-2"><Laptop className="w-3 h-3 text-blue-400" /> Laptop Repair</li>}
+              {isModuleEnabled("enableRepairServices") && <li className="flex items-center gap-2"><Cpu className="w-3 h-3 text-blue-400" /> PC Parts & Repair</li>}
+              {isModuleEnabled("enableRepairServices") && <li className="flex items-center gap-2"><Laptop className="w-3 h-3 text-blue-400" /> Laptop Repair</li>}
               <li className="flex items-center gap-2"><Smartphone className="w-3 h-3 text-blue-400" /> Mobile Accessories</li>
-              {siteSettings?.enableCCTV !== false && <li className="flex items-center gap-2"><Camera className="w-3 h-3 text-blue-400" /> CCTV (Tiandy)</li>}
-              {siteSettings?.enablePCBuilder !== false && <li className="flex items-center gap-2"><Wrench className="w-3 h-3 text-blue-400" /> Custom PC Building</li>}
+              {isModuleEnabled("enableCCTV") && <li className="flex items-center gap-2"><Camera className="w-3 h-3 text-blue-400" /> CCTV (Tiandy)</li>}
+              {isModuleEnabled("enablePCBuilder") && <li className="flex items-center gap-2"><Wrench className="w-3 h-3 text-blue-400" /> Custom PC Building</li>}
               <li className="flex items-center gap-2"><Code className="w-3 h-3 text-blue-400" /> Software Solutions</li>
             </ul>
           </div>
