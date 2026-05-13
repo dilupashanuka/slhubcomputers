@@ -191,28 +191,28 @@ export function Header() {
           <div className="sm:hidden text-center w-full font-medium">
             📞 071 067 8944 | SL HUB COMPUTER
           </div>
-          <div className="hidden sm:flex items-center gap-3">
-            <a
-              href="https://www.facebook.com/profile.php?id=100063543731370"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-blue-200 transition-colors"
-            >
-              <Globe className="w-4 h-4" />
-            </a>
             {mounted && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative group transition-transform hover:scale-110 active:scale-95"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            >
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
+            <div className="hidden sm:flex items-center gap-3">
+              <a
+                href="https://www.facebook.com/profile.php?id=100063543731370"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-blue-200 transition-colors"
+              >
+                <Globe className="w-4 h-4" />
+              </a>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative group transition-transform hover:scale-110 active:scale-95"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
+                <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
+                <span className="sr-only">Toggle theme</span>
+              </Button>
+            </div>
             )}
-          </div>
         </div>
       </div>
 
@@ -267,7 +267,7 @@ export function Header() {
               onClick={() => setCurrentView("compare")}
             >
               <GitCompare className="w-5 h-5 text-emerald-500" />
-              {compareCount > 0 && (
+              {mounted && compareCount > 0 && (
                 <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-emerald-600 text-[10px]">
                   {compareCount}
                 </Badge>
@@ -282,7 +282,7 @@ export function Header() {
               onClick={() => setCurrentView("wishlist")}
             >
               <Heart className="w-5 h-5 text-rose-500" />
-              {wishlistCount > 0 && (
+              {mounted && wishlistCount > 0 && (
                 <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-rose-600 text-[10px]">
                   {wishlistCount}
                 </Badge>
@@ -306,7 +306,7 @@ export function Header() {
                 size="icon"
                 className="relative"
                 onClick={() => {
-                  if (isLoggedIn) {
+                  if (mounted && isLoggedIn) {
                     setAccountDropdownOpen(!accountDropdownOpen);
                   } else {
                     setCurrentView("customer-login");
@@ -314,7 +314,7 @@ export function Header() {
                 }}
               >
                 <User className="w-5 h-5" />
-                {isLoggedIn && (
+                {mounted && isLoggedIn && (
                   <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900" />
                 )}
               </Button>
@@ -369,7 +369,7 @@ export function Header() {
               onClick={() => setCurrentView("cart")}
             >
               <ShoppingCart className="w-5 h-5" />
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-blue-600 text-[10px]">
                   {cartCount}
                 </Badge>

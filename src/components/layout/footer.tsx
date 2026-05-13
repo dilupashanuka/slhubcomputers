@@ -8,6 +8,7 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { useStore } from "@/store/use-store";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -39,6 +40,10 @@ const nav = (view: ViewType) => {
 
 export function Footer() {
   const { siteSettings, isModuleEnabled } = useStore();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const currentYear = mounted ? new Date().getFullYear() : "2024";
 
   return (
     <footer className="bg-gray-900 text-gray-300 mt-auto">
@@ -199,7 +204,7 @@ export function Footer() {
       <Separator className="bg-gray-700" />
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-          <p>© {new Date().getFullYear()} SL HUB COMPUTER. All rights reserved.</p>
+          <p>© {currentYear} SL HUB COMPUTER. All rights reserved.</p>
           
           <div className="flex items-center gap-2 py-2 px-3 bg-gray-800/50 rounded-full border border-gray-700/50">
             <span className="text-gray-400 italic">Designed & Developed by</span>
