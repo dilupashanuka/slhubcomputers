@@ -665,17 +665,10 @@ export async function POST(request: NextRequest) {
     // ⚠️ SAFE: Only seed if NO prebuilt PCs exist (preserves admin edits)
     // ========================================================================
     const existingPrebuilt = await db.prebuiltPC.count();
-    if (existingPrebuilt > 0) {
-      return NextResponse.json({
-        success: true,
-        message: "Seed completed. Pre-Built PCs skipped (admin data preserved).",
-        categories: categories.length,
-        brands: brands.length,
-        products: createdProducts.length,
-      });
-    }
+    let prebuiltPCsCount = 0;
 
-    const prebuiltPCsData = [
+    if (existingPrebuilt === 0) {
+      const prebuiltPCsData = [
       // Budget PC 1 - Entry Level
       {
         name: "SL HUB Budget Starter PC",
@@ -864,10 +857,14 @@ export async function POST(request: NextRequest) {
       },
     ];
 
-    await db.prebuiltPC.createMany({
-      data: prebuiltPCsData,
-      skipDuplicates: true,
-    });
+      await db.prebuiltPC.createMany({
+        data: prebuiltPCsData,
+        skipDuplicates: true,
+      });
+      prebuiltPCsCount = prebuiltPCsData.length;
+    } else {
+      prebuiltPCsCount = existingPrebuilt;
+    }
 
     // ========================================================================
     // 8. SEED FAQs - Migrating static FAQs to database
@@ -916,7 +913,7 @@ export async function POST(request: NextRequest) {
         products: createdProducts.length,
         banners: bannersData.length,
         services: servicesData.length,
-        prebuiltPCs: prebuiltPCsData.length,
+        prebuiltPCs: prebuiltPCsCount,
         faqs: faqsData.length,
         settings: "configured",
       },
