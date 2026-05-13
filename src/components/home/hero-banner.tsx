@@ -15,7 +15,7 @@ import { useStore } from "@/store/use-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight, Cpu, Camera, Wrench } from "lucide-react";
+import { ChevronLeft, ChevronRight, Cpu, Camera, Wrench, Check, Zap, ShieldCheck } from "lucide-react";
 import type { ViewType, BannerType } from "@/types";
 
 // Default fallback banners if DB is empty
@@ -30,6 +30,11 @@ const defaultBanners = [
     view: "pc-builder" as ViewType,
     gradient: "from-blue-600 via-blue-700 to-blue-900",
     icon: <Cpu className="w-24 h-24 text-blue-200" />,
+    badges: [
+      { icon: "check", text: "Compatibility Check" },
+      { icon: "zap", text: "Wattage Calculator" },
+      { icon: "shield", text: "Expert Assembly" }
+    ],
   },
   {
     id: "default-2",
@@ -41,6 +46,11 @@ const defaultBanners = [
     view: "category" as ViewType,
     gradient: "from-emerald-600 via-emerald-700 to-teal-900",
     icon: <Camera className="w-24 h-24 text-emerald-200" />,
+    badges: [
+      { icon: "check", text: "Tested & Verified" },
+      { icon: "zap", text: "High Performance" },
+      { icon: "shield", text: "1-3 Year Warranty" }
+    ],
   },
   {
     id: "default-3",
@@ -52,6 +62,11 @@ const defaultBanners = [
     view: "contact" as ViewType,
     gradient: "from-orange-600 via-red-700 to-red-900",
     icon: <Wrench className="w-24 h-24 text-orange-200" />,
+    badges: [
+      { icon: "check", text: "Certified Technicians" },
+      { icon: "zap", text: "Quick Turnaround" },
+      { icon: "shield", text: "Repair Warranty" }
+    ],
   },
 ];
 
@@ -189,6 +204,25 @@ export function HeroBanner() {
                     {banner.buttonText || "Learn More"}
                   </Button>
                 </motion.div>
+                
+                {/* Feature Badges */}
+                {((banner.badges) || (defaultBanners.find(b => b.view === banner.view)?.badges)) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className="flex flex-wrap gap-3 justify-center md:justify-start mt-8"
+                  >
+                    {(banner.badges || defaultBanners.find(b => b.view === banner.view)?.badges)?.map((b: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 bg-black/30 backdrop-blur-sm text-sm font-medium text-white/90 shadow-sm transition-colors hover:bg-black/50 hover:border-white/40">
+                        {b.icon === "check" && <Check className="w-4 h-4 text-blue-400" />}
+                        {b.icon === "zap" && <Zap className="w-4 h-4 text-amber-400" />}
+                        {b.icon === "shield" && <ShieldCheck className="w-4 h-4 text-emerald-400" />}
+                        <span>{b.text}</span>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
               </div>
 
               {/* Visual Element (Icon fallback or just spacer) */}
