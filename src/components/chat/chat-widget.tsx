@@ -39,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { useStore } from "@/store/use-store";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -83,6 +84,7 @@ function formatTime(dateStr: string): string {
 // ChatWidget Component
 // ---------------------------------------------------------------------------
 export default function ChatWidget() {
+  const { isModuleEnabled } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<ChatMessageData[]>([]);
@@ -181,6 +183,8 @@ export default function ChatWidget() {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
     };
   }, [sessionId, fetchMessages]);
+
+  if (!isModuleEnabled("enableLiveChat")) return null;
 
   // Handle pre-chat form submission
   const handlePreChatSubmit = (e: React.FormEvent) => {

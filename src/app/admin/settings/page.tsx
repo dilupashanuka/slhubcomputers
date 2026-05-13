@@ -73,6 +73,19 @@ interface Settings {
   smsBackInStock: boolean;
   smsDeliveryUpdates: boolean;
   enableFlashDeals: boolean;
+  // New Module Management
+  enableTopBar: boolean;
+  enableThemeToggle: boolean;
+  enableCompare: boolean;
+  enableWishlist: boolean;
+  enableUserAccounts: boolean;
+  enableCart: boolean;
+  enableFAQ: boolean;
+  enableOrderTracking: boolean;
+  enableWhatsApp: boolean;
+  enableLiveChat: boolean;
+  enableAboutPage: boolean;
+  enableContactPage: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -124,6 +137,19 @@ const defaultSettings: Settings = {
   smsBackInStock: true,
   smsDeliveryUpdates: true,
   enableFlashDeals: true,
+  // New Module Management Defaults
+  enableTopBar: true,
+  enableThemeToggle: true,
+  enableCompare: true,
+  enableWishlist: true,
+  enableUserAccounts: true,
+  enableCart: true,
+  enableFAQ: true,
+  enableOrderTracking: true,
+  enableWhatsApp: true,
+  enableLiveChat: true,
+  enableAboutPage: true,
+  enableContactPage: true,
 };
 
 // ---------------------------------------------------------------------------
@@ -211,6 +237,18 @@ export default function SettingsPage() {
           smsBackInStock: data.data.smsBackInStock ?? defaultSettings.smsBackInStock,
           smsDeliveryUpdates: data.data.smsDeliveryUpdates ?? defaultSettings.smsDeliveryUpdates,
           enableFlashDeals: data.data.enableFlashDeals ?? defaultSettings.enableFlashDeals,
+          enableTopBar: data.data.enableTopBar ?? defaultSettings.enableTopBar,
+          enableThemeToggle: data.data.enableThemeToggle ?? defaultSettings.enableThemeToggle,
+          enableCompare: data.data.enableCompare ?? defaultSettings.enableCompare,
+          enableWishlist: data.data.enableWishlist ?? defaultSettings.enableWishlist,
+          enableUserAccounts: data.data.enableUserAccounts ?? defaultSettings.enableUserAccounts,
+          enableCart: data.data.enableCart ?? defaultSettings.enableCart,
+          enableFAQ: data.data.enableFAQ ?? defaultSettings.enableFAQ,
+          enableOrderTracking: data.data.enableOrderTracking ?? defaultSettings.enableOrderTracking,
+          enableWhatsApp: data.data.enableWhatsApp ?? defaultSettings.enableWhatsApp,
+          enableLiveChat: data.data.enableLiveChat ?? defaultSettings.enableLiveChat,
+          enableAboutPage: data.data.enableAboutPage ?? defaultSettings.enableAboutPage,
+          enableContactPage: data.data.enableContactPage ?? defaultSettings.enableContactPage,
         });
       }
     } catch (error) {
@@ -613,116 +651,130 @@ export default function SettingsPage() {
             </div>
           ) : (
             <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* E-commerce Core */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold border-b pb-1 text-primary">Core Shop Features</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-pcbuilder">PC Builder System</Label>
-                  <Switch
-                    id="f-pcbuilder"
-                    checked={form.enablePCBuilder}
-                    onCheckedChange={(val) => handleToggleModule("enablePCBuilder", val)}
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                {/* E-commerce Core */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold border-b pb-1 text-primary">Core Shop Features</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-cart">Shopping Cart</Label>
+                      <Switch id="f-cart" checked={form.enableCart} onCheckedChange={(val) => handleToggleModule("enableCart", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-accounts">User Accounts</Label>
+                      <Switch id="f-accounts" checked={form.enableUserAccounts} onCheckedChange={(val) => handleToggleModule("enableUserAccounts", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-wishlist">Wishlist</Label>
+                      <Switch id="f-wishlist" checked={form.enableWishlist} onCheckedChange={(val) => handleToggleModule("enableWishlist", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-compare">Compare Products</Label>
+                      <Switch id="f-compare" checked={form.enableCompare} onCheckedChange={(val) => handleToggleModule("enableCompare", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-pcbuilder">PC Builder System</Label>
+                      <Switch id="f-pcbuilder" checked={form.enablePCBuilder} onCheckedChange={(val) => handleToggleModule("enablePCBuilder", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-prebuilt">Prebuilt PCs</Label>
+                      <Switch id="f-prebuilt" checked={form.enablePrebuiltPC} onCheckedChange={(val) => handleToggleModule("enablePrebuiltPC", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-coupons">Coupons & Discounts</Label>
+                      <Switch id="f-coupons" checked={form.enableCoupons} onCheckedChange={(val) => handleToggleModule("enableCoupons", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-reviews">Reviews & Ratings</Label>
+                      <Switch id="f-reviews" checked={form.enableReviews} onCheckedChange={(val) => handleToggleModule("enableReviews", val)} />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-prebuilt">Prebuilt PCs Section</Label>
-                  <Switch
-                    id="f-prebuilt"
-                    checked={form.enablePrebuiltPC}
-                    onCheckedChange={(val) => handleToggleModule("enablePrebuiltPC", val)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-coupons">Coupon & Discount System</Label>
-                  <Switch
-                    id="f-coupons"
-                    checked={form.enableCoupons}
-                    onCheckedChange={(val) => handleToggleModule("enableCoupons", val)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-reviews">Product Reviews & Ratings</Label>
-                  <Switch
-                    id="f-reviews"
-                    checked={form.enableReviews}
-                    onCheckedChange={(val) => handleToggleModule("enableReviews", val)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-flashdeals">Flash Deals Section</Label>
-                  <Switch
-                    id="f-flashdeals"
-                    checked={form.enableFlashDeals}
-                    onCheckedChange={(val) => handleToggleModule("enableFlashDeals", val)}
-                  />
-                </div>
-              </div>
-            </div>
 
-            {/* Growth & Services */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold border-b pb-1 text-primary">Marketing & Services</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-affiliate">Affiliate / Agent System</Label>
-                  <Switch
-                    id="f-affiliate"
-                    checked={form.enableAffiliate}
-                    onCheckedChange={(val) => handleToggleModule("enableAffiliate", val)}
-                  />
+                {/* Layout & Navigation */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold border-b pb-1 text-primary">Layout & Navigation</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-topbar">Top Contact Bar</Label>
+                      <Switch id="f-topbar" checked={form.enableTopBar} onCheckedChange={(val) => handleToggleModule("enableTopBar", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-theme">Dark/Light Mode Toggle</Label>
+                      <Switch id="f-theme" checked={form.enableThemeToggle} onCheckedChange={(val) => handleToggleModule("enableThemeToggle", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-about">About Page Link</Label>
+                      <Switch id="f-about" checked={form.enableAboutPage} onCheckedChange={(val) => handleToggleModule("enableAboutPage", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-contact">Contact Page Link</Label>
+                      <Switch id="f-contact" checked={form.enableContactPage} onCheckedChange={(val) => handleToggleModule("enableContactPage", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-faq">FAQ Page Link</Label>
+                      <Switch id="f-faq" checked={form.enableFAQ} onCheckedChange={(val) => handleToggleModule("enableFAQ", val)} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="cursor-pointer" htmlFor="f-trackorder">Order Tracking Link</Label>
+                      <Switch id="f-trackorder" checked={form.enableOrderTracking} onCheckedChange={(val) => handleToggleModule("enableOrderTracking", val)} />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-newsletter">Newsletter Subscription</Label>
-                  <Switch
-                    id="f-newsletter"
-                    checked={form.enableNewsletter}
-                    onCheckedChange={(val) => handleToggleModule("enableNewsletter", val)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-testimonials">Customer Testimonials</Label>
-                  <Switch
-                    id="f-testimonials"
-                    checked={form.enableTestimonials}
-                    onCheckedChange={(val) => handleToggleModule("enableTestimonials", val)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-giftcards">Gift Cards / Vouchers</Label>
-                  <Switch
-                    id="f-giftcards"
-                    checked={form.enableGiftCards}
-                    onCheckedChange={(val) => handleToggleModule("enableGiftCards", val)}
-                  />
-                </div>
-              </div>
-            </div>
 
-            {/* Special Services */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold border-b pb-1 text-primary">Technical Services</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-cctv">CCTV Services Section</Label>
-                  <Switch
-                    id="f-cctv"
-                    checked={form.enableCCTV}
-                    onCheckedChange={(val) => handleToggleModule("enableCCTV", val)}
-                  />
+                {/* Marketing, Comm & Services */}
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold border-b pb-1 text-primary">Marketing & Services</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="cursor-pointer" htmlFor="f-flashdeals">Flash Deals Section</Label>
+                        <Switch id="f-flashdeals" checked={form.enableFlashDeals} onCheckedChange={(val) => handleToggleModule("enableFlashDeals", val)} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="cursor-pointer" htmlFor="f-affiliate">Affiliate System</Label>
+                        <Switch id="f-affiliate" checked={form.enableAffiliate} onCheckedChange={(val) => handleToggleModule("enableAffiliate", val)} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="cursor-pointer" htmlFor="f-newsletter">Newsletter</Label>
+                        <Switch id="f-newsletter" checked={form.enableNewsletter} onCheckedChange={(val) => handleToggleModule("enableNewsletter", val)} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="cursor-pointer" htmlFor="f-testimonials">Testimonials</Label>
+                        <Switch id="f-testimonials" checked={form.enableTestimonials} onCheckedChange={(val) => handleToggleModule("enableTestimonials", val)} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="cursor-pointer" htmlFor="f-giftcards">Gift Cards</Label>
+                        <Switch id="f-giftcards" checked={form.enableGiftCards} onCheckedChange={(val) => handleToggleModule("enableGiftCards", val)} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold border-b pb-1 text-primary">Communication & Technical</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="cursor-pointer" htmlFor="f-whatsapp">WhatsApp Floating Button</Label>
+                        <Switch id="f-whatsapp" checked={form.enableWhatsApp} onCheckedChange={(val) => handleToggleModule("enableWhatsApp", val)} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="cursor-pointer" htmlFor="f-livechat">Live Chat Icon</Label>
+                        <Switch id="f-livechat" checked={form.enableLiveChat} onCheckedChange={(val) => handleToggleModule("enableLiveChat", val)} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="cursor-pointer" htmlFor="f-cctv">CCTV Services</Label>
+                        <Switch id="f-cctv" checked={form.enableCCTV} onCheckedChange={(val) => handleToggleModule("enableCCTV", val)} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="cursor-pointer" htmlFor="f-repairs">Repair Services</Label>
+                        <Switch id="f-repairs" checked={form.enableRepairServices} onCheckedChange={(val) => handleToggleModule("enableRepairServices", val)} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <Label className="cursor-pointer" htmlFor="f-repairs">Repair Services Module</Label>
-                  <Switch
-                    id="f-repairs"
-                    checked={form.enableRepairServices}
-                    onCheckedChange={(val) => handleToggleModule("enableRepairServices", val)}
-                  />
-                </div>
+
               </div>
-            </div>
-          </div>
               <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
                 <p className="text-[11px] text-amber-800 leading-relaxed">
                   <strong>⚠️ Developer Note:</strong> Turning off these modules will hide their sections from the frontend homepage and navigation.

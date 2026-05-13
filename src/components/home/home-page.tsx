@@ -11,7 +11,7 @@ import { Sparkles, TrendingUp, Star } from "lucide-react";
 import { useStore } from "@/store/use-store";
 
 export function HomePage() {
-  const { siteSettings } = useStore();
+  const { isModuleEnabled } = useStore();
 
   return (
     <div className="space-y-0">
@@ -19,7 +19,7 @@ export function HomePage() {
       
       <div className="container mx-auto px-4 space-y-12 py-12">
         <CategoryGrid />
-        {siteSettings?.enableFlashDeals !== false && <FlashDeals />}
+        {isModuleEnabled("enableFlashDeals") && <FlashDeals />}
         <ProductSection
           title="Featured Products"
           subtitle="Hand-picked by our experts"
@@ -46,7 +46,7 @@ export function HomePage() {
         <RecentlyViewed />
       </div>
 
-      {siteSettings?.enableNewsletter !== false && <NewsletterSection />}
+      {isModuleEnabled("enableNewsletter") && <NewsletterSection />}
     </div>
   );
 }

@@ -279,6 +279,7 @@ export function ProductDetail({ productId }: ProductDetailProps) {
     navigateToProduct,
     setCurrentView,
     addRecentlyViewed,
+    isModuleEnabled,
   } = useStore();
 
   // Use prop or fallback to store-selected product
@@ -824,13 +825,15 @@ export function ProductDetail({ productId }: ProductDetailProps) {
           <h1 className="text-2xl md:text-3xl font-bold">{product.name}</h1>
 
           {/* Rating & Reviews */}
-          <div className="flex items-center gap-3">
-            <StarRating rating={averageRating} />
-            <span className="text-sm text-muted-foreground">
-              {averageRating.toFixed(1)} ({totalReviews} review
-              {totalReviews !== 1 ? "s" : ""})
-            </span>
-          </div>
+          {isModuleEnabled("enableReviews") && (
+            <div className="flex items-center gap-3">
+              <StarRating rating={averageRating} />
+              <span className="text-sm text-muted-foreground">
+                {averageRating.toFixed(1)} ({totalReviews} review
+                {totalReviews !== 1 ? "s" : ""})
+              </span>
+            </div>
+          )}
 
           {/* Price */}
           <div className="flex items-baseline gap-3">
@@ -894,65 +897,73 @@ export function ProductDetail({ productId }: ProductDetailProps) {
           <Separator />
 
           {/* Quantity Selector */}
-          <div className="flex items-center gap-4">
-            <span className="font-medium text-sm">Quantity:</span>
-            <div className="flex items-center border rounded-lg">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-              >
-                <Minus className="w-4 h-4" />
-              </Button>
-              <span className="w-10 text-center font-medium">{quantity}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9"
-                onClick={() =>
-                  setQuantity(Math.min(product.stock, quantity + 1))
-                }
-                disabled={quantity >= product.stock}
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
+          {isModuleEnabled("enableCart") && (
+            <div className="flex items-center gap-4">
+              <span className="font-medium text-sm">Quantity:</span>
+              <div className="flex items-center border rounded-lg">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                >
+                  <Minus className="w-4 h-4" />
+                </Button>
+                <span className="w-10 text-center font-medium">{quantity}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={() =>
+                    setQuantity(Math.min(product.stock, quantity + 1))
+                  }
+                  disabled={quantity >= product.stock}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              size="lg"
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
-              disabled={product.stock === 0}
-              onClick={handleAddToCart}
-            >
-              <ShoppingCart className="w-5 h-5 mr-2" /> Add to Cart
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={handleToggleWishlist}
-              className={wishlisted ? "border-red-500 text-red-500" : ""}
-            >
-              <Heart
-                className={`w-5 h-5 mr-2 ${wishlisted ? "fill-current" : ""}`}
-              />
-              {wishlisted ? "Wishlisted" : "Wishlist"}
-            </Button>
+            {isModuleEnabled("enableCart") && (
+              <Button
+                size="lg"
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                disabled={product.stock === 0}
+                onClick={handleAddToCart}
+              >
+                <ShoppingCart className="w-5 h-5 mr-2" /> Add to Cart
+              </Button>
+            )}
+            {isModuleEnabled("enableWishlist") && (
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleToggleWishlist}
+                className={wishlisted ? "border-red-500 text-red-500" : ""}
+              >
+                <Heart
+                  className={`w-5 h-5 mr-2 ${wishlisted ? "fill-current" : ""}`}
+                />
+                {wishlisted ? "Wishlisted" : "Wishlist"}
+              </Button>
+            )}
           </div>
 
           {/* Secondary Actions */}
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAddToCompare}
-            >
-              Compare
-            </Button>
+            {isModuleEnabled("enableCompare") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddToCompare}
+              >
+                Compare
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={handleShare}>
               <Share2 className="w-4 h-4 mr-1" /> Share
             </Button>
@@ -1182,9 +1193,11 @@ export function ProductDetail({ productId }: ProductDetailProps) {
               🎬 Videos
             </TabsTrigger>
           )}
-          <TabsTrigger value="reviews">
-            Reviews ({totalReviews})
-          </TabsTrigger>
+          {isModuleEnabled("enableReviews") && (
+            <TabsTrigger value="reviews">
+              Reviews ({totalReviews})
+            </TabsTrigger>
+          )}
           <TabsTrigger value="price-history" className="gap-1">
             <TrendingUp className="w-3.5 h-3.5" /> Price History
           </TabsTrigger>
@@ -1418,8 +1431,9 @@ export function ProductDetail({ productId }: ProductDetailProps) {
         )}
 
         {/* Reviews Tab */}
-        <TabsContent value="reviews" className="mt-4">
-          <div className="space-y-6">
+        {isModuleEnabled("enableReviews") && (
+          <TabsContent value="reviews" className="mt-4">
+            <div className="space-y-6">
             {/* Rating Summary */}
             <div className="flex flex-col md:flex-row gap-6 p-6 bg-gray-50 dark:bg-gray-800 rounded-xl">
               {/* Left - Big rating */}
@@ -1641,6 +1655,7 @@ export function ProductDetail({ productId }: ProductDetailProps) {
             </div>
           </div>
         </TabsContent>
+        )}
       </Tabs>
 
       {/* ---- Related Products ---- */}

@@ -85,6 +85,9 @@ export function Header() {
     if (link.view === "prebuilt") return isModuleEnabled("enablePrebuiltPC");
     if (link.view === "gift-card") return isModuleEnabled("enableGiftCards");
     if (link.view === "affiliate") return isModuleEnabled("enableAffiliate");
+    if (link.view === "about") return isModuleEnabled("enableAboutPage");
+    if (link.view === "contact") return isModuleEnabled("enableContactPage");
+    if (link.view === "order-tracking") return isModuleEnabled("enableOrderTracking");
     return true;
   });
   const { theme, setTheme } = useTheme();
@@ -175,6 +178,7 @@ export function Header() {
       isVisible ? "translate-y-0" : "-translate-y-full"
     }`}>
       {/* ---- Top Bar - Contact info ---- */}
+      {isModuleEnabled("enableTopBar") && (
       <div className="bg-blue-600 text-white text-xs sm:text-sm">
         <div className="container mx-auto px-4 py-1.5 flex items-center justify-between">
           <div className="hidden sm:flex items-center gap-4">
@@ -201,6 +205,7 @@ export function Header() {
               >
                 <Globe className="w-4 h-4" />
               </a>
+              {isModuleEnabled("enableThemeToggle") && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -211,10 +216,12 @@ export function Header() {
                 <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
                 <span className="sr-only">Toggle theme</span>
               </Button>
+              )}
             </div>
             )}
         </div>
       </div>
+      )}
 
       {/* ---- Main Header ---- */}
       <div className="container mx-auto px-4 py-3">
@@ -260,6 +267,7 @@ export function Header() {
             </Button>
 
             {/* Compare */}
+            {isModuleEnabled("enableCompare") && (
             <Button
               variant="ghost"
               size="icon"
@@ -273,8 +281,10 @@ export function Header() {
                 </Badge>
               )}
             </Button>
+            )}
 
             {/* Wishlist */}
+            {isModuleEnabled("enableWishlist") && (
             <Button
               variant="ghost"
               size="icon"
@@ -288,8 +298,10 @@ export function Header() {
                 </Badge>
               )}
             </Button>
+            )}
 
             {/* Chatbot Icon */}
+            {isModuleEnabled("enableLiveChat") && (
             <Button
               variant="ghost"
               size="icon"
@@ -298,8 +310,10 @@ export function Header() {
             >
               <MessageSquareText className="w-5 h-5 text-blue-600" />
             </Button>
+            )}
 
             {/* Account */}
+            {isModuleEnabled("enableUserAccounts") && (
             <div className="relative" ref={accountRef}>
               <Button
                 variant="ghost"
@@ -360,8 +374,10 @@ export function Header() {
                 </div>
               )}
             </div>
+            )}
 
             {/* Cart */}
+            {isModuleEnabled("enableCart") && (
             <Button
               variant="ghost"
               size="icon"
@@ -375,6 +391,7 @@ export function Header() {
                 </Badge>
               )}
             </Button>
+            )}
 
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -399,6 +416,7 @@ export function Header() {
                     </button>
                   ))}
                   <div className="border-t my-2" />
+                  {isModuleEnabled("enableUserAccounts") && (
                   <button
                     onClick={() => { setCurrentView(isLoggedIn ? "customer-account" : "customer-login"); setIsMobileMenuOpen(false); }}
                     className="flex items-center gap-2 px-4 py-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 text-left transition-colors"
@@ -406,13 +424,7 @@ export function Header() {
                     <User className="w-4 h-4 text-emerald-600" />
                     <span>{isLoggedIn ? "My Account" : "Sign In"}</span>
                   </button>
-                  <button
-                    onClick={() => setCurrentView("order-tracking")}
-                    className="flex items-center gap-2 px-4 py-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 text-left transition-colors"
-                  >
-                    <MapPin className="w-4 h-4 text-blue-600" />
-                    <span>Track Order</span>
-                  </button>
+                  )}
                   
                   <Link
                     href="/admin"
@@ -482,13 +494,17 @@ export function Header() {
               </button>
             ))}
             <div className="ml-auto flex items-center gap-2">
-              <button
-                onClick={() => setCurrentView("faq")}
-                className="px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                FAQ
-              </button>
-              <span className="text-muted-foreground/30">|</span>
+              {isModuleEnabled("enableFAQ") && (
+              <>
+                <button
+                  onClick={() => setCurrentView("faq")}
+                  className="px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  FAQ
+                </button>
+                <span className="text-muted-foreground/30">|</span>
+              </>
+              )}
               <Link
                 href="/admin"
                 className="px-3 py-2 text-xs text-blue-600 hover:underline"

@@ -21,7 +21,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { addToCart, addToWishlist, addToCompare, navigateToProduct, isInWishlist, isInCompare } = useStore();
+  const { addToCart, addToWishlist, addToCompare, navigateToProduct, isInWishlist, isInCompare, isModuleEnabled } = useStore();
   const images: string[] = typeof product.images === "string" ? JSON.parse(product.images || "[]") : (product.images || []);
   const discount =
     product.originalPrice && product.originalPrice > product.price
@@ -63,7 +63,8 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Quick Actions */}
         <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button
+          {isModuleEnabled("enableWishlist") && (
+            <Button
             size="sm"
             variant={isInWishlist(product.id) ? "default" : "secondary"}
             className="h-8 w-8 p-0 rounded-full"
@@ -83,8 +84,10 @@ export function ProductCard({ product }: ProductCardProps) {
             }}
           >
             <Heart className={`w-3 h-3 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
-          </Button>
-          <Button
+            </Button>
+          )}
+          {isModuleEnabled("enableCompare") && (
+            <Button
             size="sm"
             variant={isInCompare(product.id) ? "default" : "secondary"}
             className="h-8 w-8 p-0 rounded-full"
@@ -107,7 +110,8 @@ export function ProductCard({ product }: ProductCardProps) {
             }}
           >
             <GitCompareArrows className="w-3 h-3" />
-          </Button>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -133,7 +137,8 @@ export function ProductCard({ product }: ProductCardProps) {
             </span>
           )}
         </div>
-        <Button
+        {isModuleEnabled("enableCart") && (
+          <Button
           size="sm"
           className="w-full bg-blue-600 hover:bg-blue-700 text-xs"
           disabled={product.stock === 0}
@@ -153,7 +158,8 @@ export function ProductCard({ product }: ProductCardProps) {
           }}
         >
           <ShoppingCart className="w-3 h-3 mr-1" /> Add to Cart
-        </Button>
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

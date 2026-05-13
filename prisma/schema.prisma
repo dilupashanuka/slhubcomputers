@@ -201,6 +201,21 @@ model SiteSettings {
   enableCoupons   Boolean @default(true)
   enableReviews   Boolean @default(true)
   enableRepairServices Boolean @default(true)
+  
+  // New Module Toggles
+  enableTopBar    Boolean @default(true)
+  enableThemeToggle Boolean @default(true)
+  enableCompare   Boolean @default(true)
+  enableWishlist  Boolean @default(true)
+  enableUserAccounts Boolean @default(true)
+  enableCart      Boolean @default(true)
+  enableFAQ       Boolean @default(true)
+  enableOrderTracking Boolean @default(true)
+  enableWhatsApp  Boolean @default(true)
+  enableLiveChat  Boolean @default(true)
+  enableAboutPage Boolean @default(true)
+  enableContactPage Boolean @default(true)
+
   // SMS Notification Settings
   smsProvider     String?  // twilio, dialog, hutch, none
   smsApiKey       String?

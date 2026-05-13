@@ -30,7 +30,10 @@ export async function PUT(request: NextRequest) {
       "accentColor", "enableCCTV", "enablePCBuilder", "enableAffiliate", 
       "enableTestimonials", "enableNewsletter", "enablePrebuiltPC", 
       "enableGiftCards", "enableCoupons", "enableReviews", "enableRepairServices",
-      "smsProvider", "smsApiKey", "smsApiSecret", "smsFromNumber", 
+      "enableTopBar", "enableThemeToggle", "enableCompare", "enableWishlist",
+      "enableUserAccounts", "enableCart", "enableFAQ", "enableOrderTracking",
+      "enableWhatsApp", "enableLiveChat", "enableAboutPage", "enableContactPage",
+      "enableFlashDeals", "smsProvider", "smsApiKey", "smsApiSecret", "smsFromNumber", 
       "smsEnabled", "smsOrderConfirmation", "smsStatusUpdates", 
       "smsBackInStock", "smsDeliveryUpdates"
     ];

@@ -135,9 +135,9 @@ export function Footer() {
               {isModuleEnabled("enablePrebuiltPC") && <li><button onClick={() => nav("prebuilt")} className="hover:text-blue-400 transition-colors">Pre-Built PCs</button></li>}
               {isModuleEnabled("enablePCBuilder") && <li><button onClick={() => nav("pc-builder")} className="hover:text-blue-400 transition-colors">PC Builder</button></li>}
               {isModuleEnabled("enableGiftCards") && <li><button onClick={() => nav("gift-card")} className="hover:text-blue-400 transition-colors">Gift Cards</button></li>}
-              <li><button onClick={() => nav("about")} className="hover:text-blue-400 transition-colors">About Us</button></li>
-              <li><button onClick={() => nav("contact")} className="hover:text-blue-400 transition-colors">Contact Us</button></li>
-              <li><button onClick={() => nav("faq")} className="hover:text-blue-400 transition-colors">FAQ</button></li>
+              {isModuleEnabled("enableAboutPage") && <li><button onClick={() => nav("about")} className="hover:text-blue-400 transition-colors">About Us</button></li>}
+              {isModuleEnabled("enableContactPage") && <li><button onClick={() => nav("contact")} className="hover:text-blue-400 transition-colors">Contact Us</button></li>}
+              {isModuleEnabled("enableFAQ") && <li><button onClick={() => nav("faq")} className="hover:text-blue-400 transition-colors">FAQ</button></li>}
               {isModuleEnabled("enableAffiliate") && <li><button onClick={() => nav("affiliate")} className="hover:text-blue-400 transition-colors">Affiliate Program</button></li>}
             </ul>
           </div>
@@ -146,11 +146,11 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Company & Policies</h4>
             <ul className="space-y-2 text-sm">
-              <li><button onClick={() => nav("about")} className="hover:text-blue-400 transition-colors">About SL HUB</button></li>
+              {isModuleEnabled("enableAboutPage") && <li><button onClick={() => nav("about")} className="hover:text-blue-400 transition-colors">About SL HUB</button></li>}
               <li><button onClick={() => nav("shipping")} className="hover:text-blue-400 transition-colors">Shipping Policy</button></li>
               <li><button onClick={() => nav("returns")} className="hover:text-blue-400 transition-colors">Returns & Refunds</button></li>
               <li><button onClick={() => nav("terms")} className="hover:text-blue-400 transition-colors">Terms & Conditions</button></li>
-              <li><button onClick={() => nav("faq")} className="hover:text-blue-400 transition-colors">FAQ</button></li>
+              {isModuleEnabled("enableFAQ") && <li><button onClick={() => nav("faq")} className="hover:text-blue-400 transition-colors">FAQ</button></li>}
             </ul>
           </div>
 
@@ -188,6 +188,7 @@ export function Footer() {
                 <span>Mon-Sat: 9AM-7PM<br />Sun: 10AM-5PM</span>
               </li>
             </ul>
+            {isModuleEnabled("enableWhatsApp") && (
             <a
               href="https://wa.me/94710678944"
               target="_blank"
@@ -196,6 +197,7 @@ export function Footer() {
             >
               <MessageCircle className="w-4 h-4" /> WhatsApp Us
             </a>
+            )}
           </div>
         </div>
       </div>
