@@ -15,9 +15,9 @@ import { db } from "@/lib/db";
 const memoryBlockedIPs = new Map<string, { reason: string; expiresAt: number }>();
 const failedAuthAttempts = new Map<string, { count: number; lastAttempt: number }>();
 
-const MAX_FAILED_ATTEMPTS = 5;
-const AUTO_BLOCK_DURATION = 15 * 60 * 1000; // 15 minutes
-const FAILED_ATTEMPTS_WINDOW = 15 * 60 * 1000; // 15 minutes
+const MAX_FAILED_ATTEMPTS = 10;               // 10 attempts before blocking
+const AUTO_BLOCK_DURATION = 5 * 60 * 1000;    // 5 minutes block
+const FAILED_ATTEMPTS_WINDOW = 15 * 60 * 1000; // 15 minute window
 
 /**
  * Check if an IP address is currently blocked

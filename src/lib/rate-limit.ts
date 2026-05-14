@@ -21,10 +21,10 @@ interface RateLimitConfig {
 
 // Rate limit configurations per route type
 export const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
-  auth: { windowMs: 60_000, maxRequests: 5 }, // 5 attempts per minute
-  api: { windowMs: 60_000, maxRequests: 60 }, // 60 requests per minute
+  auth: { windowMs: 120_000, maxRequests: 15 }, // 15 attempts per 2 minutes (mobile-friendly)
+  api: { windowMs: 60_000, maxRequests: 60 },   // 60 requests per minute
   admin: { windowMs: 60_000, maxRequests: 120 }, // 120 requests per minute
-  chat: { windowMs: 60_000, maxRequests: 20 }, // 20 messages per minute
+  chat: { windowMs: 60_000, maxRequests: 20 },   // 20 messages per minute
 };
 
 // In-memory store: Map<key, RateLimitEntry>
