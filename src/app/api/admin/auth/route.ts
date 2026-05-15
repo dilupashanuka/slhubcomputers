@@ -14,7 +14,7 @@ import bcrypt from "bcryptjs";
 
 // Cookie configuration
 const COOKIE_NAME = "admin-token";
-const COOKIE_MAX_AGE = 60 * 60 * 24; // 24 hours
+const COOKIE_MAX_AGE = 60 * 60; // 1 hour (Reduced from 24h as per request)
 
 // Simple token generator
 function generateToken(): string {
@@ -144,7 +144,6 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: COOKIE_MAX_AGE,
       path: "/",
     });
 
