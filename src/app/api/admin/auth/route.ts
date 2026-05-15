@@ -14,7 +14,7 @@ import bcrypt from "bcryptjs";
 
 // Cookie configuration
 const COOKIE_NAME = "admin-token";
-const COOKIE_MAX_AGE = 12 * 60 * 60; // 12 hours (Improved session persistence for admin)
+const COOKIE_MAX_AGE = 10 * 60; // 10 minutes (Strict security as requested)
 
 // Simple token generator
 function generateToken(): string {
