@@ -10,11 +10,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { recordFailedAuthAttempt, resetFailedAuthAttempts, isIPBlocked } from "@/lib/ip-block";
+import bcrypt from "bcryptjs";
 
 // Cookie configuration
 const COOKIE_NAME = "admin-token";
 const COOKIE_MAX_AGE = 60 * 60 * 24; // 24 hours
-const ADMIN_USERNAME = "admin";
 
 // Simple token generator
 function generateToken(): string {
@@ -62,11 +62,32 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { username, password } = body;
 
-    // Get admin password from env with fallback
-    const adminPassword = process.env.ADMIN_PASSWORD || "slhub2024";
+    if (!username || !password) {
+      return NextResponse.json(
+        { success: false, error: "Username and password are required" },
+        { status: 400 }
+      );
+    }
+
+    // Find admin account in database
+    const adminAccount = await db.adminAccount.findUnique({
+      where: { username },
+    });
+
+    let isValid = false;
+    let userId = username;
+
+    if (adminAccount && adminAccount.isActive) {
+      isValid = await bcrypt.compare(password, adminAccount.password);
+      userId = adminAccount.username;
+    } else if (!adminAccount && username === "admin") {
+      // Fallback to .env for the first time if the database hasn't been seeded
+      const adminPassword = process.env.ADMIN_PASSWORD || "slhub2024";
+      isValid = password === adminPassword;
+    }
 
     // Validate credentials
-    if (username !== ADMIN_USERNAME || password !== adminPassword) {
+    if (!isValid) {
       // Record failed attempt
       const result = await recordFailedAuthAttempt(ip);
 
@@ -89,7 +110,7 @@ export async function POST(request: NextRequest) {
     // Check if 2FA is enabled
     try {
       const twoFactor = await db.adminTwoFactor.findUnique({
-        where: { userId: ADMIN_USERNAME },
+        where: { userId },
       });
 
       if (twoFactor && twoFactor.isEnabled) {
@@ -105,6 +126,14 @@ export async function POST(request: NextRequest) {
     } catch (dbError) {
       console.error("2FA check error:", dbError);
       // If 2FA check fails, proceed without 2FA (graceful fallback)
+    }
+
+    // Update last login if account exists
+    if (adminAccount) {
+      await db.adminAccount.update({
+        where: { id: adminAccount.id },
+        data: { lastLogin: new Date() },
+      }).catch(err => console.error("Update last login error:", err));
     }
 
     // No 2FA - generate auth token and set cookie

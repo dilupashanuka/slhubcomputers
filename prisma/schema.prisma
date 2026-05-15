@@ -719,3 +719,21 @@ model AISettings {
   createdAt       DateTime @default(now())
 }
 
+// ---------------------------------------------------------------------------
+// AdminAccount Model - Secure admin accounts with hashed passwords
+// ---------------------------------------------------------------------------
+model AdminAccount {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String   // Hashed password
+  role      String   @default("admin") // admin, superadmin, moderator
+  name      String?
+  email     String?  @unique
+  avatar    String?
+  isActive  Boolean  @default(true)
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([username])
+}
