@@ -371,6 +371,9 @@ export default function OrdersPage() {
                 </Button>
               )}
             </DialogTitle>
+            <DialogDescription>
+              Detailed view of the order items, customer information, and shipping address.
+            </DialogDescription>
           </DialogHeader>
 
           {selectedOrder && (
@@ -461,6 +464,9 @@ export default function OrdersPage() {
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Update Order Status</DialogTitle>
+            <DialogDescription>
+              Change the current processing stage of this order.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">

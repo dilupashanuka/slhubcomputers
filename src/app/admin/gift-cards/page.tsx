@@ -382,6 +382,9 @@ export default function AdminGiftCardsPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Bulk Generate Gift Cards</DialogTitle>
+                <DialogDescription>
+                  Generate multiple gift card codes at once with specified amount and occasion.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-2">
                 <div className="space-y-1.5">
@@ -433,6 +436,9 @@ export default function AdminGiftCardsPage() {
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>Create Gift Card</DialogTitle>
+                <DialogDescription>
+                  Manually create a single gift card with custom details and recipient info.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-2 max-h-[70vh] overflow-y-auto">
                 <div className="grid grid-cols-2 gap-4">
@@ -692,6 +698,9 @@ export default function AdminGiftCardsPage() {
               <CreditCard className="size-5 text-primary" />
               Gift Card Details
             </SheetTitle>
+            <SheetDescription>
+              View balance, transaction history, and detailed information for this gift card.
+            </SheetDescription>
           </SheetHeader>
           {selectedCard && (
             <div className="mt-6 space-y-6">

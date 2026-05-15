@@ -309,6 +309,9 @@ export default function ReviewsPage() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Review Details</DialogTitle>
+            <DialogDescription>
+              View the full content and rating of the customer review.
+            </DialogDescription>
           </DialogHeader>
 
           {selectedReview && (

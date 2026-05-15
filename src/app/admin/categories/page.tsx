@@ -325,6 +325,11 @@ export default function CategoriesPage() {
             <DialogTitle>
               {editingId ? "Edit Category" : "Add New Category"}
             </DialogTitle>
+            <DialogDescription>
+              {editingId 
+                ? "Update category details, images, and hierarchy." 
+                : "Create a new product category for your catalog."}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">

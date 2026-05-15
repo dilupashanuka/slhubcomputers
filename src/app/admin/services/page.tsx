@@ -330,6 +330,11 @@ export default function ServicesPage() {
             <DialogTitle>
               {editingId ? "Edit Service" : "Add New Service"}
             </DialogTitle>
+            <DialogDescription>
+              {editingId 
+                ? "Update the configuration and features of this service." 
+                : "Enter the details to create a new service offering for customers."}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">

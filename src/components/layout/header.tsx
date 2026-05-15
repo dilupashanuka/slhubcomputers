@@ -16,7 +16,7 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Search,
@@ -408,6 +408,9 @@ export function Header() {
                   <SheetTitle className="text-blue-600 font-bold text-xl mb-0">
                     SL HUB COMPUTER
                   </SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Mobile navigation menu for SL HUB COMPUTER. Browse categories, build your PC, and more.
+                  </SheetDescription>
                 </div>
 
                 <ScrollArea className="flex-1">

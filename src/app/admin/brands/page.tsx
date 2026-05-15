@@ -308,6 +308,11 @@ export default function BrandsPage() {
             <DialogTitle>
               {editingId ? "Edit Brand" : "Add New Brand"}
             </DialogTitle>
+            <DialogDescription>
+              {editingId 
+                ? "Update brand information, logo, and display order." 
+                : "Add a new product brand to your catalog."}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">

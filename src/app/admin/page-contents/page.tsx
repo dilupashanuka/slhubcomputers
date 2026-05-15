@@ -280,6 +280,11 @@ export default function PageContentsPage() {
             <DialogTitle>
               {editingId ? "Edit Page Content" : "Add New Page Content"}
             </DialogTitle>
+            <DialogDescription>
+              {editingId 
+                ? "Update the content and SEO settings for this page." 
+                : "Create a new static page with custom content and SEO metadata."}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">

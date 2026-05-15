@@ -319,6 +319,9 @@ export default function MessagesPage() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Message Details</DialogTitle>
+            <DialogDescription>
+              View the full content of the message and its sender information.
+            </DialogDescription>
           </DialogHeader>
 
           {selectedMessage && (

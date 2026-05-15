@@ -306,6 +306,11 @@ export default function TestimonialsPage() {
             <DialogTitle>
               {editingId ? "Edit Testimonial" : "Add New Testimonial"}
             </DialogTitle>
+            <DialogDescription>
+              {editingId 
+                ? "Update the details and content for this customer testimonial." 
+                : "Create a new testimonial to showcase on the homepage."}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">

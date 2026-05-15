@@ -661,10 +661,10 @@ export default function PrebuiltPCsPage() {
         <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Store Preview</DialogTitle>
+            <DialogDescription>
+              This is how the PC package will appear on the storefront.
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-xs text-muted-foreground -mt-2">
-            This is how the PC package will appear on the storefront
-          </p>
           <PreviewCard pc={previewPC} />
         </DialogContent>
       </Dialog>
@@ -676,6 +676,11 @@ export default function PrebuiltPCsPage() {
             <DialogTitle>
               {editingId ? "Edit Pre-Built PC" : "Add New Pre-Built PC"}
             </DialogTitle>
+            <DialogDescription>
+              {editingId 
+                ? "Modify the configuration, specifications, and images for this PC package." 
+                : "Create a new pre-built PC package with full specifications and features."}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-5 py-2">

@@ -356,6 +356,9 @@ export default function AdminAffiliatesPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create Affiliate</DialogTitle>
+                <DialogDescription>
+                  Register a new affiliate partner by providing their contact details and commission rate.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div>
@@ -613,6 +616,9 @@ export default function AdminAffiliatesPage() {
                       {selectedAffiliate.code}
                     </code>
                   </DialogTitle>
+                  <DialogDescription>
+                    Overview of the affiliate&apos;s performance, including total earnings, referrals, and payment history.
+                  </DialogDescription>
                 </DialogHeader>
                 {detailLoading ? (
                   <div className="flex items-center justify-center py-8">
@@ -722,6 +728,9 @@ export default function AdminAffiliatesPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Edit Affiliate - {selectedAffiliate?.name}</DialogTitle>
+                <DialogDescription>
+                  Modify the commission rate or account status for this affiliate partner.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div>
@@ -754,6 +763,9 @@ export default function AdminAffiliatesPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Process Payment - {selectedAffiliate?.name}</DialogTitle>
+                <DialogDescription>
+                  Record a payment transaction to settle pending earnings for this affiliate.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 text-center">
