@@ -46,6 +46,7 @@ import {
   LogOut,
   Package,
   Settings,
+  ArrowLeft,
 } from "lucide-react";
 import type { ViewType } from "@/types";
 
