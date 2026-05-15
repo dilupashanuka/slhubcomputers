@@ -427,8 +427,8 @@ function NotificationBell({
           )}
         </div>
 
-        {/* Notifications List */}
-        <ScrollArea className="h-[400px] w-full">
+        {/* Notifications List - Standard scrollable div for better mobile reliability */}
+        <div className="max-h-[400px] w-full overflow-y-auto py-1">
           {notifications.length === 0 && recentActivity.length === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground">
               <BellOff className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
@@ -516,7 +516,7 @@ function NotificationBell({
               )}
             </div>
           )}
-        </ScrollArea>
+        </div>
 
         {/* Footer */}
         <div className="p-2 border-t flex items-center justify-between">
