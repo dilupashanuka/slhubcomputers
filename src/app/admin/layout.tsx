@@ -428,7 +428,7 @@ function NotificationBell({
         </div>
 
         {/* Notifications List */}
-        <ScrollArea className="h-72">
+        <ScrollArea className="h-[400px] w-full">
           {notifications.length === 0 && recentActivity.length === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground">
               <BellOff className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
@@ -436,11 +436,11 @@ function NotificationBell({
               <p className="text-[11px] mt-1">You&apos;re all caught up!</p>
             </div>
           ) : (
-            <div className="divide-y">
+            <div className="divide-y flex flex-col">
               {/* Real notifications from Notification model */}
               {notifications.length > 0 && (
                 <>
-                  {notifications.slice(0, 8).map((notification) => {
+                  {notifications.slice(0, 15).map((notification) => {
                     const Icon = getNotificationIcon(notification.type);
                     const colorClass = getNotificationColor(notification.type);
 
