@@ -65,6 +65,7 @@ function LoginForm() {
     }
 
     setLoading(true);
+    console.log("Attempting login for:", username);
 
     try {
       const res = await fetch("/api/admin/auth", {
@@ -73,7 +74,18 @@ function LoginForm() {
         body: JSON.stringify({ username, password }),
       });
 
+      console.log("Login response status:", res.status);
+
+      // Check if response is JSON
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Non-JSON response received:", text);
+        throw new Error(`Server returned non-JSON response (${res.status})`);
+      }
+
       const data = await res.json();
+      console.log("Login response data:", data);
 
       if (data.success) {
         if (data.requires2FA) {
@@ -82,13 +94,19 @@ function LoginForm() {
           setRequires2FA(true);
         } else {
           // No 2FA - redirect to admin dashboard
+          console.log("Login successful, redirecting to:", redirectPath);
           router.push(redirectPath);
         }
       } else {
         setError(data.error || "Login failed. Please try again.");
       }
-    } catch (err) {
-      setError("Network error. Please check your connection and try again.");
+    } catch (err: any) {
+      console.error("Login submission error:", err);
+      setError(
+        err.message?.includes("non-JSON") 
+          ? `Server Error: ${err.message}`
+          : "Network error. Please check your connection and try again."
+      );
     } finally {
       setLoading(false);
     }

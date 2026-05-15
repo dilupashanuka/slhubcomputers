@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Search,
   ShoppingCart,
@@ -73,6 +74,7 @@ export function Header() {
     setIsMobileMenuOpen,
     siteSettings,
     isModuleEnabled,
+    navigateToSearch,
   } = useStore();
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -400,53 +402,86 @@ export function Header() {
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80">
-                <SheetTitle className="text-blue-600 font-bold text-xl mb-4">
-                  SL HUB COMPUTER
-                </SheetTitle>
-                <nav className="flex flex-col gap-2">
-                  {filteredNavLinks.map((link) => (
-                    <button
-                      key={link.view}
-                      onClick={() => setCurrentView(link.view)}
-                      className="flex items-center gap-2 px-4 py-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 text-left transition-colors"
-                    >
-                      {link.icon}
-                      <span>{link.label}</span>
-                    </button>
-                  ))}
-                  <div className="border-t my-2" />
-                  {isModuleEnabled("enableUserAccounts") && (
-                  <button
-                    onClick={() => { setCurrentView(isLoggedIn ? "customer-account" : "customer-login"); setIsMobileMenuOpen(false); }}
-                    className="flex items-center gap-2 px-4 py-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 text-left transition-colors"
-                  >
-                    <User className="w-4 h-4 text-emerald-600" />
-                    <span>{isLoggedIn ? "My Account" : "Sign In"}</span>
-                  </button>
-                  )}
-                  
-                  <Link
-                    href="/admin"
-                    className="px-4 py-2 text-sm text-blue-600 hover:underline text-left"
-                  >
-                    Admin Panel →
-                  </Link>
-                </nav>
+              <SheetContent side="left" className="w-80 p-0 flex flex-col h-full">
+                <div className="p-6 border-b shrink-0">
+                  <SheetTitle className="text-blue-600 font-bold text-xl mb-0">
+                    SL HUB COMPUTER
+                  </SheetTitle>
+                </div>
 
-                  <div className="mt-auto pt-6 border-t">
-                  <div className="flex flex-col gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Developer</p>
+                <ScrollArea className="flex-1">
+                  <div className="p-4">
+                    <nav className="flex flex-col gap-1">
+                      {filteredNavLinks.map((link) => (
+                        <button
+                          key={link.view}
+                          onClick={() => {
+                            setCurrentView(link.view);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
+                            currentView === link.view
+                              ? "bg-blue-600 text-white shadow-md shadow-blue-200 dark:shadow-none"
+                              : "hover:bg-blue-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+                          }`}
+                        >
+                          <span className={`${currentView === link.view ? "text-white" : "text-blue-600"}`}>
+                            {link.icon}
+                          </span>
+                          <span className="font-medium">{link.label}</span>
+                        </button>
+                      ))}
+                      
+                      <div className="border-t my-4 opacity-50" />
+                      
+                      {isModuleEnabled("enableUserAccounts") && (
+                        <button
+                          onClick={() => { 
+                            setCurrentView(isLoggedIn ? "customer-account" : "customer-login"); 
+                            setIsMobileMenuOpen(false); 
+                          }}
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-left transition-colors group"
+                        >
+                          <div className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <span className="font-medium text-gray-700 dark:text-gray-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                            {isLoggedIn ? "My Account" : "Sign In"}
+                          </span>
+                        </button>
+                      )}
+                      
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 text-left transition-colors group"
+                      >
+                        <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600">
+                          <Settings className="w-4 h-4" />
+                        </div>
+                        <span className="font-medium text-blue-600 group-hover:text-blue-700">
+                          Admin Panel
+                        </span>
+                      </Link>
+                    </nav>
+                  </div>
+                </ScrollArea>
+
+                <div className="p-4 border-t bg-gray-50 dark:bg-gray-900/50 shrink-0">
+                  <div className="flex flex-col gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border shadow-sm">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Developer</p>
                     <a 
                       href="https://wa.me/94710678944" 
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 group"
+                      className="flex items-center gap-3 group"
                     >
-                      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black group-hover:scale-110 transition-transform shadow-md">S</div>
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center text-white font-black group-hover:rotate-6 transition-all shadow-lg shadow-blue-200 dark:shadow-none">S</div>
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-gray-800 dark:text-gray-100">SHANUKA DIGITAL</span>
-                        <span className="text-[10px] text-blue-500 font-medium">Click to contact</span>
+                        <span className="text-xs font-bold text-gray-900 dark:text-gray-100 tracking-tight">SHANUKA DIGITAL</span>
+                        <span className="text-[10px] text-blue-600 font-bold flex items-center gap-1">
+                          Contact Developer <ArrowLeft className="w-2 h-2 rotate-180" />
+                        </span>
                       </div>
                     </a>
                   </div>
